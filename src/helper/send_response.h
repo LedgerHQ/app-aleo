@@ -13,27 +13,24 @@
 #define CHAINCODE_LEN (MEMBER_SIZE(pubkey_ctx_t, chain_code))
 
 /**
- * Helper to send APDU response with public key and chain code.
+ * Helper to send APDU response with address.
  *
- * response = PUBKEY_LEN (1) ||
- *            G_context.pk_info.public_key (PUBKEY_LEN) ||
- *            CHAINCODE_LEN (1) ||
- *            G_context.pk_info.chain_code (CHAINCODE_LEN)
+ * response = ADDRESS_LEN (1) ||
+ *            G_context.address (ADDRESS_LEN)
  *
  * @return zero or positive integer if success, -1 otherwise.
  *
  */
-int helper_send_response_pubkey(void);
+int helper_send_response_get_address(void);
 
 /**
- * Helper to send APDU response with signature and v (parity of
- * y-coordinate of R).
+ * Helper to send APDU response with view key.
  *
- * response = G_context.tx_info.signature_len (1) ||
- *            G_context.tx_info.signature (G_context.tx_info.signature_len) ||
- *            G_context.tx_info.v (1)
+ * response = VIEW_KEY_LEN (1) ||
+ *            G_context.view_key (VIEW_KEY_LEN)
  *
  * @return zero or positive integer if success, -1 otherwise.
  *
  */
-int helper_send_response_sig(void);
+int helper_send_response_get_view_key(void);
+

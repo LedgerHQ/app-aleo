@@ -8,7 +8,6 @@
 
 #include "types.h"
 #include "format.h"
-#include "address.h"
 #include "tx_types.h"
 
 #include <string.h>
@@ -76,7 +75,7 @@ void swap_handle_check_address(check_address_parameters_t *params) {
     }
 
     uint8_t address[ADDRESS_LEN] = {0};
-    address_from_pubkey(pk_info.raw_public_key, address, sizeof(address));
+    //address_from_pubkey(pk_info.raw_public_key, address, sizeof(address));
 
     char derived_address[41];
     memset(derived_address, 0, sizeof(derived_address));

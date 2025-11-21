@@ -247,3 +247,13 @@ For a smooth and quick integration:
 
 * See the developers’ documentation on the [Developer Portal](https://developers.ledger.com/), and
 * [Go on Discord](https://developers.ledger.com/discord-pro/) to chat with developer support and the developer community.
+
+
+```shell
+convert icons/app_aleo.png -background white -flatten -resize "48x48" -alpha off -threshold 50% -define png:color-type=3 -define png:bit-depth=1 glyphs/app_aleo_48px_1bpp.png
+convert icons/app_aleo.png -background white -flatten -resize "32x32" -alpha off -threshold 50% -define png:color-type=3 -define png:bit-depth=1 icons/app_aleo_32px_1bpp.png
+convert icons/app_aleo.png -alpha off +dither -resize "32x32" -colors 16 -depth 8 PNG24:icons/app_aleo_32px_4bpp.png
+convert icons/app_aleo.png -alpha off +dither -resize "40x40" -colors 16 -depth 8 PNG24:icons/app_aleo_40px_4bpp.png
+convert icons/app_aleo.png -background white -flatten -resize "14x14" -alpha off -threshold 50% -negate -define png:color-type=3 -define png:bit-depth=1 icons/app_aleo_14px_1bpp.png
+convert icons/app_aleo.png -alpha off +dither -resize "64x64" -colors 16 -depth 8 PNG24:glyphs/app_aleo_64px_4bpp.png
+```

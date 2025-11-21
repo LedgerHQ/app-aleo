@@ -1,6 +1,6 @@
 # ****************************************************************************
-#    Ledger App Boilerplate
-#    (c) 2023 Ledger SAS.
+#    Ledger App Aleo
+#    (c) 2025 Ledger SAS.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -25,12 +25,12 @@ include $(BOLOS_SDK)/Makefile.target
 #        Mandatory configuration       #
 ########################################
 # Application name
-APPNAME = "Boilerplate"
+APPNAME = "Aleo"
 
 # Application version
-APPVERSION_M = 2
-APPVERSION_N = 2
-APPVERSION_P = 3
+APPVERSION_M = 0
+APPVERSION_N = 0
+APPVERSION_P = 1
 APPVERSION = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
 
 # Application source files
@@ -38,18 +38,18 @@ APP_SOURCE_PATH += src
 
 # Application icons following guidelines:
 # https://developers.ledger.com/docs/embedded-app/design-requirements/#device-icon
-ICON_NANOX = icons/app_boilerplate_14px.gif
-ICON_NANOSP = icons/app_boilerplate_14px.gif
-ICON_STAX = icons/app_boilerplate_32px.gif
-ICON_FLEX = icons/app_boilerplate_40px.gif
-ICON_APEX_P = icons/app_boilerplate_32px_apex.png
+ICON_NANOX = icons/app_aleo_14px_1bpp.png
+ICON_NANOSP = icons/app_aleo_14px_1bpp.png
+ICON_STAX = icons/app_aleo_32px_4bpp.png
+ICON_FLEX = icons/app_aleo_40px_4bpp.png
+ICON_APEX_P = icons/app_aleo_32px_1bpp.png
 
 ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_NANOX TARGET_NANOS2))
     # With the Nano NBGL Design, the Home Screen icon is the reverse of the App icon:
     # It should be on white background, with rounded corners.
     # This definition allows SDK Makefiles to automatically generate it based on the App icon.
     # Please note that the icon is dynamically generated, and declared in the .gitignore to avoid storing it.
-    ICON_HOME_NANO = glyphs/home_boilerplate_14px.gif
+    ICON_HOME_NANO = glyphs/home_aleo_14px_1bpp.gif
 endif
 
 # Application allowed derivation curves.
@@ -65,7 +65,7 @@ CURVE_APP_LOAD_PARAMS = secp256k1
 # and SLIP-0044 standards.
 # If your app needs it, you can specify multiple path by using:
 # `PATH_APP_LOAD_PARAMS = "44'/1'" "45'/1'"`
-PATH_APP_LOAD_PARAMS = "44'/1'"   # purpose=coin(44) / coin_type=Testnet(1)
+PATH_APP_LOAD_PARAMS = "44'/683'"   # purpose=coin(44) / coin_type=Testnet(1)
 
 # Setting to allow building variant applications
 # - <VARIANT_PARAM> is the name of the parameter which should be set
@@ -74,10 +74,10 @@ PATH_APP_LOAD_PARAMS = "44'/1'"   # purpose=coin(44) / coin_type=Testnet(1)
 #   * It must at least contains one value.
 #   * Values can be the app ticker or anything else but should be unique.
 VARIANT_PARAM = COIN
-VARIANT_VALUES = BOL
+VARIANT_VALUES = ALEO
 
 # Enabling DEBUG flag will enable PRINTF and disable optimizations
-#DEBUG = 1
+DEBUG = 1
 
 ########################################
 #     Application custom permissions   #
@@ -103,20 +103,20 @@ ENABLE_NBGL_QRCODE = 1
 #ENABLE_NBGL_KEYPAD = 1
 
 ########################################
-#       SWAP FEATURE FLAG      		   #
+#       SWAP FEATURE FLAG              #
 # This flag enables the swap feature   #
-# in the Boilerplate application.      #
+# in the Aleo application.             #
 ########################################
 # This is a smart documentation inclusion. The full documentation is available at https://ledgerhq.github.io/app-exchange/
 # --8<-- [start:variables]
-ifeq ($(APPNAME), "Boilerplate")
+ifeq ($(APPNAME), "Aleo")
 # Two flags exist for enabling the SWAP
 #   - ENABLE_SWAP           will lead to the enabling of the swap related C code of the standard_app
 #                           AND will lead to the enabling of the APP_LOAD_PARAM required for os_lib_call working on device
 #   - ENABLE_TESTING_SWAP:  will lead to the enabling of the swap related C code of the standard_app
 #                           ONLY works on Speculos, not on device
 # Testing only SWAP flag
-ENABLE_TESTING_SWAP = 1
+# ENABLE_TESTING_SWAP = 1
 # Production enabled SWAP flag
 # ENABLE_SWAP = 1
 endif

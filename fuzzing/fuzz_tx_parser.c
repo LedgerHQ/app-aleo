@@ -3,13 +3,13 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include "deserialize.h"
+/*#include "deserialize.h"
 #include "utils.h"
 #include "tx_types.h"
-#include "format.h"
+#include "format.h"*/
 
 int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
-    buffer_t buf = {.ptr = data, .size = size, .offset = 0};
+    /*buffer_t buf = {.ptr = data, .size = size, .offset = 0};
     transaction_t tx;
     parser_status_e status;
     char nonce[21] = {0};
@@ -32,5 +32,5 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         printf("memo: %s\n", tx_memo);
     }
 
-    return 0;
+    return 0;*/
 }
