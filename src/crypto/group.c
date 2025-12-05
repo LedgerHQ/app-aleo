@@ -40,24 +40,26 @@ void group_g_scalar_multiply(const scalar_t *b, group_t *r) {
 
     scalar_to_big_int(b, &s);
 
+	big_int_println(&s);
+
     big_int_to_bn(&GROUP_G.x.big, bn_x);
     big_int_to_bn(&GROUP_G.y.big, bn_y);
     big_int_to_bn(&s, bn_scalar);
 
-    (void)cx_bn_lock(32, 0);
-    (void)cx_ecpoint_alloc(&point, CX_CURVE_EdBLS12);
-    (void)cx_ecpoint_init(&point, bn_x, 32, bn_y, 32);
+    (void) cx_bn_lock(32, 0);
+    (void) cx_ecpoint_alloc(&point, CX_CURVE_EdBLS12);
+    (void) cx_ecpoint_init(&point, bn_x, 32, bn_y, 32);
 
-    (void)cx_ecpoint_scalarmul(&point, bn_scalar, 32);
-    (void)cx_ecpoint_export(&point, bn_x, 32, bn_y, 32);
+    (void) cx_ecpoint_scalarmul(&point, bn_scalar, 32);
+    (void) cx_ecpoint_export(&point, bn_x, 32, bn_y, 32);
 
     bn_to_big_int(bn_x, &s);
     field_from_big_int(&r->x, &s);
     bn_to_big_int(bn_y, &s);
     field_from_big_int(&r->y, &s);
 
-    (void)cx_ecpoint_destroy(&point);
-    (void)cx_bn_unlock();
+    (void) cx_ecpoint_destroy(&point);
+    (void) cx_bn_unlock();
 }
 
 void group_print(const group_t *a) {

@@ -34,3 +34,13 @@ int helper_send_response_get_address(void);
  */
 int helper_send_response_get_view_key(void);
 
+/**
+ * Helper to send APDU response with private key. For dev purpose only!
+ *
+ * response = PRIVATE_KEY_LEN (1) ||
+ *            G_context.private_key (PRIVATE_KEY_LEN)
+ *
+ * @return zero or positive integer if success, -1 otherwise.
+ *
+ */
+int helper_send_response_get_private_key(void);

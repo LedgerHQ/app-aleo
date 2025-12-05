@@ -77,7 +77,10 @@ VARIANT_PARAM = COIN
 VARIANT_VALUES = ALEO
 
 # Enabling DEBUG flag will enable PRINTF and disable optimizations
-DEBUG = 1
+#DEBUG = 1
+# Force specific private key for dev purpose only
+#TEST_PRIVATE_KEY = APrivateKey1zkp5J89jFEgyDwNTzqxpxgLog5swheeyboJv3tQSUBGFZNY
+#DEFINES += TEST_PRIVATE_KEY=\"$(TEST_PRIVATE_KEY)\"
 
 ########################################
 #     Application custom permissions   #

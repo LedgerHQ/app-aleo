@@ -224,6 +224,22 @@ void fp256_to_big_int(const fp256_parameters_t *p, const fp256_t *a, bigint_256_
     bigint->u64[3] = carry;
 }
 
+void fp256_random(const fp256_parameters_t *p, fp256_t *a) {
+    uint8_t bn[32];
+    cx_bn_t cx_bn_modulus;
+    cx_bn_t cx_bn_r;
+
+    big_int_to_bn(&p->MODULUS.big, bn);
+
+    (void) cx_bn_lock(32, 0);
+    (void) cx_bn_alloc_init(&cx_bn_modulus, sizeof(bn), bn, sizeof(bn));
+    (void) cx_bn_alloc(&cx_bn_r, sizeof(bn));
+	(void) cx_bn_rng(cx_bn_r, cx_bn_modulus);
+    (void) cx_bn_export(cx_bn_r, bn, sizeof(bn));
+    bn_to_big_int(bn, &a->big);
+    (void) cx_bn_unlock();
+}
+
 void fp256_print(fp256_t *array, uint16_t length) {
     for (uint16_t index = 0; index < length; index++) {
         PRINTF("[%2d] : ", index);

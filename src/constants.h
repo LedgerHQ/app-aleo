@@ -44,3 +44,8 @@
  * Length of view key.
  */
 #define VIEW_KEY_LEN (53)
+
+/**
+ * Length of private key.
+ */
+#define PRIVATE_KEY_LEN (59)

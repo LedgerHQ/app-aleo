@@ -34,7 +34,7 @@
 
 static void review_choice(bool confirm) {
     // Answer, display a status page and go back to main
-    validate_address(confirm);
+    validate_view_key(confirm);
     if (confirm) {
         nbgl_useCaseReviewStatus(STATUS_TYPE_ADDRESS_VERIFIED, ui_menu_main);
     } else {

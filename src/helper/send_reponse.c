@@ -48,3 +48,15 @@ int helper_send_response_get_view_key(void)
 
     return io_send_response_pointer(resp, offset, SW_OK);
 }
+
+int helper_send_response_get_private_key(void)
+{
+    uint8_t resp[1 + PRIVATE_KEY_LEN] = {0};
+    size_t offset = 0;
+
+    resp[offset++] = PRIVATE_KEY_LEN;
+    memmove(resp + offset, G_context.private_key, PRIVATE_KEY_LEN);
+    offset += PRIVATE_KEY_LEN;
+
+    return io_send_response_pointer(resp, offset, SW_OK);
+}

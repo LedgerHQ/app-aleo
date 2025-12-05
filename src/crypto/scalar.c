@@ -59,8 +59,20 @@ void scalar_from_field_lossy(scalar_t *a, const field_t *f) {
     scalar_from_big_int(a, &bigint);
 }
 
-void scalar_add_assign(scalar_t *a, const field_t *b) {
+void scalar_add_assign(scalar_t *a, const scalar_t *b) {
     fp256_add_assign(&scalar_parameters, a, b);
+}
+
+void scalar_sub_assign(scalar_t *a, const scalar_t *b) {
+    fp256_sub_assign(&scalar_parameters, a, b);
+}
+
+void scalar_mul_assign(scalar_t *a, const scalar_t *b) {
+    fp256_mul_assign(&scalar_parameters, a, b);
+}
+
+void scalar_random(scalar_t *a) {
+    fp256_random(&scalar_parameters, a);
 }
 
 void scalar_print(const scalar_t *a) {

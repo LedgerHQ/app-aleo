@@ -31,6 +31,8 @@
 #include "get_app_name.h"
 #include "get_address.h"
 #include "get_view_key.h"
+#include "account.h"
+#include "send_response.h"
 
 int apdu_dispatcher(const command_t *cmd) {
     LEDGER_ASSERT(cmd != NULL, "NULL cmd");
@@ -99,6 +101,56 @@ int apdu_dispatcher(const command_t *cmd) {
             buf.size = cmd->lc;
             buf.offset = 0;
 
+            return io_send_sw(SW_INS_NOT_SUPPORTED);
+
+        case CMD_GET_PRIVATE_KEY:
+            if (cmd->p1 != 0 || cmd->p2 != 0) {
+                return io_send_sw(SW_WRONG_P1P2);
+            }
+
+            if (!cmd->data) {
+                return io_send_sw(SW_WRONG_DATA_LENGTH);
+            }
+
+            buf.ptr = cmd->data;
+            buf.size = cmd->lc;
+            buf.offset = 0;
+
+            explicit_bzero(&G_context, sizeof(G_context));
+            G_context.state = STATE_NONE;
+
+            if (!buffer_read_u8(&buf, &G_context.bip32_path_len) ||
+                !buffer_read_bip32_path(&buf,
+                                        G_context.bip32_path,
+                                        (size_t) G_context.bip32_path_len)) {
+                return io_send_sw(SW_WRONG_DATA_LENGTH);
+            }
+            (void) account_get_private_key_string(G_context.bip32_path,
+                                                  G_context.bip32_path_len,
+                                                  G_context.private_key);
+            return helper_send_response_get_private_key();
+
+        case CMD_TEST:
+
+            if (!cmd->data) {
+                return io_send_sw(SW_WRONG_DATA_LENGTH);
+            }
+
+            buf.ptr = cmd->data;
+            buf.size = cmd->lc;
+            buf.offset = 0;
+
+            explicit_bzero(&G_context, sizeof(G_context));
+            G_context.state = STATE_NONE;
+
+            if (!buffer_read_u8(&buf, &G_context.bip32_path_len) ||
+                !buffer_read_bip32_path(&buf,
+                                        G_context.bip32_path,
+                                        (size_t) G_context.bip32_path_len)) {
+                return io_send_sw(SW_WRONG_DATA_LENGTH);
+            }
+            account_signature_t signature;
+            (void) account_sign(G_context.bip32_path, G_context.bip32_path_len, &signature);
             return io_send_sw(SW_INS_NOT_SUPPORTED);
 
         default:

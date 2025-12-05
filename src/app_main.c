@@ -28,6 +28,7 @@
 #include "sw.h"
 #include "menu.h"
 #include "dispatcher.h"
+#include "account.h"
 
 global_ctx_t G_context;
 
@@ -64,6 +65,8 @@ void app_main() {
         storage.initialized = 0x01;
         nvm_write((void *) &N_storage, &storage, sizeof(internal_storage_t));
     }
+
+    account_init();
 
     for (;;) {
         // Receive command bytes in G_io_apdu_buffer

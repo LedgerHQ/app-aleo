@@ -15,7 +15,9 @@ typedef enum {
     CMD_GET_APP_NAME = 0x04,      /// name of the application
     CMD_GET_ADDRESS = 0x05,       ///
     CMD_SIGN_TRANSACTION = 0x06,  ///
-    CMD_GET_VIEW_KEY = 0x07       ///
+    CMD_GET_VIEW_KEY = 0x07,      ///
+    CMD_GET_PRIVATE_KEY = 0xD1,   ///
+    CMD_TEST = 0xFE               ///
 } command_e;
 /**
  * Enumeration with parsing state.
@@ -43,6 +45,7 @@ typedef struct {
     union {
         char address[ADDRESS_LEN];
         char view_key[VIEW_KEY_LEN];
+        char private_key[PRIVATE_KEY_LEN];
     };
     request_type_e req_type;              /// user request
     uint32_t bip32_path[MAX_BIP32_PATH];  /// BIP32 path
