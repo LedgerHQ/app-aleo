@@ -80,7 +80,7 @@ static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed) {
 #endif  // ! TEST_PRIVATE_KEY
     uint8_t seed_bn[64];
     cx_err_t error = os_derive_bip32_with_seed_no_throw(HDW_NORMAL,
-                                                        CX_CURVE_BLS12_377_G1,
+                                                        CX_CURVE_256K1,
                                                         path,
                                                         path_len,
                                                         seed_bn,
