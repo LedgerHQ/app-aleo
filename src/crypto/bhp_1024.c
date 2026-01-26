@@ -23,7 +23,6 @@
 #include "os_utils.h"
 #include "cx.h"
 
-#include "bhp_parameters.h"
 #include "bhp_1024.h"
 
 static uint8_t bhp_buffer[100];
