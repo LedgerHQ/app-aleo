@@ -31,10 +31,12 @@
 #include "get_app_name.h"
 #include "get_address.h"
 #include "get_view_key.h"
+#include "sign_transaction.h"
 #include "account.h"
 #include "send_response.h"
 
-int apdu_dispatcher(const command_t *cmd) {
+int apdu_dispatcher(const command_t *cmd)
+{
     LEDGER_ASSERT(cmd != NULL, "NULL cmd");
 
     if (cmd->cla != CLA) {
@@ -67,8 +69,8 @@ int apdu_dispatcher(const command_t *cmd) {
                 return io_send_sw(SW_WRONG_DATA_LENGTH);
             }
 
-            buf.ptr = cmd->data;
-            buf.size = cmd->lc;
+            buf.ptr    = cmd->data;
+            buf.size   = cmd->lc;
             buf.offset = 0;
             return handler_get_address(&buf, (bool) cmd->p1);
 
@@ -81,15 +83,13 @@ int apdu_dispatcher(const command_t *cmd) {
                 return io_send_sw(SW_WRONG_DATA_LENGTH);
             }
 
-            buf.ptr = cmd->data;
-            buf.size = cmd->lc;
+            buf.ptr    = cmd->data;
+            buf.size   = cmd->lc;
             buf.offset = 0;
             return handler_get_view_key(&buf);
 
         case CMD_SIGN_TRANSACTION:
-            if ((cmd->p1 == P1_START && cmd->p2 != P2_MORE) ||  //
-                cmd->p1 > P1_MAX ||                             //
-                (cmd->p2 != P2_LAST && cmd->p2 != P2_MORE)) {
+            if ((cmd->p1 > SIGN_MODE_FEES) || (cmd->p2 != 0x00 && cmd->p2 != 0x80)) {
                 return io_send_sw(SW_WRONG_P1P2);
             }
 
@@ -97,14 +97,14 @@ int apdu_dispatcher(const command_t *cmd) {
                 return io_send_sw(SW_WRONG_DATA_LENGTH);
             }
 
-            buf.ptr = cmd->data;
-            buf.size = cmd->lc;
+            buf.ptr    = cmd->data;
+            buf.size   = cmd->lc;
             buf.offset = 0;
 
-            return io_send_sw(SW_INS_NOT_SUPPORTED);
+            return handler_sign_transaction(&buf, cmd->p1, (bool) cmd->p2);
 
         case CMD_GET_PRIVATE_KEY:
-            if (cmd->p1 != 0 || cmd->p2 != 0) {
+            if (cmd->p1 >= 4) {
                 return io_send_sw(SW_WRONG_P1P2);
             }
 
@@ -112,23 +112,35 @@ int apdu_dispatcher(const command_t *cmd) {
                 return io_send_sw(SW_WRONG_DATA_LENGTH);
             }
 
-            buf.ptr = cmd->data;
-            buf.size = cmd->lc;
+            buf.ptr    = cmd->data;
+            buf.size   = cmd->lc;
             buf.offset = 0;
 
             explicit_bzero(&G_context, sizeof(G_context));
             G_context.state = STATE_NONE;
 
-            if (!buffer_read_u8(&buf, &G_context.bip32_path_len) ||
-                !buffer_read_bip32_path(&buf,
-                                        G_context.bip32_path,
-                                        (size_t) G_context.bip32_path_len)) {
+            if (!buffer_read_u8(&buf, &G_context.bip32_path_len)
+                || !buffer_read_bip32_path(
+                    &buf, G_context.bip32_path, (size_t) G_context.bip32_path_len)) {
                 return io_send_sw(SW_WRONG_DATA_LENGTH);
             }
-            (void) account_get_private_key_string(G_context.bip32_path,
-                                                  G_context.bip32_path_len,
-                                                  G_context.private_key);
+            (void) account_get_private_key_string(
+                G_context.bip32_path, G_context.bip32_path_len, G_context.private_key);
             return helper_send_response_get_private_key();
+
+        case CMD_SET_PRIVATE_KEY:
+            if (cmd->p1 >= 4) {
+                return io_send_sw(SW_WRONG_P1P2);
+            }
+
+            if ((!cmd->data) || (cmd->lc != PRIVATE_KEY_LEN)) {
+                return io_send_sw(SW_WRONG_DATA_LENGTH);
+            }
+            nvm_write((void *) &N_storage.private_keys[cmd->p1 * PRIVATE_KEY_LEN],
+                      cmd->data,
+                      PRIVATE_KEY_LEN);
+            return io_send_sw(SW_OK);
+            break;
 
         case CMD_TEST:
 
@@ -136,21 +148,18 @@ int apdu_dispatcher(const command_t *cmd) {
                 return io_send_sw(SW_WRONG_DATA_LENGTH);
             }
 
-            buf.ptr = cmd->data;
-            buf.size = cmd->lc;
+            buf.ptr    = cmd->data;
+            buf.size   = cmd->lc;
             buf.offset = 0;
 
             explicit_bzero(&G_context, sizeof(G_context));
             G_context.state = STATE_NONE;
 
-            if (!buffer_read_u8(&buf, &G_context.bip32_path_len) ||
-                !buffer_read_bip32_path(&buf,
-                                        G_context.bip32_path,
-                                        (size_t) G_context.bip32_path_len)) {
+            if (!buffer_read_u8(&buf, &G_context.bip32_path_len)
+                || !buffer_read_bip32_path(
+                    &buf, G_context.bip32_path, (size_t) G_context.bip32_path_len)) {
                 return io_send_sw(SW_WRONG_DATA_LENGTH);
             }
-            account_signature_t signature;
-            (void) account_sign(G_context.bip32_path, G_context.bip32_path_len, &signature);
             return io_send_sw(SW_INS_NOT_SUPPORTED);
 
         default:

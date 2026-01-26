@@ -27,3 +27,7 @@ void big_int_to_le(const bigint_256_t *a);
 
 void big_int_to_bn(const bigint_256_t *a, uint8_t *bn);
 void bn_to_big_int(const uint8_t *bn, bigint_256_t *a);
+
+void big_int_random(bigint_256_t *a, const bigint_256_t* modulus);
+
+void bn_print(uint8_t *bn);

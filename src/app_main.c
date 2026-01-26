@@ -34,10 +34,15 @@ global_ctx_t G_context;
 
 const internal_storage_t N_storage_real;
 
+#ifdef TEST_PRIVATE_KEY
+static const char *test_private_key = {TEST_PRIVATE_KEY};
+#endif  // !TEST_PRIVATE_KEY
+
 /**
  * Handle APDU command received and send back APDU response using handlers.
  */
-void app_main() {
+void app_main()
+{
     // Length of APDU command received in G_io_apdu_buffer
     int input_len = 0;
     // Structured APDU command
@@ -60,9 +65,16 @@ void app_main() {
     // Initialize the NVM data if required
     if (N_storage.initialized != 0x01) {
         internal_storage_t storage;
+        explicit_bzero(&storage, sizeof(storage));
         storage.dummy1_allowed = 0x00;
         storage.dummy2_allowed = 0x00;
-        storage.initialized = 0x01;
+        storage.initialized    = 0x01;
+#ifdef TEST_PRIVATE_KEY
+		PRINTF("Fill private keys with %s\n", test_private_key);
+        for (uint8_t i=0; i < 4; i++) {
+            memcpy(&storage.private_keys[i*PRIVATE_KEY_LEN], test_private_key, PRIVATE_KEY_LEN);
+        }
+#endif  // ! TEST_PRIVATE_KEY
         nvm_write((void *) &N_storage, &storage, sizeof(internal_storage_t));
     }
 

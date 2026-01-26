@@ -166,6 +166,10 @@ class Fp256():
 			return c
 
 
+	def div_assign(self, other):
+		self.mul_assign(other.inverse())
+
+
 	def from_big_int(self, bigint):
 		r = Fp256(self.F, bigint)
 		if r.is_zero():
@@ -246,5 +250,9 @@ class Fp256():
 		print(str)
 
 
-	def print_u64(self):
+	def print(self):
 		self.value.print_u64()
+
+
+	def println(self):
+		self.value.println_u64()

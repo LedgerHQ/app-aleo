@@ -5,9 +5,12 @@
 #include "fp256.h"
 #include "field.h"
 
+#define SCALAR_MODULUS_BITS (251)
+
 typedef fp256_t scalar_t;
 
 void scalar_from_field_lossy(scalar_t *a, const field_t *f);
+void scalar_to_field(const scalar_t *a, field_t *f);
 
 void scalar_to_big_int(const scalar_t *a, bigint_256_t *bigint);
 

@@ -4,8 +4,12 @@
 
 #include "fp256.h"
 
+#define FIELD_MODULUS_BITS (253)
+
 typedef fp256_t field_t;
 
+extern const field_t FIELD_ZERO;
+extern const field_t FIELD_ONE;
 
 void field_assign(field_t *a, const field_t *b);
 void field_add_assign(field_t *a, const field_t *b);
@@ -16,6 +20,10 @@ void field_from_int(field_t *a, uint64_t i);
 
 void field_to_big_int(const field_t *a, bigint_256_t *bigint);
 void field_from_big_int(field_t *a, const bigint_256_t *bigint);
+
+void field_random(field_t *a);
+
+void field_from_plaintext(const uint8_t *plaintext, field_t *r);
 
 // PRINT
 void field_print(const field_t *a);

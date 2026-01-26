@@ -20,6 +20,7 @@
 #include <stdbool.h>  // bool
 
 #include "os.h"
+#include "globals.h"
 #include "group.h"
 #include "poseidon.h"
 #include "base58.h"
@@ -27,41 +28,28 @@
 
 #include "account.h"
 
-typedef struct {
-    field_t seed;
-    scalar_t sk_sig;
-    scalar_t r_sig;
-
-} private_key_t;
-
-typedef struct {
-    private_key_t private_key;
-    compute_key_t compute_key;
-    scalar_t view_key;
-    group_t address;
-
-} account_t;
-
 static account_t account;
 
 static field_t hash_input[64];
 
 const field_t ACCOUNT_SK_SIG_DOMAIN = {
-    .big.u64 = {0xc9a73b0068afb54b, 0x95d2050edfd00d2d, 0x30b27b31e4cc8dc3, 0x127ef5e8bbf7590e}};
+    .big.u64 = {0xc9a73b0068afb54b, 0x95d2050edfd00d2d, 0x30b27b31e4cc8dc3, 0x127ef5e8bbf7590e}
+};
 const field_t ACCOUNT_R_SIG_DOMAIN = {
-    .big.u64 = {0x9a1b12fc7f84af91, 0x935265d4483fc420, 0x69ad7c25c73999f2, 0x0fae3aac5d72c73b}};
+    .big.u64 = {0x9a1b12fc7f84af91, 0x935265d4483fc420, 0x69ad7c25c73999f2, 0x0fae3aac5d72c73b}
+};
+const field_t GRAPH_KEY_DOMAIN = {
+    .big.u64 = {0xbe2ebe0e9bbca61b, 0x1cd3f707abca5c71, 0xfd11846a18bef8c1, 0x02c5f9cb610ab8f5}
+};
 
-const uint8_t VIEW_KEY_PREFIX[7] = {14, 138, 223, 204, 247, 224, 122};
+const uint8_t VIEW_KEY_PREFIX[7]     = {14, 138, 223, 204, 247, 224, 122};
 const uint8_t PRIVATE_KEY_PREFIX[11] = {127, 134, 189, 116, 210, 221, 210, 137, 145, 18, 253};
-const char ADDRESS_PREFIX[5] = {'a', 'l', 'e', 'o', 0};
+const char    ADDRESS_PREFIX[5]      = {'a', 'l', 'e', 'o', 0};
 
-#ifdef TEST_PRIVATE_KEY
-static const char *test_private_key = {TEST_PRIVATE_KEY};
-#endif  // !TEST_PRIVATE_KEY
-
-static void seed_from_private_key_string(const char *private_key_string, field_t *seed) {
-    uint8_t base_58_output[MAX_ENC_INPUT_SIZE];
-    uint8_t seed_bn[32];
+static void seed_from_private_key_string(const char *private_key_string, field_t *seed)
+{
+    uint8_t      base_58_output[MAX_ENC_INPUT_SIZE];
+    uint8_t      seed_bn[32];
     bigint_256_t seed_big_int;
 
     base58_decode(private_key_string, PRIVATE_KEY_LEN, base_58_output, sizeof(base_58_output));
@@ -73,20 +61,21 @@ static void seed_from_private_key_string(const char *private_key_string, field_t
     field_from_big_int(seed, &seed_big_int);
 }
 
-static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed) {
-#ifdef TEST_PRIVATE_KEY
-    seed_from_private_key_string(test_private_key, seed);
-    return 0;
-#endif  // ! TEST_PRIVATE_KEY
-    uint8_t seed_bn[64];
-    cx_err_t error = os_derive_bip32_with_seed_no_throw(HDW_NORMAL,
-                                                        CX_CURVE_256K1,
-                                                        path,
-                                                        path_len,
-                                                        seed_bn,
-                                                        NULL,
-                                                        NULL,
-                                                        0);
+static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
+{
+    // TODO : Temporary code start
+    uint32_t account_number = path[path_len - 1];
+    PRINTF("Get seed path from account %d\n", account_number);
+    if ((account_number < 4) && (N_storage.private_keys[account_number * PRIVATE_KEY_LEN] == 'A')) {
+        seed_from_private_key_string(
+            (const char *) &N_storage.private_keys[account_number * PRIVATE_KEY_LEN], seed);
+        return 0;
+    }
+    // TODO : Temporary code end
+
+    uint8_t  seed_bn[64];
+    cx_err_t error = os_derive_bip32_with_seed_no_throw(
+        HDW_NORMAL, CX_CURVE_256K1, path, path_len, seed_bn, NULL, NULL, 0);
     if (error != CX_OK) {
         return -1;
     }
@@ -98,7 +87,8 @@ static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed) {
     return 0;
 }
 
-static void private_key_from_seed(const field_t *seed, scalar_t *sk_sig, scalar_t *r_sig) {
+static void private_key_from_seed(const field_t *seed, scalar_t *sk_sig, scalar_t *r_sig)
+{
     // Compute sk_sig
     memset(hash_input, 0, sizeof(hash_input));
     memcpy(&hash_input[2], &ACCOUNT_SK_SIG_DOMAIN, sizeof(field_t));
@@ -117,7 +107,8 @@ static void private_key_from_seed(const field_t *seed, scalar_t *sk_sig, scalar_
 }
 
 static void compute_key_from_private_key(const private_key_t *private_key,
-                                         compute_key_t *compute_key) {
+                                         compute_key_t       *compute_key)
+{
     group_g_scalar_multiply(&private_key->sk_sig, &compute_key->pk_sig);
     PRINTF("pk_sig : ");
     group_println(&compute_key->pk_sig);
@@ -128,56 +119,70 @@ static void compute_key_from_private_key(const private_key_t *private_key,
 }
 
 static void view_key_from_private_and_compute_key(const private_key_t *private_key,
-                                                  const compute_key_t *compute_key,
-                                                  scalar_t *view_key) {
-    scalar_t sk_prf;
-
+                                                  compute_key_t       *compute_key,
+                                                  scalar_t            *view_key)
+{
     memset(hash_input, 0, sizeof(hash_input));
     memcpy(&hash_input[4], &compute_key->pk_sig.x, sizeof(field_t));
     memcpy(&hash_input[5], &compute_key->pr_sig.x, sizeof(field_t));
-    hash_to_scalar_psd4(hash_input, 2, &sk_prf);
+    hash_to_scalar_psd4(hash_input, 2, &compute_key->sk_prf);
     PRINTF("sk_prf : ");
-    scalar_println(&sk_prf);
+    scalar_println(&compute_key->sk_prf);
 
-    memcpy(view_key, &sk_prf, sizeof(scalar_t));
+    memcpy(view_key, &compute_key->sk_prf, sizeof(scalar_t));
     scalar_add_assign(view_key, &private_key->sk_sig);
     scalar_add_assign(view_key, &private_key->r_sig);
     PRINTF("view_key : ");
     scalar_println(view_key);
 }
 
-static void address_from_view_key(const scalar_t *view_key, group_t *address) {
+static void address_from_view_key(const scalar_t *view_key, group_t *address)
+{
     group_g_scalar_multiply(view_key, address);
 
     PRINTF("address : ");
     group_println(address);
 }
 
-int account_get_address_string(const uint32_t *path, uint8_t path_len, char address[ADDRESS_LEN]) {
+static void graph_key_from_view_key(const scalar_t *view_key, field_t *graph_key)
+{
+    field_t f_view_key;
+    scalar_to_field(view_key, &f_view_key);
+
+    memset(hash_input, 0, sizeof(hash_input));
+    memcpy(&hash_input[4], &GRAPH_KEY_DOMAIN, sizeof(field_t));
+    memcpy(&hash_input[5], &f_view_key, sizeof(field_t));
+    memset(&hash_input[6], 0, sizeof(field_t));
+    hash_psd4(hash_input, 3, graph_key);
+    PRINTF("graph key : ");
+    field_println(graph_key);
+}
+
+int account_get_address_string(const uint32_t *path, uint8_t path_len, char address[ADDRESS_LEN])
+{
     bigint_256_t address_big_int;
-    uint8_t address_bn[32];
-    int status = get_seed(path, path_len, &account.private_key.seed);
+    uint8_t      address_bn[32];
+    int          status = get_seed(path, path_len, &account.private_key.seed);
 
     if (status != 0) {
         return status;
     }
 
-    private_key_from_seed(&account.private_key.seed,
-                          &account.private_key.sk_sig,
-                          &account.private_key.r_sig);
+    private_key_from_seed(
+        &account.private_key.seed, &account.private_key.sk_sig, &account.private_key.r_sig);
     compute_key_from_private_key(&account.private_key, &account.compute_key);
-    view_key_from_private_and_compute_key(&account.private_key,
-                                          &account.compute_key,
-                                          &account.view_key);
+    view_key_from_private_and_compute_key(
+        &account.private_key, &account.compute_key, &account.view_key);
     address_from_view_key(&account.view_key, &account.address);
+    graph_key_from_view_key(&account.view_key, &account.graph_key);
 
     field_to_big_int(&account.address.x, &address_big_int);
     big_int_to_bn(&address_big_int, address_bn);
 
     // Reverse bn
     for (size_t i = 0; i < sizeof(address_bn) / 2; i++) {
-        uint8_t item = address_bn[i];
-        address_bn[i] = address_bn[sizeof(address_bn) - 1 - i];
+        uint8_t item                           = address_bn[i];
+        address_bn[i]                          = address_bn[sizeof(address_bn) - 1 - i];
         address_bn[sizeof(address_bn) - 1 - i] = item;
     }
 
@@ -187,7 +192,7 @@ int account_get_address_string(const uint32_t *path, uint8_t path_len, char addr
     PRINTF("\n");
 
     uint8_t data[64];
-    size_t datalen = 0;
+    size_t  datalen = 0;
     bech32_convert_bits(data, &datalen, 5, address_bn, 32, 8, 1);
     bech32_encode(address, ADDRESS_PREFIX, data, datalen, BECH32_ENCODING_BECH32M);
     PRINTF("%s\n", address);
@@ -197,23 +202,22 @@ int account_get_address_string(const uint32_t *path, uint8_t path_len, char addr
     return status;
 }
 
-int account_get_view_key_string(const uint32_t *path, uint8_t path_len, char *viewkey) {
+int account_get_view_key_string(const uint32_t *path, uint8_t path_len, char *viewkey)
+{
     bigint_256_t view_key_big_int;
-    uint8_t view_key_bn[32];
-    uint8_t base_58_input[MAX_ENC_INPUT_SIZE];
-    int status = get_seed(path, path_len, &account.private_key.seed);
+    uint8_t      view_key_bn[32];
+    uint8_t      base_58_input[MAX_ENC_INPUT_SIZE];
+    int          status = get_seed(path, path_len, &account.private_key.seed);
 
     if (status != 0) {
         return status;
     }
 
-    private_key_from_seed(&account.private_key.seed,
-                          &account.private_key.sk_sig,
-                          &account.private_key.r_sig);
+    private_key_from_seed(
+        &account.private_key.seed, &account.private_key.sk_sig, &account.private_key.r_sig);
     compute_key_from_private_key(&account.private_key, &account.compute_key);
-    view_key_from_private_and_compute_key(&account.private_key,
-                                          &account.compute_key,
-                                          &account.view_key);
+    view_key_from_private_and_compute_key(
+        &account.private_key, &account.compute_key, &account.view_key);
 
     scalar_to_big_int(&account.view_key, &view_key_big_int);
     big_int_to_bn(&view_key_big_int, view_key_bn);
@@ -230,11 +234,12 @@ int account_get_view_key_string(const uint32_t *path, uint8_t path_len, char *vi
     return status;
 }
 
-int account_get_private_key_string(const uint32_t *path, uint8_t path_len, char *private_key) {
+int account_get_private_key_string(const uint32_t *path, uint8_t path_len, char *private_key)
+{
     bigint_256_t seed_big_int;
-    uint8_t seed_bn[32];
-    uint8_t base_58_input[MAX_ENC_INPUT_SIZE];
-    int status = get_seed(path, path_len, &account.private_key.seed);
+    uint8_t      seed_bn[32];
+    uint8_t      base_58_input[MAX_ENC_INPUT_SIZE];
+    int          status = get_seed(path, path_len, &account.private_key.seed);
 
     if (status != 0) {
         return status;
@@ -259,7 +264,8 @@ int account_get_private_key_string(const uint32_t *path, uint8_t path_len, char 
     return status;
 }
 
-int account_sign(const uint32_t *path, uint8_t path_len, account_signature_t *signature) {
+int account_sign(const uint32_t *path, uint8_t path_len, account_signature_t *signature)
+{
     int status = get_seed(path, path_len, &account.private_key.seed);
 
     if (status != 0) {
@@ -267,13 +273,11 @@ int account_sign(const uint32_t *path, uint8_t path_len, account_signature_t *si
     }
 
     // Prepare keys
-    private_key_from_seed(&account.private_key.seed,
-                          &account.private_key.sk_sig,
-                          &account.private_key.r_sig);
+    private_key_from_seed(
+        &account.private_key.seed, &account.private_key.sk_sig, &account.private_key.r_sig);
     compute_key_from_private_key(&account.private_key, &account.compute_key);
-    view_key_from_private_and_compute_key(&account.private_key,
-                                          &account.compute_key,
-                                          &account.view_key);
+    view_key_from_private_and_compute_key(
+        &account.private_key, &account.compute_key, &account.view_key);
     address_from_view_key(&account.view_key, &account.address);
 
     // Fill signature compute key
@@ -281,7 +285,7 @@ int account_sign(const uint32_t *path, uint8_t path_len, account_signature_t *si
 
     // Compute challenge
     scalar_t nonce;
-    group_t g_r;
+    group_t  g_r;
 
     scalar_random(&nonce);
     PRINTF("nonce : ");
@@ -318,6 +322,21 @@ int account_sign(const uint32_t *path, uint8_t path_len, account_signature_t *si
     return status;
 }
 
-void account_init(void) {
+void account_init(void)
+{
     explicit_bzero(&account, sizeof(account));
+}
+
+account_t *account_generate_keys(const uint32_t *path, uint8_t path_len)
+{
+    (void) get_seed(path, path_len, &account.private_key.seed);
+    private_key_from_seed(
+        &account.private_key.seed, &account.private_key.sk_sig, &account.private_key.r_sig);
+    compute_key_from_private_key(&account.private_key, &account.compute_key);
+    view_key_from_private_and_compute_key(
+        &account.private_key, &account.compute_key, &account.view_key);
+    address_from_view_key(&account.view_key, &account.address);
+    graph_key_from_view_key(&account.view_key, &account.graph_key);
+
+    return &account;
 }

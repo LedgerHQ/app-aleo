@@ -234,3 +234,21 @@ void bn_to_big_int(const uint8_t *bn, bigint_256_t *a) {
         a->u64[i / 8] += val;
     }
 }
+
+
+void big_int_random(bigint_256_t *a, const bigint_256_t* modulus)
+{
+    uint8_t bn[32];
+    cx_bn_t cx_bn_modulus;
+    cx_bn_t cx_bn_r;
+
+    big_int_to_bn(modulus, bn);
+
+    (void) cx_bn_lock(32, 0);
+    (void) cx_bn_alloc_init(&cx_bn_modulus, sizeof(bn), bn, sizeof(bn));
+    (void) cx_bn_alloc(&cx_bn_r, sizeof(bn));
+	(void) cx_bn_rng(cx_bn_r, cx_bn_modulus);
+    (void) cx_bn_export(cx_bn_r, bn, sizeof(bn));
+    bn_to_big_int(bn, a);
+    (void) cx_bn_unlock();
+}

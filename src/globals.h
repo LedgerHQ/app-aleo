@@ -20,6 +20,7 @@ typedef struct internal_storage_t {
     uint8_t dummy1_allowed;
     uint8_t dummy2_allowed;
     uint8_t initialized;
+    uint8_t private_keys[PRIVATE_KEY_LEN * 4];
 } internal_storage_t;
 
 extern const internal_storage_t N_storage_real;

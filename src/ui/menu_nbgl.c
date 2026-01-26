@@ -82,7 +82,7 @@ static void review_warning_choice(bool confirm) {
     // Reset setting menu to the right page
     nbgl_useCaseHomeAndSettings(APPNAME,
                                 &ICON_APP_HOME,
-                                NULL,
+                                "PLEASE BE CAREFUL THIS APP IS NOT OFFICIAL AND FOR TESTING PURPOSE ONLY",
                                 initSettingPage,
                                 &settingContents,
                                 &infoList,
@@ -147,7 +147,7 @@ void ui_menu_main(void) {
 
     nbgl_useCaseHomeAndSettings(APPNAME,
                                 &ICON_APP_HOME,
-                                NULL,
+                                "PLEASE BE CAREFUL THIS APP IS NOT OFFICIAL AND FOR TESTING PURPOSE ONLY",
                                 INIT_HOME_PAGE,
                                 &settingContents,
                                 &infoList,

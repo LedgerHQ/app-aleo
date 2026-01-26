@@ -124,4 +124,9 @@ class BigInteger256():
 		str = ''
 		for x in self.value:
 			str += '{:016x} '.format(x)
-		print(str)
+		print(str, end='')
+
+
+	def println_u64(self):
+		self.print_u64()
+		print()

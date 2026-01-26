@@ -28,7 +28,7 @@
 
 // BLS12-377
 static const fp256_parameters_t scalar_parameters = {
-    .MODULUS_BITS = 251,
+    .MODULUS_BITS = SCALAR_MODULUS_BITS,
     // 2111115437357092606062206234695386632838870926408408195193685246394721360383
     .MODULUS = {.big.u64 = 13356249993388743167U,
                 5950279507993463550U,
@@ -57,6 +57,12 @@ void scalar_from_field_lossy(scalar_t *a, const field_t *f) {
     field_to_big_int(f, &bigint);
     big_int_bit_reduce(&bigint, scalar_parameters.MODULUS_BITS - 1);
     scalar_from_big_int(a, &bigint);
+}
+
+void scalar_to_field(const scalar_t *a, field_t *f) {
+    bigint_256_t bigint;
+    scalar_to_big_int(a, &bigint);
+    field_from_big_int(f, &bigint);
 }
 
 void scalar_add_assign(scalar_t *a, const scalar_t *b) {

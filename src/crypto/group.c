@@ -27,23 +27,64 @@
 #include "group.h"
 
 const group_t GROUP_G = {
-    .x.big.u64 = {0x639e26f80ea7d4eb, 0x542dca7954d3e108, 0x3645718a1b4b2c83, 0x0127d355882d2e71},
-    .y.big.u64 = {0xa405794451b5876e, 0x6f703124e2038870, 0xbe7fc364a828594c, 0x0a39ebf50185f537},
+    .x.big.u64 = {0x3fe2a0af33ac1b52, 0x028939946bfa31f3, 0x1d65dfa053616662, 0x120f836f8253d8c2},
+    .y.big.u64 = {0xe824937af1cbef27, 0x8b98045b63a9531e, 0xc1ca47ef204e5d8f, 0x0e990e7d019b9712},
 };
 
-void group_g_scalar_multiply(const scalar_t *b, group_t *r) {
-    cx_ecpoint_t point;
-    uint8_t bn_x[32];
-    uint8_t bn_y[32];
-    uint8_t bn_scalar[32];
+void group_add_assign(group_t *a, const group_t *b)
+{
+    cx_ecpoint_t point_a;
+    cx_ecpoint_t point_b;
+    cx_ecpoint_t point_r;
+    uint8_t      bn_x[32];
+    uint8_t      bn_y[32];
     bigint_256_t s;
 
+    (void) cx_bn_lock(32, 0);
+
+    field_to_big_int(&a->x, &s);
+    big_int_to_bn(&s, bn_x);
+    field_to_big_int(&a->y, &s);
+    big_int_to_bn(&s, bn_y);
+    (void) cx_ecpoint_alloc(&point_a, CX_CURVE_EdBLS12);
+    (void) cx_ecpoint_init(&point_a, bn_x, 32, bn_y, 32);
+
+    field_to_big_int(&b->x, &s);
+    big_int_to_bn(&s, bn_x);
+    field_to_big_int(&b->y, &s);
+    big_int_to_bn(&s, bn_y);
+    (void) cx_ecpoint_alloc(&point_b, CX_CURVE_EdBLS12);
+    (void) cx_ecpoint_init(&point_b, bn_x, 32, bn_y, 32);
+
+    (void) cx_ecpoint_alloc(&point_r, CX_CURVE_EdBLS12);
+    (void) cx_ecpoint_add(&point_r, &point_a, &point_b);
+
+    (void) cx_ecpoint_export(&point_r, bn_x, 32, bn_y, 32);
+    bn_to_big_int(bn_x, &s);
+    field_from_big_int(&a->x, &s);
+    bn_to_big_int(bn_y, &s);
+    field_from_big_int(&a->y, &s);
+
+    (void) cx_ecpoint_destroy(&point_a);
+    (void) cx_ecpoint_destroy(&point_b);
+    (void) cx_ecpoint_destroy(&point_r);
+    (void) cx_bn_unlock();
+}
+
+void group_scalar_multiply(const group_t *a, const scalar_t *b, group_t *r)
+{
+    cx_ecpoint_t point;
+    uint8_t      bn_x[32];
+    uint8_t      bn_y[32];
+    uint8_t      bn_scalar[32];
+    bigint_256_t s;
+
+    field_to_big_int(&a->x, &s);
+    big_int_to_bn(&s, bn_x);
+    field_to_big_int(&a->y, &s);
+    big_int_to_bn(&s, bn_y);
+
     scalar_to_big_int(b, &s);
-
-	big_int_println(&s);
-
-    big_int_to_bn(&GROUP_G.x.big, bn_x);
-    big_int_to_bn(&GROUP_G.y.big, bn_y);
     big_int_to_bn(&s, bn_scalar);
 
     (void) cx_bn_lock(32, 0);
@@ -62,19 +103,27 @@ void group_g_scalar_multiply(const scalar_t *b, group_t *r) {
     (void) cx_bn_unlock();
 }
 
-void group_print(const group_t *a) {
+void group_g_scalar_multiply(const scalar_t *b, group_t *r)
+{
+    group_scalar_multiply(&GROUP_G, b, r);
+}
+
+void group_print(const group_t *a)
+{
     PRINTF("(x:");
     field_print(&a->x);
     PRINTF(", y:");
     field_print(&a->y);
 }
 
-void group_println(const group_t *a) {
+void group_println(const group_t *a)
+{
     group_print(a);
     PRINTF("\n");
 }
 
-void group_print_array(const group_t *array, size_t length) {
+void group_print_array(const group_t *array, size_t length)
+{
     for (size_t index = 0; index < length; index++) {
         PRINTF("[%2d] : ", index);
         group_println(&array[index]);
