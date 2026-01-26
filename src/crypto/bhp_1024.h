@@ -2,6 +2,8 @@
 
 #include <stdint.h>  // uint*_t
 
+#include "field.h"
+
 typedef struct {
     uint16_t    network_id;
     char program_id_name[32+1];

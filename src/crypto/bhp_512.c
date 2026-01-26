@@ -23,9 +23,10 @@
 #include "os_utils.h"
 #include "cx.h"
 
-#include "bhp_parameters.h"
 #include "bhp_512_parameters.h"
 #include "bhp_512.h"
+
+#define BHP_CHUNK_SIZE (3)
 
 static const group_t commitment_sum = {
     .x = {0x5bb24a5e91a9ca8c, 0x9b715027001c0763, 0xc82f98226ac8e338, 0x013c39372f71a98c},

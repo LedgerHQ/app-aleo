@@ -23,7 +23,7 @@ void field_from_big_int(field_t *a, const bigint_256_t *bigint);
 
 void field_random(field_t *a);
 
-void field_from_plaintext(const uint8_t *plaintext, field_t *r);
+void field_from_plaintext(const char *plaintext, field_t *r);
 
 // PRINT
 void field_print(const field_t *a);

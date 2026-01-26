@@ -78,7 +78,7 @@ static void plaintext_to_bits(const uint8_t *plaintext,
         uint8_t data = 0xfd;
         bits_add(out, out_offset, &data, 8);
         out_offset += 16;
-        bits_add(out, out_offset, plaintext, bit_length);
+        bits_add(out, out_offset, (uint8_t *)plaintext, bit_length);
         out_offset += bit_length;
         bits_add_single(out, out_offset, true);
         bits_println(out, out_offset);

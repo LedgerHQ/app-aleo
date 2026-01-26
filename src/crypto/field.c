@@ -89,7 +89,7 @@ void field_from_big_int(field_t *a, const bigint_256_t *bigint)
     fp256_from_big_int(&field_parameters, a, bigint);
 }
 
-void field_from_plaintext(const uint8_t *plaintext, field_t *r)
+void field_from_plaintext(const char *plaintext, field_t *r)
 {
     bigint_256_t s;
     uint8_t      bn_x[32];
