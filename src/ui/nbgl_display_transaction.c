@@ -96,6 +96,7 @@ static void review_tx(bool confirm)
         confirm_cb(0, 0, 0);
     }
     else {
+        validate_transaction(false);
         confirm_reject_cb();
     }
 }
