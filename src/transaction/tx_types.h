@@ -1,0 +1,26 @@
+#pragma once
+
+#include <stddef.h>   // size_t
+#include <stdbool.h>  // bool
+#include <stdint.h>   // uint*_t
+
+typedef enum {
+    INPUT_ID_CONSTANT        = 0,
+    INPUT_ID_PUBLIC          = 1,
+    INPUT_ID_PRIVATE         = 2,
+    INPUT_ID_RECORD          = 3,
+    INPUT_ID_EXTERNAL_RECORD = 4,
+    INPUT_ID_FUTURE          = 5,
+} input_id_e;
+
+typedef enum {
+    INPUT_VALUE_TYPE_PLAINTEXT = 0,
+    INPUT_VALUE_TYPE_RECORD    = 1,
+    INPUT_VALUE_TYPE_FUTURE    = 2,
+} input_value_type_e;
+
+typedef enum {
+    PLAINTEXT_TYPE_LITERAL_ADDRESS = 0,
+    PLAINTEXT_TYPE_LITERAL_FIELD   = 2,
+    PLAINTEXT_TYPE_LITERAL_U64     = 12,
+} plaintext_type_literal_e;

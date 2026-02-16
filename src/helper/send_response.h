@@ -44,3 +44,5 @@ int helper_send_response_get_view_key(void);
  *
  */
 int helper_send_response_get_private_key(void);
+
+int helper_send_response_sign_transaction(void);

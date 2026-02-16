@@ -24,6 +24,8 @@
 #include "cx.h"
 #include "ledger_assert.h"
 
+#include "bits.h"
+
 #include "field.h"
 
 const field_t FIELD_ZERO = {
@@ -64,6 +66,11 @@ void field_mul_assign(field_t *a, const field_t *b)
     fp256_mul_assign(&field_parameters, a, b);
 }
 
+void field_inverse_assign(field_t *a)
+{
+    fp256_inverse_assign(&field_parameters, a);
+}
+
 void field_pow_assign(field_t *a, uint8_t alpha)
 {
     fp256_pow_assign(&field_parameters, a, alpha);
@@ -89,27 +96,33 @@ void field_from_big_int(field_t *a, const bigint_256_t *bigint)
     fp256_from_big_int(&field_parameters, a, bigint);
 }
 
-void field_from_plaintext(const char *plaintext, field_t *r)
+uint8_t field_from_bits(const uint8_t *input_bits,
+                        const uint16_t input_bits_length,
+                        field_t       *r,
+                        uint8_t        max_field_count)
 {
     bigint_256_t s;
-    uint8_t      bn_x[32];
-    size_t       input_bit_index = 0;
+    uint8_t      bn[32];
+    uint8_t      field_count       = 0;
+    uint16_t     input_bits_offset = 0;
 
-    UNUSED(r);
-
-    // field_to_big_int(commitment, &s);
-    big_int_to_bn(&s, bn_x);
-    bn_print(bn_x);
-
-    for (size_t i = 0; i < strlen(plaintext); i++) {
-        if ((plaintext[input_bit_index / 8]) & (1 << (input_bit_index % 8))) {
-            PRINTF("true, ");
+    while ((input_bits_offset < input_bits_length) && (field_count < max_field_count)) {
+        memset(bn, 0, sizeof(bn));
+        if ((input_bits_length - input_bits_offset) >= (FIELD_MODULUS_BITS - 1)) {
+            bits_add(input_bits, input_bits_offset, (FIELD_MODULUS_BITS - 1), bn, 0);
+            input_bits_offset += (FIELD_MODULUS_BITS - 1);
         }
         else {
-            PRINTF("false, ");
+            bits_add(input_bits, input_bits_offset, (input_bits_length - input_bits_offset), bn, 0);
+            input_bits_offset = input_bits_length;
         }
-        input_bit_index++;
+        bn_reverse(bn);
+        bn_to_big_int(bn, &s);
+        field_from_big_int(&r[field_count], &s);
+        field_count++;
     }
+
+    return field_count;
 }
 
 void field_random(field_t *a)
@@ -134,4 +147,15 @@ void field_print_array(const field_t *array, size_t length)
         big_int_print(&array[index].big);
         PRINTF(" field\n");
     }
+}
+
+void field_test(void)
+{
+    field_t f_test = {
+        .big.u64
+        = {0xdf6f50a22074f46a, 0xcc9f0cc8e55b5450, 0x33d5772b5c86c398, 0x0db05fd111ee688f}
+    };
+    field_println(&f_test);
+    field_inverse_assign(&f_test);
+    field_println(&f_test);
 }

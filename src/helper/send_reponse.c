@@ -26,37 +26,148 @@
 #include "globals.h"
 #include "sw.h"
 
-int helper_send_response_get_address(void) {
-    uint8_t resp[1 + ADDRESS_LEN] = {0};
+#include "group.h"
+
+static uint8_t response_buffer[OS_IO_BUFFER_SIZE];
+
+static size_t add_tlv_field(uint8_t *in_buffer, uint8_t type, field_t *f)
+{
+    size_t       offset = 0;
+    bigint_256_t b;
+
+    if (type <= 0x7f) {
+        in_buffer[offset++] = type;
+    }
+    else {
+        in_buffer[offset++] = 0x81;
+        in_buffer[offset++] = type;
+    }
+    in_buffer[offset++] = 32;
+
+    field_to_big_int(f, &b);
+    big_int_to_bn(&b, &in_buffer[2]);
+    bn_reverse(&in_buffer[2]);
+    offset += 32;
+
+    return offset;
+}
+
+static size_t add_tlv_group(uint8_t *in_buffer, uint8_t type, group_t *g)
+{
+    return add_tlv_field(in_buffer, type, &g->x);
+}
+
+static size_t add_tlv_scalar(uint8_t *in_buffer, uint8_t type, scalar_t *s)
+{
+    size_t       offset = 0;
+    bigint_256_t b;
+
+    if (type <= 0x7f) {
+        in_buffer[offset++] = type;
+    }
+    else {
+        in_buffer[offset++] = 0x81;
+        in_buffer[offset++] = type;
+    }
+    in_buffer[offset++] = 32;
+
+    scalar_to_big_int(s, &b);
+    big_int_to_bn(&b, &in_buffer[2]);
+    bn_reverse(&in_buffer[2]);
+    offset += 32;
+
+    return offset;
+}
+
+static size_t add_tlv_uint8(uint8_t *in_buffer, uint8_t type, uint8_t u)
+{
+    size_t offset = 0;
+    if (type <= 0x7f) {
+        in_buffer[offset++] = type;
+    }
+    else {
+        in_buffer[offset++] = 0x81;
+        in_buffer[offset++] = type;
+    }
+    in_buffer[offset++] = 1;
+    in_buffer[offset++] = u;
+
+    return offset++;
+}
+
+int helper_send_response_get_address(void)
+{
     size_t offset = 0;
 
-    resp[offset++] = ADDRESS_LEN;
-    memmove(resp + offset, G_context.address, ADDRESS_LEN);
+    memset(response_buffer, 0, sizeof(response_buffer));
+    response_buffer[offset++] = ADDRESS_LEN;
+    memmove(&response_buffer[offset], G_context.address, ADDRESS_LEN);
     offset += ADDRESS_LEN;
+    response_buffer[offset] = 0;
 
-    return io_send_response_pointer(resp, offset, SW_OK);
+    return io_send_response_pointer(response_buffer, offset, SW_OK);
 }
 
 int helper_send_response_get_view_key(void)
 {
-    uint8_t resp[1 + VIEW_KEY_LEN] = {0};
     size_t offset = 0;
 
-    resp[offset++] = VIEW_KEY_LEN;
-    memmove(resp + offset, G_context.view_key, VIEW_KEY_LEN);
+    memset(response_buffer, 0, sizeof(response_buffer));
+    response_buffer[offset++] = VIEW_KEY_LEN;
+    memmove(&response_buffer[offset], G_context.view_key, VIEW_KEY_LEN);
     offset += VIEW_KEY_LEN;
+    response_buffer[offset] = 0;
 
-    return io_send_response_pointer(resp, offset, SW_OK);
+    return io_send_response_pointer(response_buffer, offset, SW_OK);
 }
 
 int helper_send_response_get_private_key(void)
 {
-    uint8_t resp[1 + PRIVATE_KEY_LEN] = {0};
     size_t offset = 0;
 
-    resp[offset++] = PRIVATE_KEY_LEN;
-    memmove(resp + offset, G_context.private_key, PRIVATE_KEY_LEN);
+    memset(response_buffer, 0, sizeof(response_buffer));
+    response_buffer[offset++] = PRIVATE_KEY_LEN;
+    memmove(&response_buffer[offset], G_context.private_key, PRIVATE_KEY_LEN);
     offset += PRIVATE_KEY_LEN;
+    response_buffer[offset] = 0;
 
-    return io_send_response_pointer(resp, offset, SW_OK);
+    return io_send_response_pointer(response_buffer, offset, SW_OK);
+}
+
+int helper_send_response_sign_transaction(void)
+{
+    size_t offset = 0;
+    memset(response_buffer, 0, sizeof(response_buffer));
+    // Type
+    offset += add_tlv_uint8(&response_buffer[offset], 0x01, 0x2a);
+    // Version
+    offset += add_tlv_uint8(&response_buffer[offset], 0x02, 0x01);
+    // Signature : challenge
+    offset += add_tlv_scalar(&response_buffer[offset],
+                             0xc5,
+                             &G_context.sign_transaction_datas.prepared_request.challenge);
+    // Signature : response
+    offset += add_tlv_field(&response_buffer[offset],
+                            0xc6,
+                            &G_context.sign_transaction_datas.prepared_request.response);
+    // Signature : pk_sig
+    offset += add_tlv_group(&response_buffer[offset], 0xc3, &G_context.account.compute_key.pk_sig);
+    // Signature : pr_sig
+    offset += add_tlv_group(&response_buffer[offset], 0xc4, &G_context.account.compute_key.pr_sig);
+    // TVK
+    offset += add_tlv_field(
+        &response_buffer[offset], 0xbf, &G_context.sign_transaction_datas.prepared_request.tvk);
+    // TPK
+    offset += add_tlv_group(
+        &response_buffer[offset], 0xc0, &G_context.sign_transaction_datas.prepared_request.tpk);
+    response_buffer[offset] = 0;
+    // Gammas count
+    offset += add_tlv_uint8(&response_buffer[offset],
+                            0xc1,
+                            G_context.sign_transaction_datas.prepared_request.gammas_count);
+    if (G_context.sign_transaction_datas.prepared_request.gammas_count) {
+        // TODO
+    }
+
+    return io_send_response_pointer(response_buffer, offset, SW_OK);
 }

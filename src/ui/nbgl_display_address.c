@@ -32,27 +32,26 @@
 #include "validate.h"
 #include "menu.h"
 
-static void review_choice(bool confirm) {
+static void review_choice(bool confirm)
+{
     // Answer, display a status page and go back to main
     validate_address(confirm);
     if (confirm) {
         nbgl_useCaseReviewStatus(STATUS_TYPE_ADDRESS_VERIFIED, ui_menu_main);
-    } else {
+    }
+    else {
         nbgl_useCaseReviewStatus(STATUS_TYPE_ADDRESS_REJECTED, ui_menu_main);
     }
 }
 
-int ui_display_address(void) {
+int ui_display_address(void)
+{
     if (G_context.req_type != CONFIRM_ADDRESS || G_context.state != STATE_NONE) {
         G_context.state = STATE_NONE;
         return io_send_sw(SW_BAD_STATE);
     }
 
-    nbgl_useCaseAddressReview(G_context.address,
-                              NULL,
-                              &ICON_APP_ALEO,
-                              "Verify public address",
-                              NULL,
-                              review_choice);
+    nbgl_useCaseAddressReview(
+        G_context.address, NULL, &ICON_APP_ALEO, "Verify public address", NULL, review_choice);
     return 0;
 }

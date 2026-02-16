@@ -36,3 +36,11 @@ int ui_display_address(void);
  *
  */
 int ui_display_view_key(void);
+
+/**
+ * Display transaction information on the device and ask confirmation to sign.
+ *
+ * @return 0 if success, negative integer otherwise.
+ *
+ */
+int ui_display_transaction(void);

@@ -89,7 +89,7 @@ int apdu_dispatcher(const command_t *cmd)
             return handler_get_view_key(&buf);
 
         case CMD_SIGN_TRANSACTION:
-            if ((cmd->p1 > SIGN_MODE_FEES) || (cmd->p2 != 0x00 && cmd->p2 != 0x80)) {
+            if ((cmd->p1 > SIGN_MODE_FEE) || (cmd->p2 != 0x00 && cmd->p2 != 0x80)) {
                 return io_send_sw(SW_WRONG_P1P2);
             }
 

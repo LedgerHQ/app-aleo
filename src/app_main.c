@@ -27,6 +27,7 @@
 #include "io.h"
 #include "sw.h"
 #include "menu.h"
+#include "nbgl_use_case.h"
 #include "dispatcher.h"
 #include "account.h"
 
@@ -37,6 +38,8 @@ const internal_storage_t N_storage_real;
 #ifdef TEST_PRIVATE_KEY
 static const char *test_private_key = {TEST_PRIVATE_KEY};
 #endif  // !TEST_PRIVATE_KEY
+
+static uint64_t time_ms = 0;
 
 /**
  * Handle APDU command received and send back APDU response using handlers.
@@ -49,6 +52,7 @@ void app_main()
     command_t cmd;
 
     io_init();
+    time_ms = 0;
 
 #ifdef HAVE_SWAP
     // When called in swap context as a library, we don't want to show the menu
@@ -70,15 +74,13 @@ void app_main()
         storage.dummy2_allowed = 0x00;
         storage.initialized    = 0x01;
 #ifdef TEST_PRIVATE_KEY
-		PRINTF("Fill private keys with %s\n", test_private_key);
-        for (uint8_t i=0; i < 4; i++) {
-            memcpy(&storage.private_keys[i*PRIVATE_KEY_LEN], test_private_key, PRIVATE_KEY_LEN);
+        PRINTF("Fill private keys with %s\n", test_private_key);
+        for (uint8_t i = 0; i < 4; i++) {
+            memcpy(&storage.private_keys[i * PRIVATE_KEY_LEN], test_private_key, PRIVATE_KEY_LEN);
         }
 #endif  // ! TEST_PRIVATE_KEY
         nvm_write((void *) &N_storage, &storage, sizeof(internal_storage_t));
     }
-
-    account_init();
 
     for (;;) {
         // Receive command bytes in G_io_apdu_buffer
@@ -107,6 +109,18 @@ void app_main()
         if (apdu_dispatcher(&cmd) < 0) {
             PRINTF("=> apdu_dispatcher failure\n");
             return;
+        }
+    }
+}
+
+void app_ticker_event_callback(void)
+{
+    time_ms += 100;
+    if (G_context.signing_state == SIGNING_STATE_WAIT_FEES) {
+        G_context.fees_waiting_time_ms += 100;
+        if (G_context.fees_waiting_time_ms > 15 * 1000) {
+            G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
+            nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
         }
     }
 }

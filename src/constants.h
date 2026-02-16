@@ -31,9 +31,9 @@
 #define MAX_DER_SIG_LEN (72)
 
 /**
- * Exponent used to convert mBOL to BOL unit (N BOL = N * 10^3 mBOL).
+ * Exponent used to convert µALEO to ALEO unit (N ALEO = N * 10^6 µALEO).
  */
-#define EXPONENT_SMALLEST_UNIT (3)
+#define EXPONENT_SMALLEST_UNIT (6)
 
 /**
  * Length of address.

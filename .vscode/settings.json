@@ -5,7 +5,7 @@
     "ledgerDevTools.appSettings": {
 		"selectedUseCase": "release",
 		"selectedDevice": "Flex",
-		"selectedVariant": "BOL",
+		"selectedVariant": "ALEO",
 		"testsList": [
 			"test_app_mainmenu",
 			"test_app_name",

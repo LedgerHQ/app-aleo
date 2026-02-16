@@ -2,40 +2,54 @@
 
 
 from crypto.codecs.bech32m import BECH32M
+from crypto.bigint_256 import BigInteger256
 import argparse
 import json
 from enum import Enum
 from itertools import islice
 
 class TlvTypes(Enum):
+	STRUCTURE_TYPE           = 0x01
+	VERSION                  = 0x02
 	SIGNATURE                = 0x15
-	MAX_BASE_FEE             = 0x40
-	MAX_PRIORITY_FEE         = 0x41
-	FEE_FUNCTION_NAME        = 0x42
-	FEE_PROGRAM_ID           = 0x43
-	REQUEST                  = 0x44
-	PROGRAM_ID               = 0x45
-	FUNCTION_NAME            = 0x46
-	INPUT_COUNT              = 0x47
-	INPUT_VALUES             = 0x48
-	INPUT_TYPES              = 0x49
-	NESTED_CALL_COUNT        = 0x4a
-	RECORD_COMMITMENTS_COUNT = 0x4c
-	RECORD_COMMITMENT        = 0x4d
-	TVK                      = 0x4f
-	TPK                      = 0x50
-	GAMMAS_COUNT             = 0x51
-	GAMMAS                   = 0x52
-	IS_ROOT                  = 0x5a
+	MAX_BASE_FEE             = 0xb0
+	MAX_PRIORITY_FEE         = 0xb1
+	FEE_FUNCTION_NAME        = 0xb2
+	FEE_PROGRAM_ID           = 0xb3
+	REQUEST                  = 0xb4
+	PROGRAM_ID               = 0xb5
+	FUNCTION_NAME            = 0xb6
+	INPUT_COUNT              = 0xb7
+	INPUT_VALUES             = 0xb8
+	INPUT_TYPES              = 0xb9
+	NESTED_CALL_COUNT        = 0xba
+	TVK                      = 0xbf
+	TPK                      = 0xc0
+	GAMMAS_COUNT             = 0xc1
+	GAMMAS                   = 0xc2
 	NETWORK_ID               = 0x5b
+	PROGRAM_CHECKSUM         = 0x3b
 
 
 def get_tlv(t, v):
 	val = ''
 	# type
-	val += '{:02x}'.format(t.value)
+	if t.value <= 127:
+		val += '{:02x}'.format(t.value)
+	elif t.value <= 255:
+		val += '81{:02x}'.format(t.value)
+	else:
+		val += '82{:04x}'.format(t.value)
+
 	# length
-	val += '{:02x}'.format(len(v)//2)
+	length = len(v)//2
+	if length <= 127:
+		val += '{:02x}'.format(length)
+	elif length <= 255:
+		val += '81{:02x}'.format(length)
+	else:
+		val += '82{:04x}'.format(length)
+
 	# value
 	val += v
 
@@ -124,8 +138,10 @@ def get_input_type_from_string(input_type):
 
 def generate_request_apdu(request, is_root, nested_call_count=0):
 	val = ''
-	# Is root
-	val += get_tlv(TlvTypes.IS_ROOT, '{:02x}'.format(is_root))
+	# Structure type
+	val += get_tlv(TlvTypes.STRUCTURE_TYPE, '29')
+	# Version
+	val += get_tlv(TlvTypes.VERSION, '01')
 	# Network_id
 	if request['network_id'] == 'mainnet':
 		val += get_tlv(TlvTypes.NETWORK_ID, '0000')
@@ -141,7 +157,7 @@ def generate_request_apdu(request, is_root, nested_call_count=0):
 	for input in request['inputs']:
 		val += get_tlv(TlvTypes.INPUT_TYPES, get_input_type_from_string(input['type']))
 		input_val = ''
-		if len(input['value']) == 63 and input['value'][0:5] == 'aleo1':
+		if 'address' in input['type']:
 			hrp = []
 			data = []
 			BECH32M.decode(hrp, data, [ord(n) for n in input['value']])
@@ -149,17 +165,25 @@ def generate_request_apdu(request, is_root, nested_call_count=0):
 			BECH32M.convert_bits(res, 8, data, 5, False)
 			for item in res:
 				input_val += '{:02x}'.format(item)
+		elif 'field' in input['type']:
+			value = int(input['value'].split('field')[0])
+			big = BigInteger256(int(value))
+			input_val += big.to_int().to_bytes(32, 'little').hex()
+		elif 'record' in input['type']:
+			value = int(input['value'].split('field')[0])
+			big = BigInteger256(int(value))
+			input_val += big.to_int().to_bytes(32, 'little').hex()
+		elif 'u64' in input['type']:
+			input_val += input['value'].to_bytes(8, 'little').hex()
 		else:
 			input_val += input['value']
 		val += get_tlv(TlvTypes.INPUT_VALUES, input_val)
 	# Nested call count
 	if is_root:
 		val += get_tlv(TlvTypes.NESTED_CALL_COUNT, '{:02x}'.format(nested_call_count))
-	# Record commitments count
-	val += get_tlv(TlvTypes.RECORD_COMMITMENTS_COUNT, '{:02x}'.format(len(request['commitments'])))
-	# Commitments
-	for commitment in request['commitments']:
-		val += commitment
+
+	if len(request['program_checksum']):
+		val += get_tlv(TlvTypes.PROGRAM_CHECKSUM, request['program_checksum'])
 
 	return val
 
@@ -168,9 +192,9 @@ def generate_root_apdu(cmd, nested_call_count):
 
 	req = ''
 	# Structure type
-	req += '28'
+	req += get_tlv(TlvTypes.STRUCTURE_TYPE, '28')
 	# Version
-	req += '01'
+	req += get_tlv(TlvTypes.VERSION, '01')
 	# max_base_fee
 	req += get_tlv(TlvTypes.MAX_BASE_FEE, '{:08x}'.format(cmd['max_base_fee']))
 	# max_priority_fee
@@ -192,8 +216,21 @@ def generate_root_apdu(cmd, nested_call_count):
 	return apdus
 
 
+def generate_fee_apdu(cmd):
+
+	req = ''
+	# request
+	req += generate_request_apdu(cmd['request'], 1, 0)
+
+	# Request length
+	req_start = '{:04x}'.format(len(req)//2)
+
+	apdus = gen_apdu_array('e0', '06', '02', req_start+req)
+
+	return apdus
+
+
 if __name__ == "__main__":
-	HOST = '127.0.0.1'
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--file", help="json file", default=None)
@@ -211,10 +248,13 @@ if __name__ == "__main__":
 		if cmd['type'] == 'root':
 			apdu = generate_root_apdu(cmd, 0)
 			for item in apdu:
-				print('m_tool.sh --nanox --calvados --apdu ' + item)
+				print('echo {} | python3 -m ledgerblue.runScript --apdu'.format(item))
 		elif cmd['type'] == 'nested_call':
 			pass
 		elif cmd['type'] == 'fee':
+			apdu = generate_fee_apdu(cmd)
+			for item in apdu:
+				print('echo {} | python3 -m ledgerblue.runScript --apdu'.format(item))
 			pass
 
 	exit(0)

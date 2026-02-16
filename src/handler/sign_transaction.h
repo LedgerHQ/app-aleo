@@ -21,5 +21,3 @@
  *
  */
 int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool more);
-
-int sign_transaction_init(void);

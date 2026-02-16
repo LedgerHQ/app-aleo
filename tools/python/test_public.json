@@ -1,0 +1,39 @@
+{
+	"cmds" : [
+		{
+			"type" : "root",
+			"max_base_fee" : 500, 
+			"max_priority_fee" : 100, 
+			"fee_program_id" : "credits.aleo",
+			"fee_function_name" : "fee_public",
+			"request" : {
+				"network_id" : "mainnet",
+				"program_id" : "credits.aleo",
+				"function_name" : "transfer_public",
+				"inputs" : [
+					{"type" : "address.public", "value" : "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe"},
+					{"type" : "u64.public", "value" : 1000}
+				],
+				"commitments" : [],
+				"root_tvk" : "",
+				"program_checksum" : ""
+			}
+		},
+		{
+			"type" : "fee",
+			"request" : {
+				"network_id" : "mainnet",
+				"program_id" : "credits.aleo",
+				"function_name" : "fee_public",
+				"inputs" : [
+					{"type" : "u64.public", "value" : 500},
+					{"type" : "u64.public", "value" : 100},
+					{"type" : "field.public", "value" : "7266375125414209082394925781071362722506946030314916664133746682226945366259field"}
+				],
+				"commitments" : [],
+				"root_tvk" : "",
+				"program_checksum" : ""
+			}
+		}
+	]
+}

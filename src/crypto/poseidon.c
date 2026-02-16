@@ -301,7 +301,7 @@ void poseidon_hash_many(uint8_t  rate,
     }
     input_length = rate + input_length;
 
-    field_print_array(input, input_length);
+    //field_print_array(input, input_length);
 
     sponge_absorb(input, input_length);
 
@@ -342,5 +342,12 @@ void hash_psd4(field_t *input, size_t input_length, field_t *r)
 {
     field_t output[1];
     poseidon_hash_many(4, input, input_length, output, 1);
+    memcpy(r, &output[0], sizeof(field_t));
+}
+
+void hash_psd8(field_t *input, size_t input_length, field_t *r)
+{
+    field_t output[1];
+    poseidon_hash_many(8, input, input_length, output, 1);
     memcpy(r, &output[0], sizeof(field_t));
 }

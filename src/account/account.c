@@ -20,6 +20,7 @@
 #include <stdbool.h>  // bool
 
 #include "os.h"
+//#include "os_hdkey.h"
 #include "globals.h"
 #include "group.h"
 #include "poseidon.h"
@@ -27,8 +28,6 @@
 #include "bech32.h"
 
 #include "account.h"
-
-static account_t account;
 
 static field_t hash_input[64];
 
@@ -63,6 +62,7 @@ static void seed_from_private_key_string(const char *private_key_string, field_t
 
 static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
 {
+#if 1
     // TODO : Temporary code start
     uint32_t account_number = path[path_len - 1];
     PRINTF("Get seed path from account %d\n", account_number);
@@ -73,16 +73,27 @@ static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
     }
     // TODO : Temporary code end
 
-    uint8_t  seed_bn[64];
-    cx_err_t error = os_derive_bip32_with_seed_no_throw(
-        HDW_NORMAL, CX_CURVE_256K1, path, path_len, seed_bn, NULL, NULL, 0);
+#else
+    uint8_t      seed_bn[32];
+    bigint_256_t seed_big_int;
+    cx_err_t     error = sys_hdkey_derive(HDKEY_DERIVE_MODE_BLS12377_ALEO,
+                                      CX_CURVE_BLS12_377_G1,
+                                      path,
+                                      path_len,
+                                      seed_bn,
+                                      32,
+                                      NULL,
+                                      0,
+                                      NULL,
+                                      0);
     if (error != CX_OK) {
         return -1;
     }
 
-    bigint_256_t seed_big_int;
+    bn_reverse(seed_bn);
     bn_to_big_int(seed_bn, &seed_big_int);
     field_from_big_int(seed, &seed_big_int);
+#endif
 
     return 0;
 }
@@ -160,6 +171,7 @@ static void graph_key_from_view_key(const scalar_t *view_key, field_t *graph_key
 
 int account_get_address_string(const uint32_t *path, uint8_t path_len, char address[ADDRESS_LEN])
 {
+    account_t    account;
     bigint_256_t address_big_int;
     uint8_t      address_bn[32];
     int          status = get_seed(path, path_len, &account.private_key.seed);
@@ -204,6 +216,7 @@ int account_get_address_string(const uint32_t *path, uint8_t path_len, char addr
 
 int account_get_view_key_string(const uint32_t *path, uint8_t path_len, char *viewkey)
 {
+    account_t    account;
     bigint_256_t view_key_big_int;
     uint8_t      view_key_bn[32];
     uint8_t      base_58_input[MAX_ENC_INPUT_SIZE];
@@ -236,6 +249,7 @@ int account_get_view_key_string(const uint32_t *path, uint8_t path_len, char *vi
 
 int account_get_private_key_string(const uint32_t *path, uint8_t path_len, char *private_key)
 {
+    account_t    account;
     bigint_256_t seed_big_int;
     uint8_t      seed_bn[32];
     uint8_t      base_58_input[MAX_ENC_INPUT_SIZE];
@@ -266,7 +280,8 @@ int account_get_private_key_string(const uint32_t *path, uint8_t path_len, char 
 
 int account_sign(const uint32_t *path, uint8_t path_len, account_signature_t *signature)
 {
-    int status = get_seed(path, path_len, &account.private_key.seed);
+    account_t account;
+    int       status = get_seed(path, path_len, &account.private_key.seed);
 
     if (status != 0) {
         return status;
@@ -322,21 +337,18 @@ int account_sign(const uint32_t *path, uint8_t path_len, account_signature_t *si
     return status;
 }
 
-void account_init(void)
-{
-    explicit_bzero(&account, sizeof(account));
-}
+void account_init(void) {}
 
-account_t *account_generate_keys(const uint32_t *path, uint8_t path_len)
+int account_generate_keys(const uint32_t *path, uint8_t path_len, account_t *account)
 {
-    (void) get_seed(path, path_len, &account.private_key.seed);
+    (void) get_seed(path, path_len, &account->private_key.seed);
     private_key_from_seed(
-        &account.private_key.seed, &account.private_key.sk_sig, &account.private_key.r_sig);
-    compute_key_from_private_key(&account.private_key, &account.compute_key);
+        &account->private_key.seed, &account->private_key.sk_sig, &account->private_key.r_sig);
+    compute_key_from_private_key(&account->private_key, &account->compute_key);
     view_key_from_private_and_compute_key(
-        &account.private_key, &account.compute_key, &account.view_key);
-    address_from_view_key(&account.view_key, &account.address);
-    graph_key_from_view_key(&account.view_key, &account.graph_key);
+        &account->private_key, &account->compute_key, &account->view_key);
+    address_from_view_key(&account->view_key, &account->address);
+    graph_key_from_view_key(&account->view_key, &account->graph_key);
 
-    return &account;
+    return 0;
 }

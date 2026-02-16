@@ -19,7 +19,7 @@ class Fp256():
 	def __init__(self, F, val=None):
 		self.F = F
 		if type(val) is BigInteger:
-			self.value = val
+			self.value = BigInteger(val)
 		elif type(val) is int:
 			self.value = BigInteger(val)
 		else:

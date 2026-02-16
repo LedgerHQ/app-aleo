@@ -24,20 +24,39 @@
 #include "sw.h"
 #include "globals.h"
 #include "send_response.h"
+#include "signature.h"
 
-void validate_address(bool choice) {
+void validate_address(bool choice)
+{
     if (choice) {
         helper_send_response_get_address();
-    } else {
+    }
+    else {
         io_send_sw(SW_DENY);
     }
 }
 
-void validate_view_key(bool choice) {
+void validate_view_key(bool choice)
+{
     if (choice) {
         helper_send_response_get_view_key();
-    } else {
+    }
+    else {
         io_send_sw(SW_DENY);
     }
 }
 
+void validate_transaction(bool choice)
+{
+    int status = 0;
+    if (choice) {
+        sign_prepared_request(&G_context.account,
+                              &G_context.sign_transaction_datas.prepared_request);
+
+        status = helper_send_response_sign_transaction();
+        explicit_bzero(&G_context.account, sizeof(G_context.account));
+    }
+    else {
+        io_send_sw(SW_DENY);
+    }
+}

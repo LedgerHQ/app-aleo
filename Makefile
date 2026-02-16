@@ -30,7 +30,7 @@ APPNAME = "Aleo"
 # Application version
 APPVERSION_M = 0
 APPVERSION_N = 0
-APPVERSION_P = 0
+APPVERSION_P = 1
 APPVERSION = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
 
 # Application source files
@@ -57,6 +57,7 @@ endif
 # If your app needs it, you can specify multiple curves by using:
 # `CURVE_APP_LOAD_PARAMS = <curve1> <curve2>`
 CURVE_APP_LOAD_PARAMS = secp256k1
+#CURVE_APP_LOAD_PARAMS = bls12377g1
 
 # Application allowed derivation paths.
 # You should request a specific path for your app.
@@ -65,7 +66,7 @@ CURVE_APP_LOAD_PARAMS = secp256k1
 # and SLIP-0044 standards.
 # If your app needs it, you can specify multiple path by using:
 # `PATH_APP_LOAD_PARAMS = "44'/1'" "45'/1'"`
-PATH_APP_LOAD_PARAMS = "44'/683'"   # purpose=coin(44) / coin_type=Testnet(1)
+PATH_APP_LOAD_PARAMS = "44'/683'"
 
 # Setting to allow building variant applications
 # - <VARIANT_PARAM> is the name of the parameter which should be set

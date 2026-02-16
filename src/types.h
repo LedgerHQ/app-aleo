@@ -4,6 +4,7 @@
 #include <stdint.h>  // uint*_t
 
 #include "bip32.h"
+#include "account.h"
 
 #include "constants.h"
 
@@ -24,8 +25,17 @@ typedef enum {
 typedef enum {
     SIGN_MODE_ROOT        = 0x00,
     SIGN_MODE_NESTED_CALL = 0x01,
-    SIGN_MODE_FEES        = 0x02,
+    SIGN_MODE_FEE         = 0x02,
 } sign_transaction_mode_e;
+
+typedef enum {
+    SIGNING_STATE_WAIT_INTENT      = 0x00,
+    SIGNING_STATE_INTENT           = 0x01,
+    SIGNING_STATE_WAIT_NESTED_CALL = 0x02,
+    SIGNING_STATE_NESTED_CALL      = 0x03,
+    SIGNING_STATE_WAIT_FEES        = 0x04,
+    SIGNING_STATE_FEES             = 0x05,
+} signing_state_e;
 
 /**
  * Enumeration with parsing state.
@@ -53,6 +63,7 @@ typedef struct {
 } input_t;
 
 typedef struct {
+    // input
     bool     is_root;
     uint16_t network_id;
     uint8_t  program_id_length;
@@ -61,10 +72,23 @@ typedef struct {
     char    *function_name;
     uint8_t  inputs_count;
     input_t  inputs[8];
+    uint8_t *program_checksum;
+    uint8_t  nested_call_count;
 
     // internal (for parsing)
     uint8_t inputs_value_offset;
     uint8_t inputs_type_offset;
+
+    // output
+    scalar_t r;    // Transition Secret Key
+    field_t  tvk;  // Transition View Key
+    group_t  tpk;  // Transition Public Key
+    field_t  tcm;  // Transition Commitment
+    field_t  function_id;
+    scalar_t challenge;
+    scalar_t response;
+    uint8_t  gammas_count;
+
 } prepared_request_t;
 
 typedef struct {
@@ -75,12 +99,45 @@ typedef struct {
     uint8_t  fee_program_id_length;
     char     fee_program_id[64];
 
-    prepared_request_t root_prepared_request;
-    uint8_t            nested_call_count;
-    uint8_t            nested_call_offset;
-    prepared_request_t nested_calls[4];
+    prepared_request_t prepared_request;
 
 } sign_transaction_datas_t;
+
+typedef enum {
+    TX_UNKNOWN,
+    TX_TRANSFER,
+    TX_FEE,
+} tx_type_e;
+
+typedef enum {
+    TX_TRANSFER_PUBLIC,
+    TX_TRANSFER_PRIVATE,
+    TX_TRANSFER_PUBLIC_TO_PRIVATE,
+    TX_TRANSFER_PRIVATE_TO_PUBLIC,
+} tx_transfer_type_e;
+
+typedef enum {
+    TX_FEE_PUBLIC,
+    TX_FEE_PRIVATE,
+} tx_fee_type_e;
+
+typedef struct {
+    tx_transfer_type_e type;
+    char               address_to[ADDRESS_LEN + 1];
+    uint64_t           amount;
+} tx_transfer_t;
+
+typedef struct {
+    tx_fee_type_e type;
+    uint64_t      base_fee;
+    uint64_t      priority_fee;
+} tx_fee_t;
+
+typedef struct {
+    tx_type_e     type;
+    tx_transfer_t transfer;
+    tx_fee_t      fee;
+} tx_t;
 
 /**
  * Structure for global context.
@@ -96,5 +153,12 @@ typedef struct {
     uint32_t       bip32_path[MAX_BIP32_PATH];  /// BIP32 path
     uint8_t        bip32_path_len;              /// length of BIP32 path
 
+    account_t account;
+
+    uint32_t                 fees_waiting_time_ms;
+    signing_state_e          signing_state;
+    uint8_t                  nested_call_count;
+    uint8_t                  nested_call_offset;
     sign_transaction_datas_t sign_transaction_datas;
+    tx_t                     tx;
 } global_ctx_t;

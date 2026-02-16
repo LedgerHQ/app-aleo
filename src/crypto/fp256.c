@@ -27,36 +27,53 @@
 #include "bigint_256.h"
 #include "fp256.h"
 
-bool fp256_is_valid(const fp256_parameters_t *p, const fp256_t *a) {
+static void fp256_div2_assign(fp256_t *a)
+{
+    uint64_t t = 0;
+
+    for (int i = 3; i >= 0; i--) {
+        uint64_t t2 = a->big.u64[i] << 63;
+        a->big.u64[i] >>= 1;
+        a->big.u64[i] |= t;
+        t = t2;
+    }
+}
+
+bool fp256_is_valid(const fp256_parameters_t *p, const fp256_t *a)
+{
     if (big_int_compare(&a->big, &p->MODULUS.big) < 0) {
         return true;
     }
     return false;
 }
 
-void fp256_reduce(const fp256_parameters_t *p, fp256_t *a) {
+void fp256_reduce(const fp256_parameters_t *p, fp256_t *a)
+{
     if (fp256_is_valid(p, a) == false) {
         big_int_sub_noborrow(&a->big, &p->MODULUS.big);
     }
 }
 
-void fp256_add_assign(const fp256_parameters_t *p, fp256_t *a, const fp256_t *b) {
+void fp256_add_assign(const fp256_parameters_t *p, fp256_t *a, const fp256_t *b)
+{
     big_int_add_nocarry(&a->big, &b->big);
     fp256_reduce(p, a);
 }
 
-void fp256_sub_assign(const fp256_parameters_t *p, fp256_t *a, const fp256_t *b) {
+void fp256_sub_assign(const fp256_parameters_t *p, fp256_t *a, const fp256_t *b)
+{
     if (big_int_compare(&a->big, &b->big) < 0) {
         big_int_add_nocarry(&a->big, &p->MODULUS.big);
     }
     big_int_sub_noborrow(&a->big, &b->big);
 }
 
-void fp256_mul_assign(const fp256_parameters_t *p, fp256_t *a, const fp256_t *b) {
-    uint64_t r[4] = {0, 0, 0, 0};
+void fp256_mul_assign(const fp256_parameters_t *p, fp256_t *a, const fp256_t *b)
+{
+    uint64_t r[4]   = {0, 0, 0, 0};
     uint64_t carry1 = 0;
     uint64_t carry2 = 0;
-    uint64_t k[2] = {0, 0};
+    uint64_t k[2]   = {0, 0};
 
     // Iteration 0
     r[0] = u64_mac_with_carry(r[0], a->big.u64[0], b->big.u64[0], &carry1);
@@ -76,7 +93,7 @@ void fp256_mul_assign(const fp256_parameters_t *p, fp256_t *a, const fp256_t *b)
     // Iteration 1
     carry1 = 0;
     carry2 = 0;
-    r[0] = u64_mac_with_carry(r[0], a->big.u64[0], b->big.u64[1], &carry1);
+    r[0]   = u64_mac_with_carry(r[0], a->big.u64[0], b->big.u64[1], &carry1);
     u64_mul(r[0], p->INV, k);
     (void) u64_mac_with_carry(r[0], k[1], p->MODULUS.big.u64[0], &carry2);
 
@@ -93,7 +110,7 @@ void fp256_mul_assign(const fp256_parameters_t *p, fp256_t *a, const fp256_t *b)
     // Iteration 2
     carry1 = 0;
     carry2 = 0;
-    r[0] = u64_mac_with_carry(r[0], a->big.u64[0], b->big.u64[2], &carry1);
+    r[0]   = u64_mac_with_carry(r[0], a->big.u64[0], b->big.u64[2], &carry1);
     u64_mul(r[0], p->INV, k);
     (void) u64_mac_with_carry(r[0], k[1], p->MODULUS.big.u64[0], &carry2);
 
@@ -110,7 +127,7 @@ void fp256_mul_assign(const fp256_parameters_t *p, fp256_t *a, const fp256_t *b)
     // Iteration 3
     carry1 = 0;
     carry2 = 0;
-    r[0] = u64_mac_with_carry(r[0], a->big.u64[0], b->big.u64[3], &carry1);
+    r[0]   = u64_mac_with_carry(r[0], a->big.u64[0], b->big.u64[3], &carry1);
     u64_mul(r[0], p->INV, k);
     (void) u64_mac_with_carry(r[0], k[1], p->MODULUS.big.u64[0], &carry2);
 
@@ -131,7 +148,8 @@ void fp256_mul_assign(const fp256_parameters_t *p, fp256_t *a, const fp256_t *b)
     fp256_reduce(p, a);
 }
 
-void fp256_pow_assign(const fp256_parameters_t *p, fp256_t *a, uint8_t alpha) {
+void fp256_pow_assign(const fp256_parameters_t *p, fp256_t *a, uint8_t alpha)
+{
     fp256_t r;
 
     memcpy(&r, a, sizeof(fp256_t));
@@ -141,10 +159,11 @@ void fp256_pow_assign(const fp256_parameters_t *p, fp256_t *a, uint8_t alpha) {
 }
 
 void fp256_sum_of_products(const fp256_parameters_t *p,
-                           const fp256_t *a,
-                           const fp256_t *b,
-                           uint8_t length,
-                           fp256_t *r) {
+                           const fp256_t            *a,
+                           const fp256_t            *b,
+                           uint8_t                   length,
+                           fp256_t                  *r)
+{
     uint64_t carry = 0;
     uint64_t u0 = 0, u1 = 0, u2 = 0, u3 = 0;
 
@@ -152,14 +171,14 @@ void fp256_sum_of_products(const fp256_parameters_t *p,
         uint64_t t0 = u0, t1 = u1, t2 = u2, t3 = u3, t4 = 0;
         for (uint8_t i = 0; i < length; i++) {
             carry = 0;
-            t0 = u64_mac_with_carry(t0, a[i].big.u64[j], b[i].big.u64[0], &carry);
-            t1 = u64_mac_with_carry(t1, a[i].big.u64[j], b[i].big.u64[1], &carry);
-            t2 = u64_mac_with_carry(t2, a[i].big.u64[j], b[i].big.u64[2], &carry);
-            t3 = u64_mac_with_carry(t3, a[i].big.u64[j], b[i].big.u64[3], &carry);
+            t0    = u64_mac_with_carry(t0, a[i].big.u64[j], b[i].big.u64[0], &carry);
+            t1    = u64_mac_with_carry(t1, a[i].big.u64[j], b[i].big.u64[1], &carry);
+            t2    = u64_mac_with_carry(t2, a[i].big.u64[j], b[i].big.u64[2], &carry);
+            t3    = u64_mac_with_carry(t3, a[i].big.u64[j], b[i].big.u64[3], &carry);
             t4 += carry;
         }
 
-        carry = 0;
+        carry         = 0;
         uint64_t k[2] = {0, 0};
         u64_mul(t0, p->INV, k);
         (void) u64_mac_with_carry(t0, k[1], p->MODULUS.big.u64[0], &carry);
@@ -175,23 +194,82 @@ void fp256_sum_of_products(const fp256_parameters_t *p,
     fp256_reduce(p, r);
 }
 
-void fp256_from_big_int(const fp256_parameters_t *p, fp256_t *a, const bigint_256_t *bigint) {
+void fp256_inverse_assign(const fp256_parameters_t *p, fp256_t *a)
+{
+    bigint_256_t one;
+    fp256_t      v;
+    fp256_t      u;
+    fp256_t      b;
+    fp256_t      c;
+
+    big_int_from_int(&one, 1);
+    memcpy(&u, a, sizeof(fp256_t));
+    memcpy(&v, &p->MODULUS, sizeof(fp256_t));
+    memcpy(&b, &p->R2, sizeof(fp256_t));
+    memset(&c, 0, sizeof(fp256_t));
+
+    while ((big_int_compare(&u.big, &one) != 0) && (big_int_compare(&v.big, &one) != 0)) {
+        while (big_int_is_even(&u.big)) {
+            fp256_div2_assign(&u);
+
+            if (big_int_is_even(&b.big)) {
+                fp256_div2_assign(&b);
+            }
+            else {
+                big_int_add_nocarry(&b.big, &p->MODULUS.big);
+                fp256_div2_assign(&b);
+            }
+        }
+
+        while (big_int_is_even(&v.big)) {
+            fp256_div2_assign(&v);
+
+            if (big_int_is_even(&c.big)) {
+                fp256_div2_assign(&c);
+            }
+            else {
+                big_int_add_nocarry(&c.big, &p->MODULUS.big);
+                fp256_div2_assign(&c);
+            }
+        }
+
+        if (big_int_compare(&v.big, &u.big) < 0) {
+            big_int_sub_noborrow(&u.big, &v.big);
+            fp256_sub_assign(p, &b, &c);
+        }
+        else {
+            big_int_sub_noborrow(&v.big, &u.big);
+            fp256_sub_assign(p, &c, &b);
+        }
+    }
+    if (big_int_compare(&u.big, &one) == 0) {
+        memcpy(a, &b, sizeof(fp256_t));
+    }
+    else {
+        memcpy(a, &c, sizeof(fp256_t));
+    }
+}
+
+void fp256_from_big_int(const fp256_parameters_t *p, fp256_t *a, const bigint_256_t *bigint)
+{
     memcpy(&a->big, bigint, sizeof(bigint_256_t));
     if (big_int_is_zero(bigint) == false) {
         fp256_mul_assign(p, a, &p->R2);
     }
 }
 
-void fp256_from_int(const fp256_parameters_t *p, fp256_t *a, uint64_t i) {
+void fp256_from_int(const fp256_parameters_t *p, fp256_t *a, uint64_t i)
+{
     bigint_256_t big;
 
     big_int_from_int(&big, i);
     fp256_from_big_int(p, a, &big);
 }
 
-void fp256_to_big_int(const fp256_parameters_t *p, const fp256_t *a, bigint_256_t *bigint) {
+void fp256_to_big_int(const fp256_parameters_t *p, const fp256_t *a, bigint_256_t *bigint)
+{
     uint64_t carry = 0;
-    uint64_t k[2] = {0, 0};
+    uint64_t k[2]  = {0, 0};
 
     memcpy(bigint, &a->big, sizeof(bigint_256_t));
 
@@ -224,20 +302,23 @@ void fp256_to_big_int(const fp256_parameters_t *p, const fp256_t *a, bigint_256_
     bigint->u64[3] = carry;
 }
 
-void fp256_random(const fp256_parameters_t *p, fp256_t *a) {
+void fp256_random(const fp256_parameters_t *p, fp256_t *a)
+{
     bigint_256_t big;
     big_int_random(&big, &p->MODULUS.big);
     fp256_from_big_int(p, a, &big);
 }
 
-void fp256_print(fp256_t *array, uint16_t length) {
+void fp256_print(fp256_t *array, uint16_t length)
+{
     for (uint16_t index = 0; index < length; index++) {
         PRINTF("[%2d] : ", index);
         big_int_print(&array[index].big);
     }
 }
 
-void fp256_bg_print(const fp256_parameters_t *p, fp256_t *array, uint16_t length) {
+void fp256_bg_print(const fp256_parameters_t *p, fp256_t *array, uint16_t length)
+{
     for (uint16_t index = 0; index < length; index++) {
         PRINTF("[%2d] : ", index);
         fp256_t b;

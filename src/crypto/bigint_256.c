@@ -169,6 +169,15 @@ bool big_int_is_zero(const bigint_256_t *a)
     return false;
 }
 
+bool big_int_is_even(const bigint_256_t *a)
+{
+    if (a->u64[0] & 1) {
+        return false;
+    }
+
+    return true;
+}
+
 bool big_int_add_nocarry(bigint_256_t *a, const bigint_256_t *b)
 {
     uint64_t carry = 0;
@@ -257,6 +266,15 @@ void bn_to_big_int(const uint8_t *bn, bigint_256_t *a)
         uint64_t val = bn[31 - i];
         val <<= 8 * (i % 8);
         a->u64[i / 8] += val;
+    }
+}
+
+void bn_reverse(uint8_t *bn)
+{
+    for (size_t i = 0; i < (32 + 1) / 2; i++) {
+        uint8_t inter  = bn[i];
+        bn[i]          = bn[32 - 1 - i];
+        bn[32 - 1 - i] = inter;
     }
 }
 
