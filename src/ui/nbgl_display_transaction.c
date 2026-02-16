@@ -79,6 +79,7 @@ static void confirm_cb(int token, uint8_t index, int page)
 
 static void confirm_reject_cb(void)
 {
+    validate_transaction(false);
     nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
     G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
 }
@@ -96,7 +97,6 @@ static void review_tx(bool confirm)
         confirm_cb(0, 0, 0);
     }
     else {
-        validate_transaction(false);
         confirm_reject_cb();
     }
 }
