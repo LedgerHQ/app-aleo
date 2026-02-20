@@ -173,10 +173,8 @@ def generate_request_apdu(request, is_root, nested_call_count=0):
 		elif 'record' in input['type']:
 			for in_val in input['value']:
 				value = int(in_val.split('field')[0])
-				print(value)
 				big = BigInteger256(int(value))
 				input_val += big.to_int().to_bytes(32, 'little').hex()
-				print(big.to_int().to_bytes(32, 'little').hex())
 		elif 'u64' in input['type']:
 			input_val += input['value'].to_bytes(8, 'little').hex()
 		else:
