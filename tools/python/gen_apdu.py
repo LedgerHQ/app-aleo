@@ -252,13 +252,13 @@ if __name__ == "__main__":
 		if cmd['type'] == 'root':
 			apdu = generate_root_apdu(cmd, 0)
 			for item in apdu:
-				print('m_tool.sh --nanox --calvados --apdu ' + item)
+				print('echo {} | python3 -m ledgerblue.runScript --apdu'.format(item))
 		elif cmd['type'] == 'nested_call':
 			pass
 		elif cmd['type'] == 'fee':
 			apdu = generate_fee_apdu(cmd)
 			for item in apdu:
-				print('m_tool.sh --nanox --calvados --apdu ' + item)
+				print('echo {} | python3 -m ledgerblue.runScript --apdu'.format(item))
 			pass
 
 	exit(0)
