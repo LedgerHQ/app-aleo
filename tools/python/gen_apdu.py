@@ -17,18 +17,18 @@ class TlvTypes(Enum):
 	FEE_FUNCTION_NAME        = 0xb2
 	FEE_PROGRAM_ID           = 0xb3
 	REQUEST                  = 0xb4
+	NETWORK_ID               = 0xc3
 	PROGRAM_ID               = 0xb5
+	PROGRAM_CHECKSUM         = 0xc4
 	FUNCTION_NAME            = 0xb6
-	INPUT_COUNT              = 0xb7
-	INPUT_VALUES             = 0xb8
-	INPUT_TYPES              = 0xb9
 	NESTED_CALL_COUNT        = 0xba
+	INPUT_COUNT              = 0xb7
+	INPUT_TYPES              = 0xb9
+	INPUT_VALUES             = 0xb8
 	TVK                      = 0xbf
 	TPK                      = 0xc0
 	GAMMAS_COUNT             = 0xc1
 	GAMMAS                   = 0xc2
-	NETWORK_ID               = 0x5b
-	PROGRAM_CHECKSUM         = 0x3b
 
 
 def get_tlv(t, v):
@@ -67,10 +67,11 @@ def gen_apdu_array(cla, ins, p1, cmd):
 		if batch_index == 0:
 			apdu = cla + ins + p1 + '00'
 		else:
-			apdu = cla + ins + p1 + '80'
+			apdu = cla + ins + p1 + '01'
 		apdu += '{:02x}'.format(len(chunk)//2)
 		apdu += chunk
 		apdus.append(apdu)
+		batch_index += 1
 	return apdus
 
 
@@ -170,9 +171,12 @@ def generate_request_apdu(request, is_root, nested_call_count=0):
 			big = BigInteger256(int(value))
 			input_val += big.to_int().to_bytes(32, 'little').hex()
 		elif 'record' in input['type']:
-			value = int(input['value'].split('field')[0])
-			big = BigInteger256(int(value))
-			input_val += big.to_int().to_bytes(32, 'little').hex()
+			for in_val in input['value']:
+				value = int(in_val.split('field')[0])
+				print(value)
+				big = BigInteger256(int(value))
+				input_val += big.to_int().to_bytes(32, 'little').hex()
+				print(big.to_int().to_bytes(32, 'little').hex())
 		elif 'u64' in input['type']:
 			input_val += input['value'].to_bytes(8, 'little').hex()
 		else:
@@ -248,13 +252,13 @@ if __name__ == "__main__":
 		if cmd['type'] == 'root':
 			apdu = generate_root_apdu(cmd, 0)
 			for item in apdu:
-				print('echo {} | python3 -m ledgerblue.runScript --apdu'.format(item))
+				print('m_tool.sh --nanox --calvados --apdu ' + item)
 		elif cmd['type'] == 'nested_call':
 			pass
 		elif cmd['type'] == 'fee':
 			apdu = generate_fee_apdu(cmd)
 			for item in apdu:
-				print('echo {} | python3 -m ledgerblue.runScript --apdu'.format(item))
+				print('m_tool.sh --nanox --calvados --apdu ' + item)
 			pass
 
 	exit(0)

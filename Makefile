@@ -30,7 +30,7 @@ APPNAME = "Aleo"
 # Application version
 APPVERSION_M = 0
 APPVERSION_N = 0
-APPVERSION_P = 1
+APPVERSION_P = 2
 APPVERSION = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
 
 # Application source files
@@ -79,7 +79,7 @@ VARIANT_VALUES = ALEO
 
 # Enabling DEBUG flag will enable PRINTF and disable optimizations
 #DEBUG_OVER_USB = 1
-#DEBUG = 1
+DEBUG = 1
 # Force specific private key for dev purpose only
 #TEST_PRIVATE_KEY = APrivateKey1zkp5J89jFEgyDwNTzqxpxgLog5swheeyboJv3tQSUBGFZNY
 DEFINES += TEST_PRIVATE_KEY=\"$(TEST_PRIVATE_KEY)\"

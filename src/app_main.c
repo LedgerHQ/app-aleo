@@ -30,6 +30,7 @@
 #include "nbgl_use_case.h"
 #include "dispatcher.h"
 #include "account.h"
+#include "sign_transaction.h"
 
 global_ctx_t G_context;
 
@@ -65,6 +66,7 @@ void app_main()
 
     // Reset context
     explicit_bzero(&G_context, sizeof(G_context));
+    sign_transaction_init();
 
     // Initialize the NVM data if required
     if (N_storage.initialized != 0x01) {
@@ -92,7 +94,7 @@ void app_main()
         // Parse APDU command from G_io_apdu_buffer
         if (!apdu_parser(&cmd, G_io_apdu_buffer, input_len)) {
             PRINTF("=> /!\\ BAD LENGTH: %.*H\n", input_len, G_io_apdu_buffer);
-            io_send_sw(SW_WRONG_DATA_LENGTH);
+            io_send_sw(SWO_WRONG_DATA_LENGTH);
             continue;
         }
 

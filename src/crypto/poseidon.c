@@ -351,3 +351,8 @@ void hash_psd8(field_t *input, size_t input_length, field_t *r)
     poseidon_hash_many(8, input, input_length, output, 1);
     memcpy(r, &output[0], sizeof(field_t));
 }
+
+void hash_many_psd8(field_t *input, size_t input_length, field_t *output, size_t output_length)
+{
+    poseidon_hash_many(8, input, input_length, output, output_length);
+}

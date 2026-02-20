@@ -48,7 +48,7 @@ int ui_display_view_key(void)
 {
     if (G_context.req_type != CONFIRM_VIEW_KEY || G_context.state != STATE_NONE) {
         G_context.state = STATE_NONE;
-        return io_send_sw(SW_BAD_STATE);
+        return io_send_sw(SWO_CONDITIONS_NOT_SATISFIED);
     }
 
     nbgl_useCaseAddressReview(

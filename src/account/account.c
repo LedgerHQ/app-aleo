@@ -20,7 +20,9 @@
 #include <stdbool.h>  // bool
 
 #include "os.h"
-//#include "os_hdkey.h"
+#ifdef ALEO_BIP32_SUPPORT
+#include "os_hdkey.h"
+#endif // ALEO_BIP32_SUPPORT
 #include "globals.h"
 #include "group.h"
 #include "poseidon.h"
@@ -62,7 +64,7 @@ static void seed_from_private_key_string(const char *private_key_string, field_t
 
 static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
 {
-#if 1
+#ifndef ALEO_BIP32_SUPPORT
     // TODO : Temporary code start
     uint32_t account_number = path[path_len - 1];
     PRINTF("Get seed path from account %d\n", account_number);

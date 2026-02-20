@@ -88,6 +88,7 @@ typedef struct {
     scalar_t challenge;
     scalar_t response;
     uint8_t  gammas_count;
+    group_t  gammas[5];
 
 } prepared_request_t;
 

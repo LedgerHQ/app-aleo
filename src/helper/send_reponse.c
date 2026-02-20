@@ -25,10 +25,11 @@
 #include "constants.h"
 #include "globals.h"
 #include "sw.h"
+#include "write.h"
 
 #include "group.h"
 
-static uint8_t response_buffer[OS_IO_BUFFER_SIZE];
+static uint8_t response_buffer[512];
 
 static size_t add_tlv_field(uint8_t *in_buffer, uint8_t type, field_t *f)
 {
@@ -45,8 +46,8 @@ static size_t add_tlv_field(uint8_t *in_buffer, uint8_t type, field_t *f)
     in_buffer[offset++] = 32;
 
     field_to_big_int(f, &b);
-    big_int_to_bn(&b, &in_buffer[2]);
-    bn_reverse(&in_buffer[2]);
+    big_int_to_bn(&b, &in_buffer[offset]);
+    bn_reverse(&in_buffer[offset]);
     offset += 32;
 
     return offset;
@@ -55,28 +56,6 @@ static size_t add_tlv_field(uint8_t *in_buffer, uint8_t type, field_t *f)
 static size_t add_tlv_group(uint8_t *in_buffer, uint8_t type, group_t *g)
 {
     return add_tlv_field(in_buffer, type, &g->x);
-}
-
-static size_t add_tlv_scalar(uint8_t *in_buffer, uint8_t type, scalar_t *s)
-{
-    size_t       offset = 0;
-    bigint_256_t b;
-
-    if (type <= 0x7f) {
-        in_buffer[offset++] = type;
-    }
-    else {
-        in_buffer[offset++] = 0x81;
-        in_buffer[offset++] = type;
-    }
-    in_buffer[offset++] = 32;
-
-    scalar_to_big_int(s, &b);
-    big_int_to_bn(&b, &in_buffer[2]);
-    bn_reverse(&in_buffer[2]);
-    offset += 32;
-
-    return offset;
 }
 
 static size_t add_tlv_uint8(uint8_t *in_buffer, uint8_t type, uint8_t u)
@@ -93,6 +72,55 @@ static size_t add_tlv_uint8(uint8_t *in_buffer, uint8_t type, uint8_t u)
     in_buffer[offset++] = u;
 
     return offset++;
+}
+
+static size_t add_tlv_signature(uint8_t             *in_buffer,
+                                uint8_t              type,
+                                const scalar_t      *challenge,
+                                const scalar_t      *response,
+                                const compute_key_t *compute_key)
+{
+    size_t       offset = 0;
+    bigint_256_t b;
+
+    if (type <= 0x7f) {
+        in_buffer[offset++] = type;
+    }
+    else {
+        in_buffer[offset++] = 0x81;
+        in_buffer[offset++] = type;
+    }
+    in_buffer[offset++] = 128;
+
+    // Challenge
+	PRINTF("Challenge\n");
+    scalar_to_big_int(challenge, &b);
+	big_int_println(&b);
+    big_int_to_bn(&b, &in_buffer[offset]);
+	bn_print(&in_buffer[offset]);
+    bn_reverse(&in_buffer[offset]);
+	bn_print(&in_buffer[offset]);
+    offset += 32;
+
+    // Response
+    scalar_to_big_int(response, &b);
+    big_int_to_bn(&b, &in_buffer[offset]);
+    bn_reverse(&in_buffer[offset]);
+    offset += 32;
+
+    // pk_sig
+    field_to_big_int(&compute_key->pk_sig.x, &b);
+    big_int_to_bn(&b, &in_buffer[offset]);
+    bn_reverse(&in_buffer[offset]);
+    offset += 32;
+
+    // pr_sig
+    field_to_big_int(&compute_key->pr_sig.x, &b);
+    big_int_to_bn(&b, &in_buffer[offset]);
+    bn_reverse(&in_buffer[offset]);
+    offset += 32;
+
+    return offset;
 }
 
 int helper_send_response_get_address(void)
@@ -137,37 +165,37 @@ int helper_send_response_get_private_key(void)
 int helper_send_response_sign_transaction(void)
 {
     size_t offset = 0;
+    size_t i      = 0;
+
     memset(response_buffer, 0, sizeof(response_buffer));
     // Type
     offset += add_tlv_uint8(&response_buffer[offset], 0x01, 0x2a);
     // Version
     offset += add_tlv_uint8(&response_buffer[offset], 0x02, 0x01);
-    // Signature : challenge
-    offset += add_tlv_scalar(&response_buffer[offset],
-                             0xc5,
-                             &G_context.sign_transaction_datas.prepared_request.challenge);
-    // Signature : response
-    offset += add_tlv_field(&response_buffer[offset],
-                            0xc6,
-                            &G_context.sign_transaction_datas.prepared_request.response);
-    // Signature : pk_sig
-    offset += add_tlv_group(&response_buffer[offset], 0xc3, &G_context.account.compute_key.pk_sig);
-    // Signature : pr_sig
-    offset += add_tlv_group(&response_buffer[offset], 0xc4, &G_context.account.compute_key.pr_sig);
+    offset += add_tlv_signature(&response_buffer[offset],
+                                0x15,
+                                &G_context.sign_transaction_datas.prepared_request.challenge,
+                                &G_context.sign_transaction_datas.prepared_request.response,
+                                &G_context.account.compute_key);
     // TVK
     offset += add_tlv_field(
         &response_buffer[offset], 0xbf, &G_context.sign_transaction_datas.prepared_request.tvk);
     // TPK
     offset += add_tlv_group(
         &response_buffer[offset], 0xc0, &G_context.sign_transaction_datas.prepared_request.tpk);
-    response_buffer[offset] = 0;
     // Gammas count
     offset += add_tlv_uint8(&response_buffer[offset],
                             0xc1,
                             G_context.sign_transaction_datas.prepared_request.gammas_count);
-    if (G_context.sign_transaction_datas.prepared_request.gammas_count) {
-        // TODO
+
+    for (i = 0; i < G_context.sign_transaction_datas.prepared_request.gammas_count; i++) {
+        offset += add_tlv_group(&response_buffer[offset],
+                                0xc2,
+                                &G_context.sign_transaction_datas.prepared_request.gammas[i]);
     }
 
-    return io_send_response_pointer(response_buffer, offset, SW_OK);
+    write_u16_be(response_buffer, offset, SW_OK);
+    offset += 2;
+
+    return io_legacy_apdu_tx(response_buffer, offset);
 }

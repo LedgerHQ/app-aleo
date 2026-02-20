@@ -11,11 +11,12 @@
 				"program_id" : "credits.aleo",
 				"function_name" : "transfer_private",
 				"inputs" : [
-					{"type" : "credits.record", "value" : "3614797564276936744957924747041031196891698846785520060979425601577054464500field"},
+					{"type" : "credits.record", "value" : ["3614797564276936744957924747041031196891698846785520060979425601577054464500field",
+					                                       "2426895214035216932245297778850989035038538961658726507442215877484415082794field",
+					                                       "0220642863446832956019507279394572297489712696240584424406852292692897199577field"]},
 					{"type" : "address.private", "value" : "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe"},
 					{"type" : "u64.private", "value" : 1000}
 				],
-				"commitments" : [],
 				"root_tvk" : "",
 				"program_checksum" : ""
 			}

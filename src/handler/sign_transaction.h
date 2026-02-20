@@ -20,4 +20,6 @@
  * @return zero or positive integer if success, negative integer otherwise.
  *
  */
-int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool more);
+int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool next_chunk);
+
+void sign_transaction_init(void);

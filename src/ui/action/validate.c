@@ -32,7 +32,7 @@ void validate_address(bool choice)
         helper_send_response_get_address();
     }
     else {
-        io_send_sw(SW_DENY);
+        io_send_sw(SWO_PERMISSION_DENIED);
     }
 }
 
@@ -42,21 +42,19 @@ void validate_view_key(bool choice)
         helper_send_response_get_view_key();
     }
     else {
-        io_send_sw(SW_DENY);
+        io_send_sw(SWO_PERMISSION_DENIED);
     }
 }
 
 void validate_transaction(bool choice)
 {
-    int status = 0;
     if (choice) {
         sign_prepared_request(&G_context.account,
                               &G_context.sign_transaction_datas.prepared_request);
 
-        status = helper_send_response_sign_transaction();
-        explicit_bzero(&G_context.account, sizeof(G_context.account));
+        helper_send_response_sign_transaction();
     }
     else {
-        io_send_sw(SW_DENY);
+        io_send_sw(SWO_PERMISSION_DENIED);
     }
 }

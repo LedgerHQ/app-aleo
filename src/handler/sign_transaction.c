@@ -36,22 +36,20 @@
 #include "signature.h"
 #include "tx.h"
 
-static void sign_transaction_init(void)
-{
-    explicit_bzero(&G_context, sizeof(G_context));
-}
+static uint8_t  rx_transaction_array[512];
+static buffer_t apdu_rx_buffer;
 
 static int sign_root_tx(buffer_t *cdata)
 {
     int status = 0;
 
-    sign_transaction_init();
+    explicit_bzero(&G_context, sizeof(G_context));
 
     // Extract bip32 path
     if (!buffer_read_u8(cdata, &G_context.bip32_path_len)
         || !buffer_read_bip32_path(
             cdata, G_context.bip32_path, (size_t) G_context.bip32_path_len)) {
-        return io_send_sw(SW_WRONG_DATA_LENGTH);
+        return io_send_sw(SWO_WRONG_DATA_LENGTH);
     }
     account_generate_keys(G_context.bip32_path, G_context.bip32_path_len, &G_context.account);
 
@@ -88,7 +86,7 @@ static int sign_nested_call_tx(buffer_t *cdata)
     }
 
     if (G_context.signing_state != SIGNING_STATE_NESTED_CALL) {
-        return io_send_sw(SW_BAD_STATE);
+        return io_send_sw(SWO_CONDITIONS_NOT_SATISFIED);
     }
 
     explicit_bzero(&G_context.sign_transaction_datas.prepared_request, sizeof(prepared_request_t));
@@ -127,7 +125,7 @@ static int sign_fee_tx(buffer_t *cdata)
     int status = 0;
 
     if (G_context.signing_state != SIGNING_STATE_WAIT_FEES) {
-        return io_send_sw(SW_BAD_STATE);
+        return io_send_sw(SWO_CONDITIONS_NOT_SATISFIED);
     }
     explicit_bzero(&G_context.sign_transaction_datas.prepared_request, sizeof(prepared_request_t));
 
@@ -162,27 +160,74 @@ static int sign_fee_tx(buffer_t *cdata)
     return status;
 }
 
-int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool more)
+int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool next_chunk)
 {
     int status = 0;
-    UNUSED(more);
+
+    if (!cdata->size) {
+        // Reject empty data
+        return io_send_sw(SWO_WRONG_DATA_LENGTH);
+    }
+
+    // Handle fragmentation
+    if (!next_chunk) {
+        size_t length_offset = 0;
+        if (mode == SIGN_MODE_ROOT) {
+            length_offset = 1 + cdata->ptr[0] * 4;
+        }
+        if (cdata->size < length_offset + 2) {
+            return -1;
+        }
+
+        apdu_rx_buffer.offset = 0;
+        apdu_rx_buffer.size   = length_offset + 2 + U2BE(cdata->ptr, length_offset);
+        if (apdu_rx_buffer.size >= sizeof(rx_transaction_array)) {
+            apdu_rx_buffer.size = 0;
+            return io_send_sw(SWO_INSUFFICIENT_MEMORY);
+        }
+    }
+    else if (!apdu_rx_buffer.size) {
+        // Before a next we do need a begin
+        return io_send_sw(SWO_CONDITIONS_NOT_SATISFIED);
+    }
+
+    if (apdu_rx_buffer.offset + cdata->size > apdu_rx_buffer.size) {
+        return io_send_sw(SWO_WRONG_DATA_LENGTH);
+    }
+
+    memmove((void *) &apdu_rx_buffer.ptr[apdu_rx_buffer.offset], cdata->ptr, cdata->size);
+    apdu_rx_buffer.offset += cdata->size;
+
+    if (apdu_rx_buffer.offset < apdu_rx_buffer.size) {
+        // Wait next chunk
+        return io_send_sw(SWO_SUCCESS);
+    }
+
+	apdu_rx_buffer.offset = 0;
     switch (mode) {
         case SIGN_MODE_ROOT:
-            status = sign_root_tx(cdata);
+            status = sign_root_tx(&apdu_rx_buffer);
             break;
 
         case SIGN_MODE_NESTED_CALL:
-            status = sign_nested_call_tx(cdata);
+            status = sign_nested_call_tx(&apdu_rx_buffer);
             break;
 
         case SIGN_MODE_FEE:
-            status = sign_fee_tx(cdata);
+            status = sign_fee_tx(&apdu_rx_buffer);
             break;
 
         default:
-            return io_send_sw(SW_WRONG_P1P2);
+            return io_send_sw(SWO_INCORRECT_P1_P2);
             break;
     }
 
     return status;
+}
+
+void sign_transaction_init(void)
+{
+    apdu_rx_buffer.ptr    = rx_transaction_array;
+    apdu_rx_buffer.size   = 0;
+    apdu_rx_buffer.offset = 0;
 }

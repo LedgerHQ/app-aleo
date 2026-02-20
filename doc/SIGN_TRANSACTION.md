@@ -110,11 +110,11 @@ Serialized TLV datas:
 | -----                | :---: |    :--:  | -:     | -             |
 | `structure_type`     |  0x01 |      1   |     u8 | The structure type (0x29) |
 | `structure_version`  |  0x02 |      1   |     u8 | The structure format version (0x01) |
-| `network_id`         |  0x?? |      2   |    u16 | Network ID (big endian) (0 : mainnet, 1 : testnet) |
+| `network_id`         |  0xc3 |      2   |    u16 | Network ID (big endian) (0 : mainnet, 1 : testnet) |
 | `program_id`         |  0xb5 | variable |  bytes | Program ID to use |
+| `program_checksum`   |  0xc4 |     32   |  field | Program checksum (OPTIONAL) |
 | `function_name`      |  0xb6 | variable |  bytes | Function name to call |
 | `nested_calls_count` |  0xba |      1   |     u8 | The number of nested calls (INTENT ONLY) |
-| `program_checksum`   |  0x?? |     32   |  field | Program checksum (OPTIONAL) |
 | `input_count`        |  0xb7 |      1   |     u8 | The number of inputs |
 | `input type`         |  0xb9 | variable |  bytes | [Input type](#input-type) (must be present `input_count` time) |
 | `input value`        |  0xb8 | variable |  bytes | [Input value](#input-value) (must be present `input_count` time) |
@@ -210,9 +210,11 @@ Serialized TLV datas:
 | `value`          |        8 |     u64 | int coded in 64 bits (big endian) |
 
 #### Record
-| _Name_           | _Length_ | _Type_  | _Description_ |
-| -----            |    :--:  | -:      | -             |
-| `value`          |       32 |   field | pre computed commitment of the record |
+| _Name_           | _Length_ | _Type_   | _Description_ |
+| -----            |    :--:  | -:       | -             |
+| `commitment`     |       32 |   field  | pre computed [commitment](https://github.com/ProvableHQ/snarkVM/blob/staging/console/program/src/request/sign.rs#L186) of the record |
+| `h.x`            |       32 |   field  | pre computed [H generator](https://github.com/ProvableHQ/snarkVM/blob/staging/console/program/src/request/sign.rs#L189) x coordinate |
+| `h.y`            |       32 |   field  | pre computed [H generator](https://github.com/ProvableHQ/snarkVM/blob/staging/console/program/src/request/sign.rs#L189) y coordinate |
 
 ### Input example
 
@@ -298,15 +300,20 @@ record_hex : 63726564697473 ('credits')
 ```
 
 Value
-| _Name_           | _Length_ | _Type_  | _Description_ |
-| -----            |    :--:  | -:      | -             |
-| `tag`            |        2 |   bytes | 0x81 0xb8 |
-| `length`         |        1 |      u8 | 0x20 |
-| `value`          |       32 |   field | pre computed commitment of the record |
+| _Name_           | _Length_ | _Type_   | _Description_ |
+| -----            |    :--:  | -:       | -             |
+| `tag`            |        2 |   bytes  | 0x81 0xb8 |
+| `length`         |        1 |      u8  | 0x60 |
+| `commitment`     |       32 |   field  | pre computed [commitment](https://github.com/ProvableHQ/snarkVM/blob/staging/console/program/src/request/sign.rs#L186) of the record |
+| `h.x`            |       32 |   field  | pre computed [H generator](https://github.com/ProvableHQ/snarkVM/blob/staging/console/program/src/request/sign.rs#L189) x coordinate |
+| `h.y`            |       32 |   field  | pre computed [H generator](https://github.com/ProvableHQ/snarkVM/blob/staging/console/program/src/request/sign.rs#L189) y coordinate |
 
 ```shell
 commitment_decimal : 863610808258624400420097447175628057252915910178381065669036707326826591539field
 commitment_hex     : 33351bec87c509195035d5aab478b19728bfbc8974acb7a1de46ca3751c9e801
+h_decimal : [2426895214035216932245297778850989035038538961658726507442215877484415082794field, 220642863446832956019507279394572297489712696240584424406852292692897199577field]
+h_hex     : [2ae118b52d46d60b96630672733d252ca93fbb8d56d5261c0c4cbb8cf2925d05, d975643e43245c7af28db2a85b5459b4b77b382a0c74330c1d537aa922e17c00]
+value_hex : 33351bec87c509195035d5aab478b19728bfbc8974acb7a1de46ca3751c9e8012ae118b52d46d60b96630672733d252ca93fbb8d56d5261c0c4cbb8cf2925d05d975643e43245c7af28db2a85b5459b4b77b382a0c74330c1d537aa922e17c00
 ```
 
 ### Request Signature
@@ -328,6 +335,6 @@ Serialized TLV datas:
 | _Name_      | _Length_ | _Type_  | _Description_ |
 | -----       |    :--:  | -:      | -             |
 | `challenge` |     32   |  scalar | The signature's challenge |
-| `response`  |     32   |   field | The signature's response |
-| `pk_sig`    |     32   |   field | Compute key's signature public key |
-| `pr_sig`    |     32   |   field | Compute key's signature public randomizer |
+| `response`  |     32   |  scalar | The signature's response |
+| `pk_sig`    |     32   |   field | Compute key's signature public key x coordinate |
+| `pr_sig`    |     32   |   field | Compute key's signature public randomizer x coordinate |
