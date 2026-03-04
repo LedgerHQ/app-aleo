@@ -22,7 +22,7 @@
 #include "os.h"
 #ifdef ALEO_BIP32_SUPPORT
 #include "os_hdkey.h"
-#endif // ALEO_BIP32_SUPPORT
+#endif  // ALEO_BIP32_SUPPORT
 #include "globals.h"
 #include "group.h"
 #include "poseidon.h"
@@ -66,12 +66,24 @@ static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
 {
 #ifndef ALEO_BIP32_SUPPORT
     // TODO : Temporary code start
-    uint32_t account_number = path[path_len - 1];
+    uint32_t account_number = path[2] & 7;
     PRINTF("Get seed path from account %d\n", account_number);
     if ((account_number < 4) && (N_storage.private_keys[account_number * PRIVATE_KEY_LEN] == 'A')) {
         seed_from_private_key_string(
             (const char *) &N_storage.private_keys[account_number * PRIVATE_KEY_LEN], seed);
         return 0;
+    }
+    else {
+        uint8_t  seed_bn[64];
+        cx_err_t error = os_derive_bip32_with_seed_no_throw(
+            HDW_NORMAL, CX_CURVE_256K1, path, path_len, seed_bn, NULL, NULL, 0);
+        if (error != CX_OK) {
+            return -1;
+        }
+
+        bigint_256_t seed_big_int;
+        bn_to_big_int(seed_bn, &seed_big_int);
+        field_from_big_int(seed, &seed_big_int);
     }
     // TODO : Temporary code end
 
