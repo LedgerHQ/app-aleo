@@ -10,7 +10,7 @@
 #define P1_GET_WITHOUT_CONFIRMATION 0x00
 
 /**
- * Parameter 1 for APDU get without confirmation.
+ * Parameter 1 for APDU get with confirmation.
  */
 #define P1_GET_WITH_CONFIRMATION 0x01
 

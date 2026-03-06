@@ -133,7 +133,7 @@ int helper_send_response_get_address(void)
     offset += ADDRESS_LEN;
     response_buffer[offset] = 0;
 
-    return io_send_response_pointer(response_buffer, offset, SW_OK);
+    return io_send_response_pointer(response_buffer, offset, SWO_SUCCESS);
 }
 
 int helper_send_response_get_view_key(void)
@@ -146,7 +146,7 @@ int helper_send_response_get_view_key(void)
     offset += VIEW_KEY_LEN;
     response_buffer[offset] = 0;
 
-    return io_send_response_pointer(response_buffer, offset, SW_OK);
+    return io_send_response_pointer(response_buffer, offset, SWO_SUCCESS);
 }
 
 int helper_send_response_get_private_key(void)
@@ -159,7 +159,7 @@ int helper_send_response_get_private_key(void)
     offset += PRIVATE_KEY_LEN;
     response_buffer[offset] = 0;
 
-    return io_send_response_pointer(response_buffer, offset, SW_OK);
+    return io_send_response_pointer(response_buffer, offset, SWO_SUCCESS);
 }
 
 int helper_send_response_sign_transaction(void)
@@ -194,7 +194,7 @@ int helper_send_response_sign_transaction(void)
                                 &G_context.sign_transaction_datas.prepared_request.gammas[i]);
     }
 
-    write_u16_be(response_buffer, offset, SW_OK);
+    write_u16_be(response_buffer, offset, SWO_SUCCESS);
     offset += 2;
 
     return io_legacy_apdu_tx(response_buffer, offset);
