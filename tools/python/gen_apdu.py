@@ -242,8 +242,8 @@ if __name__ == "__main__":
 		exit(-1)
 
 	json_file = open(args.file)
-	datas = json.load(json_file)
-	cmds = datas['cmds']
+	data = json.load(json_file)
+	cmds = data['cmds']
 
 	for cmd in cmds:
 		print(cmd)

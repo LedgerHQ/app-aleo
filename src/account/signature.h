@@ -8,4 +8,3 @@
 #include "account.h"
 
 int sign_prepared_request(account_t *account, prepared_request_t *request);
-

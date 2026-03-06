@@ -35,7 +35,6 @@
 #include "account.h"
 #include "send_response.h"
 
-
 int apdu_dispatcher(const command_t *cmd)
 {
     LEDGER_ASSERT(cmd != NULL, "NULL cmd");

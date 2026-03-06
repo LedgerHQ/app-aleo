@@ -8,7 +8,6 @@
 
 #include "types.h"
 
-
 /**
  * Handler for SIGN_TRANSACTION command.
  *

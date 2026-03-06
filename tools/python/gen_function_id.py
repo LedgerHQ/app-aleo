@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
 	sp_program_id = args.program_id.split('.')
 	if len(sp_program_id) != 2:
-		print("Program ID not well formated : " + args.program_id)
+		print("Program ID not well formatted : " + args.program_id)
 		exit(-1)
 
 	if args.function_name == None:

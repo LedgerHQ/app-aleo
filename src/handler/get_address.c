@@ -33,19 +33,20 @@
 #include "send_response.h"
 #include "account.h"
 
-int handler_get_address(buffer_t *cdata, bool display) {
+int handler_get_address(buffer_t *cdata, bool display)
+{
     explicit_bzero(&G_context, sizeof(G_context));
     G_context.req_type = CONFIRM_ADDRESS;
-    G_context.state = STATE_NONE;
+    G_context.state    = STATE_NONE;
 
-    if (!buffer_read_u8(cdata, &G_context.bip32_path_len) ||
-        !buffer_read_bip32_path(cdata, G_context.bip32_path, (size_t) G_context.bip32_path_len)) {
+    if (!buffer_read_u8(cdata, &G_context.bip32_path_len)
+        || !buffer_read_bip32_path(
+            cdata, G_context.bip32_path, (size_t) G_context.bip32_path_len)) {
         return io_send_sw(SWO_WRONG_DATA_LENGTH);
     }
 
-    int status = account_get_address_string(G_context.bip32_path,
-                                            G_context.bip32_path_len,
-                                            G_context.address);
+    int status = account_get_address_string(
+        G_context.bip32_path, G_context.bip32_path_len, G_context.address);
 
     if (status < 0) {
         return io_send_sw(SW_DISPLAY_BIP32_PATH_FAIL);

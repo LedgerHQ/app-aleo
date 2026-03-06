@@ -954,35 +954,34 @@ const field_t mds_rate_8[81]={
 
 void poseidon_parameters_init(poseidon_parameters_t *parameters, uint8_t rate)
 {
-	switch (rate) {
-		case 2:
-			parameters->full_rounds    = 8;
-			parameters->partial_rounds = 31;
-			parameters->alpha          = 17;
-			parameters->ark            = (field_t*)ark_rate_2;
-			parameters->mds            = (field_t*)mds_rate_2;
-			break;
-		case 4:
-			parameters->full_rounds    = 8;
-			parameters->partial_rounds = 31;
-			parameters->alpha          = 17;
-			parameters->ark            = (field_t*)ark_rate_4;
-			parameters->mds            = (field_t*)mds_rate_4;
-			break;
-		case 8:
-			parameters->full_rounds    = 8;
-			parameters->partial_rounds = 31;
-			parameters->alpha          = 17;
-			parameters->ark            = (field_t*)ark_rate_8;
-			parameters->mds            = (field_t*)mds_rate_8;
-			break;
-		default:
-			parameters->full_rounds    = 8;
-			parameters->partial_rounds = 31;
-			parameters->alpha          = 17;
-			parameters->ark            = (field_t*)ark_rate_2;
-			parameters->mds            = (field_t*)mds_rate_2;
-			break;
-	}
+    switch (rate) {
+        case 2:
+            parameters->full_rounds    = 8;
+            parameters->partial_rounds = 31;
+            parameters->alpha          = 17;
+            parameters->ark            = (field_t *) ark_rate_2;
+            parameters->mds            = (field_t *) mds_rate_2;
+            break;
+        case 4:
+            parameters->full_rounds    = 8;
+            parameters->partial_rounds = 31;
+            parameters->alpha          = 17;
+            parameters->ark            = (field_t *) ark_rate_4;
+            parameters->mds            = (field_t *) mds_rate_4;
+            break;
+        case 8:
+            parameters->full_rounds    = 8;
+            parameters->partial_rounds = 31;
+            parameters->alpha          = 17;
+            parameters->ark            = (field_t *) ark_rate_8;
+            parameters->mds            = (field_t *) mds_rate_8;
+            break;
+        default:
+            parameters->full_rounds    = 8;
+            parameters->partial_rounds = 31;
+            parameters->alpha          = 17;
+            parameters->ark            = (field_t *) ark_rate_2;
+            parameters->mds            = (field_t *) mds_rate_2;
+            break;
+    }
 }
-

@@ -134,7 +134,7 @@ void bhp_512_hash_commitment(const field_t *commitment, field_t *hash)
         }
         offset += (index / BHP_CHUNK_SIZE) * 8;
 
-        a = (bn_group_t*)&bhp_512_lookup_base_light_bn[offset];
+        a = (bn_group_t *) &bhp_512_lookup_base_light_bn[offset];
         (void) cx_ecpoint_init(&point_a, a->x, 32, a->y, 32);
         (void) cx_ecpoint_add(&sum, &sum, &point_a);
     }

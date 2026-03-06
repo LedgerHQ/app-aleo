@@ -301,7 +301,7 @@ void poseidon_hash_many(uint8_t  rate,
     }
     input_length = rate + input_length;
 
-    //field_print_array(input, input_length);
+    // field_print_array(input, input_length);
 
     sponge_absorb(input, input_length);
 

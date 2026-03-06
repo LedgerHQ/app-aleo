@@ -28,7 +28,8 @@
  *   int result;
  * } check_address_parameters_t;
  */
-void swap_handle_check_address(check_address_parameters_t *params) {
+void swap_handle_check_address(check_address_parameters_t *params)
+{
     PRINTF("Inside swap_handle_check_address\n");
     params->result = 0;
 
@@ -36,9 +37,8 @@ void swap_handle_check_address(check_address_parameters_t *params) {
         PRINTF("derivation path expected\n");
         return;
     }
-    PRINTF("address_parameters %.*H\n",
-           params->address_parameters_length,
-           params->address_parameters);
+    PRINTF(
+        "address_parameters %.*H\n", params->address_parameters_length, params->address_parameters);
 
     if (params->address_to_check == NULL) {
         PRINTF("Address to check expected\n");
@@ -52,12 +52,11 @@ void swap_handle_check_address(check_address_parameters_t *params) {
         return;
     }
 
-    buffer_t buf = {.ptr = params->address_parameters,
-                    .size = params->address_parameters_length,
-                    .offset = 0};
+    buffer_t buf = {
+        .ptr = params->address_parameters, .size = params->address_parameters_length, .offset = 0};
 
-    uint8_t bip32_path_len;
-    uint32_t bip32_path[MAX_BIP32_PATH];
+    uint8_t      bip32_path_len;
+    uint32_t     bip32_path[MAX_BIP32_PATH];
     pubkey_ctx_t pk_info = {0};
 
     buffer_read_u8(&buf, &bip32_path_len);
@@ -75,7 +74,7 @@ void swap_handle_check_address(check_address_parameters_t *params) {
     }
 
     uint8_t address[ADDRESS_LEN] = {0};
-    //address_from_pubkey(pk_info.raw_public_key, address, sizeof(address));
+    // address_from_pubkey(pk_info.raw_public_key, address, sizeof(address));
 
     char derived_address[41];
     memset(derived_address, 0, sizeof(derived_address));
@@ -86,7 +85,8 @@ void swap_handle_check_address(check_address_parameters_t *params) {
 
     if (strncmp(derived_address, params->address_to_check, sizeof(derived_address)) != 0) {
         PRINTF("Addresses do not match\n");
-    } else {
+    }
+    else {
         PRINTF("Addresses match\n");
         params->result = 1;
     }

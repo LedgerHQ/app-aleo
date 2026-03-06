@@ -27,30 +27,30 @@
 
 static uint8_t bhp_buffer[100];
 
-int bhp_1024_hash_function_id(const function_id_datas_t *datas, field_t *hash)
+int bhp_1024_hash_function_id(const function_id_datas_t *data, field_t *hash)
 {
     uint8_t offset = 0;
     uint8_t length = 0;
 
-    U2LE_ENCODE(&bhp_buffer[offset], 0, datas->network_id);
+    U2LE_ENCODE(&bhp_buffer[offset], 0, data->network_id);
     offset += 2;
 
-    length             = strlen(datas->program_id_name);
+    length             = strlen(data->program_id_name);
     bhp_buffer[offset] = length * 8;
     offset += 1;
-    memcpy(&bhp_buffer[offset], datas->program_id_name, length);
+    memcpy(&bhp_buffer[offset], data->program_id_name, length);
     offset += length;
 
-    length             = strlen(datas->program_id_network);
+    length             = strlen(data->program_id_network);
     bhp_buffer[offset] = length * 8;
     offset += 1;
-    memcpy(&bhp_buffer[offset], datas->program_id_network, length);
+    memcpy(&bhp_buffer[offset], data->program_id_network, length);
     offset += length;
 
-    length             = strlen(datas->function_name);
+    length             = strlen(data->function_name);
     bhp_buffer[offset] = length * 8;
     offset += 1;
-    memcpy(&bhp_buffer[offset], datas->function_name, length);
+    memcpy(&bhp_buffer[offset], data->function_name, length);
     offset += length;
 
     if ((offset == 31)

@@ -42,7 +42,7 @@ void bits_add(const uint8_t *input,
               uint16_t       output_offset)
 {
     for (size_t i = 0; i < input_length; i++) {
-        bool val = ((input[(input_bit_offset+i) / 8]) & (1 << ((input_bit_offset+i) % 8)));
+        bool val = ((input[(input_bit_offset + i) / 8]) & (1 << ((input_bit_offset + i) % 8)));
         bits_add_single(output, output_offset + i, val);
     }
 }

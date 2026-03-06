@@ -15,16 +15,17 @@
 // https://ledgerhq.github.io/app-exchange/
 // --8<-- [start:swap_copy_transaction_parameters]
 typedef struct swap_validated_s {
-    bool initialized;
+    bool     initialized;
     uint64_t amount;
     uint64_t fee;
-    char recipient[ADDRESS_LEN * 2 + 1];
+    char     recipient[ADDRESS_LEN * 2 + 1];
 } swap_validated_t;
 
 /* Global variable used to store swap validation status */
 static swap_validated_t G_swap_validated;
 
-bool swap_copy_transaction_parameters(create_transaction_parameters_t* params) {
+bool swap_copy_transaction_parameters(create_transaction_parameters_t *params)
+{
     PRINTF("Inside swap_copy_transaction_parameters %s\n", params->destination_address);
 
     if (params->destination_address == NULL) {
@@ -55,7 +56,8 @@ bool swap_copy_transaction_parameters(create_transaction_parameters_t* params) {
     for (int i = 0; i < ADDRESS_LEN * 2; i++) {
         if (params->destination_address[i] >= 'a' && params->destination_address[i] <= 'z') {
             swap_validated.recipient[i] = params->destination_address[i] - 'a' + 'A';
-        } else {
+        }
+        else {
             swap_validated.recipient[i] = params->destination_address[i];
         }
     }
@@ -90,7 +92,8 @@ bool swap_copy_transaction_parameters(create_transaction_parameters_t* params) {
 // https://ledgerhq.github.io/app-exchange/
 // --8<-- [start:swap_check_validity]
 /* Check if the Tx to sign have the same parameters as the ones previously validated */
-bool swap_check_validity(uint64_t amount, uint64_t fee, const uint8_t* destination) {
+bool swap_check_validity(uint64_t amount, uint64_t fee, const uint8_t *destination)
+{
     PRINTF("Inside swap_check_validity\n");
 
     if (!G_swap_validated.initialized) {
@@ -107,7 +110,8 @@ bool swap_check_validity(uint64_t amount, uint64_t fee, const uint8_t* destinati
         send_swap_error_simple(SW_SWAP_FAIL, SWAP_EC_ERROR_WRONG_AMOUNT, SWAP_ERROR_CODE);
         // unreachable
         os_sched_exit(0);
-    } else {
+    }
+    else {
         PRINTF("Amounts match \n");
     }
 
@@ -116,7 +120,8 @@ bool swap_check_validity(uint64_t amount, uint64_t fee, const uint8_t* destinati
         send_swap_error_simple(SW_SWAP_FAIL, SWAP_EC_ERROR_WRONG_FEES, SWAP_ERROR_CODE);
         // unreachable
         os_sched_exit(0);
-    } else {
+    }
+    else {
         PRINTF("Fees match \n");
     }
 
@@ -129,7 +134,8 @@ bool swap_check_validity(uint64_t amount, uint64_t fee, const uint8_t* destinati
         send_swap_error_simple(SW_SWAP_FAIL, SWAP_EC_ERROR_WRONG_DESTINATION, SWAP_ERROR_CODE);
         // unreachable
         os_sched_exit(0);
-    } else {
+    }
+    else {
         PRINTF("Destination is valid\n");
     }
     return true;

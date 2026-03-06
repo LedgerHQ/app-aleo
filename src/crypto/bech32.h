@@ -44,7 +44,7 @@ typedef enum {
  *  In: in:     Pointer to input buffer.
  *      inlen:  Length of the input buffer.
  *      inbits: Bit size of input buffer bytes.
- *      pad:    Enbale padding or not.
+ *      pad:    Enable padding or not.
  *  Returns 1 if successful.
  */
 int bech32_convert_bits(uint8_t* out, size_t* outlen, int outbits, const uint8_t* in, size_t inlen, int inbits, int pad);

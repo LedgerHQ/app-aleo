@@ -3,7 +3,6 @@
 #include "parser.h"
 #include "types.h"
 
-
 /**
  * Parameter 1 for APDU get without confirmation.
  */
@@ -28,7 +27,6 @@
  * Parameter 1 for APDU sign mode fee.
  */
 #define P1_SIGN_MODE_FEE SIGN_MODE_FEE
-
 
 /**
  * Parameter 2 for APDU begin chunk.

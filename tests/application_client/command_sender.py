@@ -112,4 +112,3 @@ class CommandSender:
     # Retrieve the last asynchronous response from the backend
     def get_async_response(self) -> Optional[RAPDU]:
         return self.backend.last_async_response
-

@@ -93,13 +93,13 @@ static size_t add_tlv_signature(uint8_t             *in_buffer,
     in_buffer[offset++] = 128;
 
     // Challenge
-	PRINTF("Challenge\n");
+    PRINTF("Challenge\n");
     scalar_to_big_int(challenge, &b);
-	big_int_println(&b);
+    big_int_println(&b);
     big_int_to_bn(&b, &in_buffer[offset]);
-	bn_print(&in_buffer[offset]);
+    bn_print(&in_buffer[offset]);
     bn_reverse(&in_buffer[offset]);
-	bn_print(&in_buffer[offset]);
+    bn_print(&in_buffer[offset]);
     offset += 32;
 
     // Response

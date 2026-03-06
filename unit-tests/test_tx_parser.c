@@ -11,7 +11,8 @@
 #include "transaction/deserialize.h"
 #include "types.h"
 
-static void test_tx_serialization(void **state) {
+static void test_tx_serialization(void **state)
+{
     (void) state;
 
     transaction_t tx;

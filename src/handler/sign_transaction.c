@@ -203,7 +203,7 @@ int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool next_chunk)
         return io_send_sw(SWO_SUCCESS);
     }
 
-	apdu_rx_buffer.offset = 0;
+    apdu_rx_buffer.offset = 0;
     switch (mode) {
         case SIGN_MODE_ROOT:
             status = sign_root_tx(&apdu_rx_buffer);

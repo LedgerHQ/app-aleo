@@ -89,7 +89,7 @@ The following standard Status Words are returned for all APDUs.
 |   0x6985   | SWO_CONDITIONS_NOT_SATISFIED | The app is not in the right state to execute the cmd       |
 |   0x69f0   | SWO_PERMISSION_DENIED        | Rejected by user                                           |
 |   0x6a80   | SWO_INCORRECT_DATA           | Given data is incorrect                                    |
-|   0x6a84   | SWO_INSUFFICIENT_MEMORY      | The cmd lentgh is exceeding the internel buffer max length |
+|   0x6a84   | SWO_INSUFFICIENT_MEMORY      | The cmd length is exceeding the internal buffer max length |
 |   0x6a86   | SWO_INCORRECT_P1_P2          | Either P1 or P2 is incorrect                               |
 |   0x6a87   | SWO_WRONG_DATA_LENGTH        | Lc or minimum APDU length is incorrect                     |
 |   0x6d00   | SWO_INVALID_INS              | No command exists with INS                                 |

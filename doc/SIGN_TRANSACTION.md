@@ -30,7 +30,7 @@ _This commands initiate the signature process, expecting a derivation path, fee 
 | Transaction intent                               | variable | [Transaction intent](#transaction-intent) |
 
 ##### Transaction intent
-Serialized TLV datas:
+Serialized TLV data:
 
 | _Name_                | _Tag_ | _Length_ | _Type_ | _Description_ |
 | -----                 | :---: |    :--:  | -:     | -             |
@@ -104,7 +104,7 @@ _The given fee values in the signature request will be verified to matche the in
 ## Common structures / types
 
 ### Request
-Serialized TLV datas:
+Serialized TLV data:
 
 | _Name_               | _Tag_ | _Length_ | _Type_ | _Description_ |
 | -----                | :---: |    :--:  | -:     | -             |
@@ -317,7 +317,7 @@ value_hex : 33351bec87c509195035d5aab478b19728bfbc8974acb7a1de46ca3751c9e8012ae1
 ```
 
 ### Request Signature
-Serialized TLV datas:
+Serialized TLV data:
 
 | _Name_              | _Tag_ | _Length_ | _Type_  | _Description_ |
 | -----               | :---: |    :--:  | -:      | -             |

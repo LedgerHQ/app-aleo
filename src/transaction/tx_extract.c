@@ -61,7 +61,7 @@ static void print_signature_data(sign_transaction_datas_t *data)
 
 // **** Prepared Request TLV parser ****
 
-// Calbacks
+// Callbacks
 static bool get_network_id(const tlv_data_t *data, prepared_request_t *cookie)
 {
     return get_uint16_t_from_tlv_data(data, &cookie->network_id);
@@ -148,7 +148,7 @@ static bool get_program_checksum(const tlv_data_t *data, prepared_request_t *coo
 DEFINE_TLV_PARSER(PREPARED_REQUEST_TLV_TAGS, NULL, prepared_request_tlv_parser)
 
 // **** Intent TLV parser ****
-// Calbacks
+// Callbacks
 static bool get_max_base_fee(const tlv_data_t *data, sign_transaction_datas_t *cookie)
 {
     return get_uint32_t_from_tlv_data(data, &cookie->max_base_fee);
