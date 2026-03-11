@@ -20,6 +20,7 @@
 			"test_get_view_key_confirm_refused",
 			"test_get_app_and_version",
 			"test_version"
-		]
+		],
+		"selectedTests": []
 	}
 }

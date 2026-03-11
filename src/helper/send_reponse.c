@@ -71,7 +71,7 @@ static size_t add_tlv_uint8(uint8_t *in_buffer, uint8_t type, uint8_t u)
     in_buffer[offset++] = 1;
     in_buffer[offset++] = u;
 
-    return offset++;
+    return offset;
 }
 
 static size_t add_tlv_signature(uint8_t             *in_buffer,

@@ -5,6 +5,8 @@ from contextlib import contextmanager
 from ragger.backend.interface import BackendInterface, RAPDU
 from ragger.bip import pack_derivation_path
 
+from .transaction import Transaction
+
 
 MAX_APDU_LEN: int = 255
 
@@ -106,6 +108,27 @@ class CommandSender:
                                          p1=P1.P1_GET_WITH_CONFIRMATION,
                                          p2=0x00,
                                          data=pack_derivation_path(path)) as response:
+            yield response
+
+    @contextmanager
+    def sign_transaction(self, tx_datas):
+        tx = Transaction()
+        apdus = tx.gen_apdus(tx_datas)
+        if len(apdus) == 0:
+            return
+        for apdu in apdus[:-1]:
+            apdu = bytes.fromhex(apdu)
+            response = self.backend.exchange(cla=apdu[0],
+                                             ins=apdu[1],
+                                             p1=apdu[2],
+                                             p2=apdu[3],
+                                             data=apdu[5:])
+        apdu = bytes.fromhex(apdus[-1])
+        with self.backend.exchange_async(cla=apdu[0],
+                                         ins=apdu[1],
+                                         p1=apdu[2],
+                                         p2=apdu[3],
+                                         data=apdu[5:]) as response:
             yield response
 
 

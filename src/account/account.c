@@ -28,10 +28,12 @@
 #include "poseidon.h"
 #include "base58.h"
 #include "bech32.h"
+#include "nbgl_use_case.h"
 
 #include "account.h"
 
 static field_t hash_input[64];
+static char    text_buffer[32];
 
 const field_t ACCOUNT_SK_SIG_DOMAIN = {
     .big.u64 = {0xc9a73b0068afb54b, 0x95d2050edfd00d2d, 0x30b27b31e4cc8dc3, 0x127ef5e8bbf7590e}
@@ -46,6 +48,13 @@ const field_t GRAPH_KEY_DOMAIN = {
 const uint8_t VIEW_KEY_PREFIX[7]     = {14, 138, 223, 204, 247, 224, 122};
 const uint8_t PRIVATE_KEY_PREFIX[11] = {127, 134, 189, 116, 210, 221, 210, 137, 145, 18, 253};
 const char    ADDRESS_PREFIX[5]      = {'a', 'l', 'e', 'o', 0};
+
+static void display_progression(uint8_t step)
+{
+    // %2 is an ugly hack to force spinner text update by changing the pointer value
+    snprintf(&text_buffer[step % 2], sizeof(text_buffer) - (step % 2), "Loading transaction");
+    nbgl_useCaseSpinner(&text_buffer[step % 2]);
+}
 
 static void seed_from_private_key_string(const char *private_key_string, field_t *seed)
 {
@@ -355,10 +364,12 @@ void account_init(void) {}
 
 int account_generate_keys(const uint32_t *path, uint8_t path_len, account_t *account)
 {
+    display_progression(0);
     (void) get_seed(path, path_len, &account->private_key.seed);
     private_key_from_seed(
         &account->private_key.seed, &account->private_key.sk_sig, &account->private_key.r_sig);
     compute_key_from_private_key(&account->private_key, &account->compute_key);
+    display_progression(1);
     view_key_from_private_and_compute_key(
         &account->private_key, &account->compute_key, &account->view_key);
     address_from_view_key(&account->view_key, &account->address);

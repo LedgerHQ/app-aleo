@@ -257,7 +257,7 @@ static void display_progression(uint8_t step)
     }
     // %2 is an ugly hack to force spinner text update by changing the pointer value
     snprintf(&text_buffer[step % 2],
-             sizeof(text_buffer) - 1,
+             sizeof(text_buffer) - (step % 2),
              "%s %d/%d",
              text,
              current_step,
