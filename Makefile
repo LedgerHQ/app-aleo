@@ -29,8 +29,8 @@ APPNAME = "Aleo"
 
 # Application version
 APPVERSION_M = 0
-APPVERSION_N = 0
-APPVERSION_P = 3
+APPVERSION_N = 1
+APPVERSION_P = 0
 APPVERSION = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
 
 # Application source files
