@@ -19,6 +19,10 @@
 #include <stddef.h>   // size_t
 #include <stdbool.h>  // bool
 
+#if (API_LEVEL >= 26)
+#define ALEO_BIP32_SUPPORT (1)
+#endif // API_LEVEL
+
 #include "os.h"
 #ifdef ALEO_BIP32_SUPPORT
 #include "os_hdkey.h"
