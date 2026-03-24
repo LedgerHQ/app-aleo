@@ -111,9 +111,9 @@ class CommandSender:
             yield response
 
     @contextmanager
-    def sign_transaction(self, tx_datas):
+    def sign_transaction(self, tx_datas: dict) -> Generator[None, None, None]:
         tx = Transaction()
-        apdus = tx.gen_apdus(tx_datas)
+        apdus = tx.gen_apdus_tx(tx_datas)
         if len(apdus) == 0:
             return
         for apdu in apdus[:-1]:

@@ -49,3 +49,13 @@
  * Length of private key.
  */
 #define PRIVATE_KEY_LEN (59)
+
+/**
+ * Maximum number of inputs for a single signature.
+ */
+#define MAX_NB_OF_INPUTS (8)
+
+/**
+ * Maximum number of records for a single signature.
+ */
+#define MAX_NB_OF_RECORDS (8)

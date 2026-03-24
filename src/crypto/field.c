@@ -109,11 +109,23 @@ uint8_t field_from_bits(const uint8_t *input_bits,
     while ((input_bits_offset < input_bits_length) && (field_count < max_field_count)) {
         memset(bn, 0, sizeof(bn));
         if ((input_bits_length - input_bits_offset) >= (FIELD_MODULUS_BITS - 1)) {
-            bits_add(input_bits, input_bits_offset, (FIELD_MODULUS_BITS - 1), bn, 0);
+            if (bits_add(
+                    input_bits, input_bits_offset, (FIELD_MODULUS_BITS - 1), bn, 0, sizeof(bn) * 8)
+                < 0) {
+                return 0;
+            }
             input_bits_offset += (FIELD_MODULUS_BITS - 1);
         }
         else {
-            bits_add(input_bits, input_bits_offset, (input_bits_length - input_bits_offset), bn, 0);
+            if (bits_add(input_bits,
+                         input_bits_offset,
+                         (input_bits_length - input_bits_offset),
+                         bn,
+                         0,
+                         sizeof(bn) * 8)
+                < 0) {
+                return 0;
+            }
             input_bits_offset = input_bits_length;
         }
         bn_reverse(bn);
@@ -125,11 +137,12 @@ uint8_t field_from_bits(const uint8_t *input_bits,
     return field_count;
 }
 
-void field_random(field_t *a)
+int field_random(field_t *a)
 {
-    fp256_random(&field_parameters, a);
+    return fp256_random(&field_parameters, a);
 }
 
+#ifdef HAVE_PRINTF
 void field_print(const field_t *a)
 {
     big_int_print(&a->big);
@@ -148,14 +161,4 @@ void field_print_array(const field_t *array, size_t length)
         PRINTF(" field\n");
     }
 }
-
-void field_test(void)
-{
-    field_t f_test = {
-        .big.u64
-        = {0xdf6f50a22074f46a, 0xcc9f0cc8e55b5450, 0x33d5772b5c86c398, 0x0db05fd111ee688f}
-    };
-    field_println(&f_test);
-    field_inverse_assign(&f_test);
-    field_println(&f_test);
-}
+#endif  // HAVE_PRINTF

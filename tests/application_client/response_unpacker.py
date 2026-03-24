@@ -1,6 +1,8 @@
 from typing import Tuple
 from struct import unpack
 
+from .transaction import Transaction
+
 # remainder, data_len, data
 def pop_sized_buf_from_buffer(buffer:bytes, size:int) -> Tuple[bytes, bytes]:
     return buffer[size:], buffer[0:size]
@@ -63,3 +65,10 @@ def unpack_get_view_key_response(response: bytes) -> Tuple[int, bytes]:
     assert len(response) == 0
 
     return view_key_len, view_key
+
+# Unpack from response:
+def unpack_sign_transaction_response(response: bytes) -> dict:
+    tx = Transaction()
+    return tx.unpack_response(response.hex())
+
+

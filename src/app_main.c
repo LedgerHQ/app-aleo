@@ -72,15 +72,13 @@ void app_main()
     if (N_storage.initialized != 0x01) {
         internal_storage_t storage;
         explicit_bzero(&storage, sizeof(storage));
-        storage.dummy1_allowed = 0x00;
-        storage.dummy2_allowed = 0x00;
-        storage.initialized    = 0x01;
-#ifdef TEST_PRIVATE_KEY
+        storage.initialized = 0x01;
+#if defined(ENABLE_PRIVATE_KEY_MANAGEMENT) && defined(TEST_PRIVATE_KEY)
         PRINTF("Fill private keys with %s\n", test_private_key);
         for (uint8_t i = 0; i < 4; i++) {
             memcpy(&storage.private_keys[i * PRIVATE_KEY_LEN], test_private_key, PRIVATE_KEY_LEN);
         }
-#endif  // ! TEST_PRIVATE_KEY
+#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT && TEST_PRIVATE_KEY
         nvm_write((void *) &N_storage, &storage, sizeof(internal_storage_t));
     }
 
@@ -118,7 +116,7 @@ void app_main()
 void app_ticker_event_callback(void)
 {
     time_ms += 100;
-    if (G_context.signing_state == SIGNING_STATE_WAIT_FEES) {
+    if (G_context.signing_state > SIGNING_STATE_INTENT) {
         G_context.fees_waiting_time_ms += 100;
         if (G_context.fees_waiting_time_ms > 15 * 1000) {
             G_context.signing_state = SIGNING_STATE_WAIT_INTENT;

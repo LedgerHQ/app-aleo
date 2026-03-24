@@ -52,6 +52,6 @@ int ui_display_view_key(void)
     }
 
     nbgl_useCaseAddressReview(
-        G_context.address, NULL, &ICON_APP_ALEO, "Verify view key", NULL, review_choice);
+        G_context.view_key, NULL, &ICON_APP_ALEO, "Verify view key", NULL, review_choice);
     return 0;
 }

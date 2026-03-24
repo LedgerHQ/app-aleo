@@ -22,7 +22,14 @@
 
 #include "poseidon_parameters.h"
 
-const field_t ark_rate_2[117] = {
+#define ARK_RATE_2_SIZE (117)
+#define MDS_RATE_2_SIZE (9)
+#define ARK_RATE_4_SIZE (195)
+#define MDS_RATE_4_SIZE (25)
+#define ARK_RATE_8_SIZE (351)
+#define MDS_RATE_8_SIZE (81)
+
+const field_t ark_rate_2[ARK_RATE_2_SIZE] = {
     {.big.u64 = {0x9ec464191dff626d, 0xe3afe4fc52de2c3e, 0x55098efb31c5bb8a, 0x0f51daa50d9eca73,}},
     {.big.u64 = {0x5d10c94384e955b9, 0xa0ff049c6b09597b, 0x88f1e8263b3c7219, 0x072ebc82c44a6f65,}},
     {.big.u64 = {0x49caf68d25cdb9f9, 0xfe42e5325bd12d75, 0xe3e3cb6b932d45af, 0x0f66f5ed24cd0873,}},
@@ -181,7 +188,7 @@ const field_t ark_rate_2[117] = {
 
 };
 
-const field_t mds_rate_2[9]={
+const field_t mds_rate_2[MDS_RATE_2_SIZE]={
     {.big.u64 = {0xd3e1b719627eef9c, 0x944031bef18c05b7, 0x05f93620ee657611, 0x092696314ebee66e,}},
     {.big.u64 = {0x54aea0c191840710, 0x7c6572388b138cc5, 0xe99b1822dc11ec04, 0x10d3c62b2749cd64,}},
     {.big.u64 = {0x5370bc9058093ead, 0x931289d50ba24947, 0x9a5ce8875869e795, 0x0d53f93182fa097b,}},
@@ -196,7 +203,7 @@ const field_t mds_rate_2[9]={
 
 };
 
-const field_t ark_rate_4[195] = {
+const field_t ark_rate_4[ARK_RATE_4_SIZE] = {
     {.big.u64 = {0x34c37d28c3f4c1ce, 0xa15d6ace8616e46e, 0x23cbab5413838926, 0x104c314c3151dae4,}},
     {.big.u64 = {0xaa647468e42a8bf2, 0x1fbfc06f37137b2e, 0xad99ee12341f6ede, 0x0bbfd74e0ec870e1,}},
     {.big.u64 = {0xddbbbc740d2294ca, 0xc3e128c0d7dd604d, 0x255f41bb46a79480, 0x068dbe6acd82f805,}},
@@ -433,7 +440,7 @@ const field_t ark_rate_4[195] = {
 
 };
 
-const field_t mds_rate_4[25]={
+const field_t mds_rate_4[MDS_RATE_4_SIZE]={
     {.big.u64 = {0x129d6d7d1cc5fcb4, 0x1145e5509561cecb, 0x4e629f7cb462339e, 0x0dd2bd5fef796a36,}},
     {.big.u64 = {0xe36af2942c2ebc1c, 0xd362c226962eaae9, 0xac22db0fa407eaed, 0x11cc78593acf08a0,}},
     {.big.u64 = {0x88fbf0b649ef6e17, 0x56090c7aa12854bd, 0x23463285ff405e9c, 0x0c4a501067fd8396,}},
@@ -466,7 +473,7 @@ const field_t mds_rate_4[25]={
 
 };
 
-const field_t ark_rate_8[351] = {
+const field_t ark_rate_8[ARK_RATE_8_SIZE] = {
     {.big.u64 = {0x971775a2bdf40803, 0x0d38e7d60de22dd4, 0x8a18a0e2806bed3c, 0x116bcacaccf56784,}},
     {.big.u64 = {0xcf7ee7d6ff9c266c, 0x5e0fade0afe0d233, 0xf9171a2d04f8da1d, 0x12655f2559cb4378,}},
     {.big.u64 = {0xa33477761ee894e8, 0x8472ac18eda3e34a, 0x9efc357cd1687ac4, 0x09e42e07c1ea762e,}},
@@ -859,7 +866,7 @@ const field_t ark_rate_8[351] = {
 
 };
 
-const field_t mds_rate_8[81]={
+const field_t mds_rate_8[MDS_RATE_8_SIZE]={
     {.big.u64 = {0xd6c7b140f4848e16, 0x53991981a73f41c1, 0x4be72fee32ebe848, 0x0df5c5e7bd0c338e,}},
     {.big.u64 = {0xc6eadaff3c128b04, 0x37c430ae1daec691, 0xe12922da820dba75, 0x1121dd73267d6d57,}},
     {.big.u64 = {0xe99118064cfd0999, 0x25955e3ea47bfb3d, 0x7d57a10eb3c32639, 0x0db4791b8ba2a465,}},
@@ -960,28 +967,39 @@ void poseidon_parameters_init(poseidon_parameters_t *parameters, uint8_t rate)
             parameters->partial_rounds = 31;
             parameters->alpha          = 17;
             parameters->ark            = (field_t *) ark_rate_2;
+            parameters->ark_size       = ARK_RATE_2_SIZE;
             parameters->mds            = (field_t *) mds_rate_2;
+            parameters->mds_size       = MDS_RATE_2_SIZE;
             break;
+
         case 4:
             parameters->full_rounds    = 8;
             parameters->partial_rounds = 31;
             parameters->alpha          = 17;
             parameters->ark            = (field_t *) ark_rate_4;
+            parameters->ark_size       = ARK_RATE_4_SIZE;
             parameters->mds            = (field_t *) mds_rate_4;
+            parameters->mds_size       = MDS_RATE_4_SIZE;
             break;
+
         case 8:
             parameters->full_rounds    = 8;
             parameters->partial_rounds = 31;
             parameters->alpha          = 17;
             parameters->ark            = (field_t *) ark_rate_8;
+            parameters->ark_size       = ARK_RATE_8_SIZE;
             parameters->mds            = (field_t *) mds_rate_8;
+            parameters->mds_size       = MDS_RATE_8_SIZE;
             break;
+
         default:
             parameters->full_rounds    = 8;
             parameters->partial_rounds = 31;
             parameters->alpha          = 17;
             parameters->ark            = (field_t *) ark_rate_2;
+            parameters->ark_size       = ARK_RATE_2_SIZE;
             parameters->mds            = (field_t *) mds_rate_2;
+            parameters->mds_size       = MDS_RATE_2_SIZE;
             break;
     }
 }

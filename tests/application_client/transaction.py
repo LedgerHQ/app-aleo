@@ -6,11 +6,13 @@ from crypto.codecs.bech32m import BECH32M
 from crypto.bigint_256 import BigInteger256
 from enum import Enum
 from itertools import islice
+from typing import Tuple
 
 
 class Transaction():
 
 	class TlvTypes(Enum):
+		UNKNOWN                  = 0x00
 		STRUCTURE_TYPE           = 0x01
 		VERSION                  = 0x02
 		SIGNATURE                = 0x15
@@ -53,7 +55,7 @@ class Transaction():
 	}
 
 
-	def get_tlv(t, v):
+	def forge_tlv(t: TlvTypes, v: str) -> str:
 		val = ''
 		# type
 		if t.value <= 127:
@@ -79,16 +81,41 @@ class Transaction():
 
 
 	@staticmethod
-	def gen_chunks(lst, n):
-		it = iter(lst)
-		return iter(lambda: tuple(islice(it, n)), ())
+	def extract_tlv(tlv: str) -> Tuple[TlvTypes, int, str, int]:
+		offset = 0
+		element = int(tlv[offset:offset+2], base=16)
+		offset += 2
+		if element < 0x80:
+			t = Transaction.TlvTypes(element)
+		elif element == 0x81:
+			t = Transaction.TlvTypes(int(tlv[offset:offset+2], base=16))
+			offset += 2
+		elif element == 0x82:
+			t = Transaction.TlvTypes(int(tlv[offset:offset+4], base=16))
+			offset += 4
+		else:
+			Transaction.TlvTypes(0)
+
+		l = int(tlv[offset:offset+2], base=16)
+		offset += 2
+
+		v = tlv[offset:offset+2*l]
+		offset += 2*l
+
+		return t, l, v, offset
 
 
 	@staticmethod
-	def gen_apdu_array(cla, ins, p1, cmd):
+	def gen_chunks(lst: str, n: int) -> list[tuple]:
+		it = iter(lst)
+		return list(iter(lambda: tuple(islice(it, n)), ()))
+
+
+	@staticmethod
+	def gen_apdu_array(cla: str, ins: str, p1: str, cmd: str) -> list[str]:
 		batch_index = 0
 		apdus = []
-		for chunk in list(Transaction.gen_chunks(cmd, 255*2)):
+		for chunk in Transaction.gen_chunks(cmd, 255*2):
 			chunk = ''.join(chunk)
 			if batch_index == 0:
 				apdu = cla + ins + p1 + '00'
@@ -102,7 +129,7 @@ class Transaction():
 
 
 	@staticmethod
-	def get_plaintext_type_from_string(plaintext_type):
+	def get_plaintext_type_from_string(plaintext_type: str) -> str:
 		if plaintext_type not in Transaction.literal_type_from_string.keys():
 			return '01{:02x}{}'.format(len(plaintext_type), plaintext_type.encode("ascii").hex())
 
@@ -111,7 +138,7 @@ class Transaction():
 
 
 	@staticmethod
-	def get_input_type_from_string(input_type):
+	def get_input_type_from_string(input_type: str) -> str:
 		val = ''
 		sp_input_type = input_type.split('.')
 		if sp_input_type[-1] == 'constant':
@@ -127,26 +154,26 @@ class Transaction():
 
 
 	@staticmethod
-	def generate_request(request, is_root):
+	def generate_request(request: dict, is_root: bool) -> str:
 		val = ''
 		# Structure type
-		val += Transaction.get_tlv(Transaction.TlvTypes.STRUCTURE_TYPE, '29')
+		val += Transaction.forge_tlv(Transaction.TlvTypes.STRUCTURE_TYPE, '29')
 		# Version
-		val += Transaction.get_tlv(Transaction.TlvTypes.VERSION, '01')
+		val += Transaction.forge_tlv(Transaction.TlvTypes.VERSION, '01')
 		# Network_id
 		if request['network_id'] == 'mainnet':
-			val += Transaction.get_tlv(Transaction.TlvTypes.NETWORK_ID, '0000')
+			val += Transaction.forge_tlv(Transaction.TlvTypes.NETWORK_ID, '0000')
 		else:
-			val += Transaction.get_tlv(Transaction.TlvTypes.NETWORK_ID, '0001')
+			val += Transaction.forge_tlv(Transaction.TlvTypes.NETWORK_ID, '0001')
 		# Program id
-		val += Transaction.get_tlv(Transaction.TlvTypes.PROGRAM_ID, '{}'.format(request['program_id'].encode().hex()))
+		val += Transaction.forge_tlv(Transaction.TlvTypes.PROGRAM_ID, '{}'.format(request['program_id'].encode().hex()))
 		# Function name
-		val += Transaction.get_tlv(Transaction.TlvTypes.FUNCTION_NAME, '{}'.format(request['function_name'].encode().hex()))
+		val += Transaction.forge_tlv(Transaction.TlvTypes.FUNCTION_NAME, '{}'.format(request['function_name'].encode().hex()))
 		# Input count
-		val += Transaction.get_tlv(Transaction.TlvTypes.INPUT_COUNT, '{:02x}'.format(len(request['inputs'])))
+		val += Transaction.forge_tlv(Transaction.TlvTypes.INPUT_COUNT, '{:02x}'.format(len(request['inputs'])))
 		# Input values & types
 		for input in request['inputs']:
-			val += Transaction.get_tlv(Transaction.TlvTypes.INPUT_TYPES, Transaction.get_input_type_from_string(input['type']))
+			val += Transaction.forge_tlv(Transaction.TlvTypes.INPUT_TYPES, Transaction.get_input_type_from_string(input['type']))
 			input_val = ''
 			if 'address' in input['type']:
 				hrp = []
@@ -169,18 +196,18 @@ class Transaction():
 				input_val += input['value'].to_bytes(8, 'little').hex()
 			else:
 				input_val += input['value']
-			val += Transaction.get_tlv(Transaction.TlvTypes.INPUT_VALUES, input_val)
+			val += Transaction.forge_tlv(Transaction.TlvTypes.INPUT_VALUES, input_val)
 		# Nested call count
 		if is_root:
-			val += Transaction.get_tlv(Transaction.TlvTypes.NESTED_CALL_COUNT, '{:02x}'.format(request['nested_call_count']))
+			val += Transaction.forge_tlv(Transaction.TlvTypes.NESTED_CALL_COUNT, '{:02x}'.format(request['nested_call_count']))
 
 		if len(request['program_checksum']):
-			val += Transaction.get_tlv(Transaction.TlvTypes.PROGRAM_CHECKSUM, request['program_checksum'])
+			val += Transaction.forge_tlv(Transaction.TlvTypes.PROGRAM_CHECKSUM, request['program_checksum'])
 
 		return val
 
 
-	def gen_intent_apdu(self, tx):
+	def gen_intent_apdu(self, tx: dict) -> list[str]:
 		req_start = ''
 		# Derivation path
 		sp_path = tx['path'].split('/')
@@ -197,19 +224,19 @@ class Transaction():
 
 		req = ''
 		# Structure type
-		req += Transaction.get_tlv(Transaction.TlvTypes.STRUCTURE_TYPE, '28')
+		req += Transaction.forge_tlv(Transaction.TlvTypes.STRUCTURE_TYPE, '28')
 		# Version
-		req += Transaction.get_tlv(Transaction.TlvTypes.VERSION, '01')
+		req += Transaction.forge_tlv(Transaction.TlvTypes.VERSION, '01')
 		# max_base_fee
-		req += Transaction.get_tlv(Transaction.TlvTypes.MAX_BASE_FEE, '{:08x}'.format(tx['max_base_fee']))
+		req += Transaction.forge_tlv(Transaction.TlvTypes.MAX_BASE_FEE, '{:08x}'.format(tx['max_base_fee']))
 		# max_priority_fee
-		req += Transaction.get_tlv(Transaction.TlvTypes.MAX_PRIORITY_FEE, '{:08x}'.format(tx['max_priority_fee']))
+		req += Transaction.forge_tlv(Transaction.TlvTypes.MAX_PRIORITY_FEE, '{:08x}'.format(tx['max_priority_fee']))
 		# fee_function_name
-		req += Transaction.get_tlv(Transaction.TlvTypes.FEE_FUNCTION_NAME, tx['fee_function_name'].encode().hex())
+		req += Transaction.forge_tlv(Transaction.TlvTypes.FEE_FUNCTION_NAME, tx['fee_function_name'].encode().hex())
 		# fee_program_id
-		req += Transaction.get_tlv(Transaction.TlvTypes.FEE_PROGRAM_ID, tx['fee_program_id'].encode().hex())
+		req += Transaction.forge_tlv(Transaction.TlvTypes.FEE_PROGRAM_ID, tx['fee_program_id'].encode().hex())
 		# request
-		req += Transaction.get_tlv(Transaction.TlvTypes.REQUEST, Transaction.generate_request(tx['request'], True))
+		req += Transaction.forge_tlv(Transaction.TlvTypes.REQUEST, Transaction.generate_request(tx['request'], True))
 
 		# Intent length
 		req_start += '{:04x}'.format(len(req)//2)
@@ -219,7 +246,7 @@ class Transaction():
 		return apdus
 
 
-	def gen_nested_call(self, tx):
+	def gen_nested_call(self, tx: dict) -> list[str]:
 		req = ''
 		# request
 		req += self.generate_request(tx['request'], False)
@@ -232,7 +259,7 @@ class Transaction():
 		return apdus
 
 
-	def gen_fee_apdu(self, tx):
+	def gen_fee_apdu(self, tx: dict) -> list[str]:
 		req = ''
 		# request
 		req += self.generate_request(tx['request'], True)
@@ -245,7 +272,7 @@ class Transaction():
 		return apdus
 
 
-	def gen_apdus(self, tx):
+	def gen_apdus_tx(self, tx: dict) -> list[str]:
 		if tx['type'] == 'intent':
 			return self.gen_intent_apdu(tx)
 		elif tx['type'] == 'nested_call':
@@ -255,4 +282,30 @@ class Transaction():
 		return []
 
 
+	def unpack_response(self, response: str):
+		unpacked = {}
+		offset = 0
+		index = 0
+		while offset < len(response):
+			index += 1
+			t, _, v, off = Transaction.extract_tlv(response[offset:])
+			offset += off
+			if t == Transaction.TlvTypes.STRUCTURE_TYPE:
+				unpacked['structure_type'] = int(v, base=16)
+			elif t == Transaction.TlvTypes.VERSION:
+				unpacked['version'] = int(v, base=16)
+			elif t == Transaction.TlvTypes.SIGNATURE:
+				unpacked['signature'] = {'pk_sig'    : v[128:192],
+				                         'pr_sig'    : v[192:256]}
+			elif t == Transaction.TlvTypes.TVK:
+				unpacked['tvk'] = v
+			elif t == Transaction.TlvTypes.TPK:
+				unpacked['tpk'] = v
+			elif t == Transaction.TlvTypes.GAMMAS_COUNT:
+				unpacked['gammas_count'] = int(v, base=16)
+			elif t == Transaction.TlvTypes.GAMMAS:
+				if 'gammas' not in unpacked.keys():
+					unpacked['gammas'] = []
+				unpacked['gammas'].append(v)
+		return unpacked
 

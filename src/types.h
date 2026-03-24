@@ -14,12 +14,13 @@
 typedef enum {
     CMD_GET_VERSION      = 0x03,  /// version of the application
     CMD_GET_APP_NAME     = 0x04,  /// name of the application
-    CMD_GET_ADDRESS      = 0x05,  ///
-    CMD_SIGN_TRANSACTION = 0x06,  ///
-    CMD_GET_VIEW_KEY     = 0x07,  ///
-    CMD_GET_PRIVATE_KEY  = 0xD1,  ///
-    CMD_SET_PRIVATE_KEY  = 0xFD,  ///
-    CMD_TEST             = 0xFE   ///
+    CMD_GET_ADDRESS      = 0x05,  /// get public address
+    CMD_SIGN_TRANSACTION = 0x06,  /// sign transaction
+    CMD_GET_VIEW_KEY     = 0x07,  /// get the view key
+#ifdef ENABLE_PRIVATE_KEY_MANAGEMENT
+    CMD_GET_PRIVATE_KEY = 0xD1,
+    CMD_SET_PRIVATE_KEY = 0xFD,
+#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT
 } command_e;
 
 typedef enum {
@@ -71,7 +72,7 @@ typedef struct {
     uint8_t  function_name_length;
     char    *function_name;
     uint8_t  inputs_count;
-    input_t  inputs[8];
+    input_t  inputs[MAX_NB_OF_INPUTS];
     uint8_t *program_checksum;
     uint8_t  nested_call_count;
 
@@ -88,7 +89,7 @@ typedef struct {
     scalar_t challenge;
     scalar_t response;
     uint8_t  gammas_count;
-    group_t  gammas[5];
+    group_t  gammas[MAX_NB_OF_RECORDS];
 
 } prepared_request_t;
 
@@ -148,7 +149,9 @@ typedef struct {
     union {
         char address[ADDRESS_LEN];
         char view_key[VIEW_KEY_LEN];
+#ifdef ENABLE_PRIVATE_KEY_MANAGEMENT
         char private_key[PRIVATE_KEY_LEN];
+#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT
     };
     request_type_e req_type;                    /// user request
     uint32_t       bip32_path[MAX_BIP32_PATH];  /// BIP32 path

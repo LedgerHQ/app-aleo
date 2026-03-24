@@ -139,8 +139,11 @@ static int get_address(input_t *input, bool is_private, char address[ADDRESS_LEN
     size_t  datalen = 0;
 
     memset(address, 0, ADDRESS_LEN + 1);
-    bech32_convert_bits(data, &datalen, 5, input->value, 32, 8, 1);
-    bech32_encode(address, ADDRESS_PREFIX, data, datalen, BECH32_ENCODING_BECH32M);
+    if ((status = bech32_convert_bits(data, &datalen, 5, input->value, 32, 8, 1)) < 0) {
+        return -1;
+        ;
+    }
+    status = bech32_encode(address, ADDRESS_PREFIX, data, datalen, BECH32_ENCODING_BECH32M);
 
     return status;
 }
@@ -150,7 +153,7 @@ static int parse_transfer_public(sign_transaction_datas_t *data, tx_t *tx)
     PRINTF("parse_transfer_public\n");
     tx->transfer.type = TX_TRANSFER_PUBLIC;
     int status = get_address(&data->prepared_request.inputs[0], false, tx->transfer.address_to);
-    if (!status) {
+    if (status == 0) {
         status = get_u64(&data->prepared_request.inputs[1], false, &tx->transfer.amount);
     }
 
@@ -161,7 +164,7 @@ static int parse_transfer_private(sign_transaction_datas_t *data, tx_t *tx)
 {
     tx->transfer.type = TX_TRANSFER_PRIVATE;
     int status = get_address(&data->prepared_request.inputs[1], true, tx->transfer.address_to);
-    if (!status) {
+    if (status == 0) {
         status = get_u64(&data->prepared_request.inputs[2], true, &tx->transfer.amount);
     }
 
@@ -172,7 +175,7 @@ static int parse_transfer_public_to_private(sign_transaction_datas_t *data, tx_t
 {
     tx->transfer.type = TX_TRANSFER_PUBLIC_TO_PRIVATE;
     int status = get_address(&data->prepared_request.inputs[0], true, tx->transfer.address_to);
-    if (!status) {
+    if (status == 0) {
         status = get_u64(&data->prepared_request.inputs[1], false, &tx->transfer.amount);
     }
 
@@ -183,7 +186,7 @@ static int parse_transfer_private_to_public(sign_transaction_datas_t *data, tx_t
 {
     tx->transfer.type = TX_TRANSFER_PRIVATE_TO_PUBLIC;
     int status = get_address(&data->prepared_request.inputs[1], false, tx->transfer.address_to);
-    if (!status) {
+    if (status == 0) {
         status = get_u64(&data->prepared_request.inputs[2], false, &tx->transfer.amount);
     }
 
@@ -194,7 +197,7 @@ static int parse_fee_public(sign_transaction_datas_t *data, tx_t *tx)
 {
     tx->fee.type = TX_FEE_PUBLIC;
     int status   = get_u64(&data->prepared_request.inputs[0], false, &tx->fee.base_fee);
-    if (!status) {
+    if (status == 0) {
         status = get_u64(&data->prepared_request.inputs[1], false, &tx->fee.priority_fee);
     }
 
@@ -205,7 +208,7 @@ static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx)
 {
     tx->fee.type = TX_FEE_PRIVATE;
     int status   = get_u64(&data->prepared_request.inputs[1], false, &tx->fee.base_fee);
-    if (!status) {
+    if (status == 0) {
         status = get_u64(&data->prepared_request.inputs[2], false, &tx->fee.priority_fee);
     }
 
@@ -214,7 +217,6 @@ static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx)
 
 int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
 {
-    PRINTF("tx_parse\n");
     if (memcmp(data->prepared_request.program_id,
                "credits.aleo",
                data->prepared_request.program_id_length)) {
@@ -223,7 +225,6 @@ int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
     }
     tx->type = TX_UNKNOWN;
     for (uint8_t i = 0; i < 6; i++) {
-        PRINTF("program_infos %d\n", i);
         if (data->prepared_request.function_name_length != program_infos[i].string_length) {
             continue;
         }
@@ -236,9 +237,15 @@ int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
                 return -1;
             }
             int (*parse_fn)(sign_transaction_datas_t *, tx_t *) = PIC(program_infos[i].parse_fn);
-            parse_fn(data, tx);
+            if (parse_fn(data, tx) < 0) {
+                return -1;
+            }
             break;
         }
+    }
+
+    if (tx->type == TX_UNKNOWN) {
+        return -1;
     }
 
     return 0;

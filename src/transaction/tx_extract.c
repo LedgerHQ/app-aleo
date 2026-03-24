@@ -26,6 +26,7 @@
 
 #include "tx.h"
 
+#ifdef HAVE_PRINTF
 static void print_signature_data(sign_transaction_datas_t *data)
 {
     PRINTF("max_base_fee      : %d\n", data->max_base_fee);
@@ -58,6 +59,9 @@ static void print_signature_data(sign_transaction_datas_t *data)
         PRINTF("\n");
     }
 }
+#else   // !HAVE_PRINTF
+#define print_signature_data(...)
+#endif  // !HAVE_PRINTF
 
 // **** Prepared Request TLV parser ****
 
@@ -98,6 +102,9 @@ static bool get_input_value(const tlv_data_t *data, prepared_request_t *cookie)
 {
     buffer_t buff;
     if (!get_buffer_from_tlv_data(data, &buff, 1, 128)) {
+        return false;
+    }
+    if (cookie->inputs_value_offset >= MAX_NB_OF_INPUTS) {
         return false;
     }
     input_t *input      = &cookie->inputs[cookie->inputs_value_offset++];

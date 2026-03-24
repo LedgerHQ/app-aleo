@@ -29,7 +29,9 @@
 
 #include "group.h"
 
-static uint8_t response_buffer[512];
+#define RESPONSE_BUFFER_MAX_LENGTH (800)
+
+static uint8_t response_buffer[RESPONSE_BUFFER_MAX_LENGTH];
 
 static size_t add_tlv_field(uint8_t *in_buffer, uint8_t type, field_t *f)
 {
@@ -125,6 +127,8 @@ static size_t add_tlv_signature(uint8_t             *in_buffer,
 
 int helper_send_response_get_address(void)
 {
+    _Static_assert((ADDRESS_LEN + 1) < RESPONSE_BUFFER_MAX_LENGTH,
+                   "response_buffer size won't fit");
     size_t offset = 0;
 
     memset(response_buffer, 0, sizeof(response_buffer));
@@ -138,6 +142,8 @@ int helper_send_response_get_address(void)
 
 int helper_send_response_get_view_key(void)
 {
+    _Static_assert((VIEW_KEY_LEN + 1) < RESPONSE_BUFFER_MAX_LENGTH,
+                   "response_buffer size won't fit");
     size_t offset = 0;
 
     memset(response_buffer, 0, sizeof(response_buffer));
@@ -149,6 +155,51 @@ int helper_send_response_get_view_key(void)
     return io_send_response_pointer(response_buffer, offset, SWO_SUCCESS);
 }
 
+int helper_send_response_sign_transaction(void)
+{
+    _Static_assert(RESPONSE_BUFFER_MAX_LENGTH >= 780,
+                   "response_buffer size won't fit");
+    size_t offset = 0;
+    size_t i      = 0;
+
+    memset(response_buffer, 0, sizeof(response_buffer));
+    // Type
+    offset += add_tlv_uint8(&response_buffer[offset], 0x01, 0x2a);  // 3 bytes
+    // Version
+    offset += add_tlv_uint8(&response_buffer[offset], 0x02, 0x01);  // 3 bytes
+    offset += add_tlv_signature(&response_buffer[offset],           // 130 bytes
+                                0x15,
+                                &G_context.sign_transaction_datas.prepared_request.challenge,
+                                &G_context.sign_transaction_datas.prepared_request.response,
+                                &G_context.account.compute_key);
+    // TVK
+    offset += add_tlv_field(&response_buffer[offset],
+                            0xbf,
+                            &G_context.sign_transaction_datas.prepared_request.tvk);  // 35 bytes
+    // TPK
+    offset += add_tlv_group(&response_buffer[offset],
+                            0xc0,
+                            &G_context.sign_transaction_datas.prepared_request.tpk);  // 67 bytes
+    // Gammas count
+    offset += add_tlv_uint8(
+        &response_buffer[offset],
+        0xc1,
+        G_context.sign_transaction_datas.prepared_request.gammas_count);  // 4 bytes
+
+    for (i = 0; i < G_context.sign_transaction_datas.prepared_request.gammas_count;
+         i++) {  // 67*8 bytes
+        offset += add_tlv_group(&response_buffer[offset],
+                                0xc2,
+                                &G_context.sign_transaction_datas.prepared_request.gammas[i]);
+    }
+
+    write_u16_be(response_buffer, offset, SWO_SUCCESS);  // 2 bytes
+    offset += 2;
+
+    return io_legacy_apdu_tx(response_buffer, offset);
+}
+
+#ifdef ENABLE_PRIVATE_KEY_MANAGEMENT
 int helper_send_response_get_private_key(void)
 {
     size_t offset = 0;
@@ -161,41 +212,4 @@ int helper_send_response_get_private_key(void)
 
     return io_send_response_pointer(response_buffer, offset, SWO_SUCCESS);
 }
-
-int helper_send_response_sign_transaction(void)
-{
-    size_t offset = 0;
-    size_t i      = 0;
-
-    memset(response_buffer, 0, sizeof(response_buffer));
-    // Type
-    offset += add_tlv_uint8(&response_buffer[offset], 0x01, 0x2a);
-    // Version
-    offset += add_tlv_uint8(&response_buffer[offset], 0x02, 0x01);
-    offset += add_tlv_signature(&response_buffer[offset],
-                                0x15,
-                                &G_context.sign_transaction_datas.prepared_request.challenge,
-                                &G_context.sign_transaction_datas.prepared_request.response,
-                                &G_context.account.compute_key);
-    // TVK
-    offset += add_tlv_field(
-        &response_buffer[offset], 0xbf, &G_context.sign_transaction_datas.prepared_request.tvk);
-    // TPK
-    offset += add_tlv_group(
-        &response_buffer[offset], 0xc0, &G_context.sign_transaction_datas.prepared_request.tpk);
-    // Gammas count
-    offset += add_tlv_uint8(&response_buffer[offset],
-                            0xc1,
-                            G_context.sign_transaction_datas.prepared_request.gammas_count);
-
-    for (i = 0; i < G_context.sign_transaction_datas.prepared_request.gammas_count; i++) {
-        offset += add_tlv_group(&response_buffer[offset],
-                                0xc2,
-                                &G_context.sign_transaction_datas.prepared_request.gammas[i]);
-    }
-
-    write_u16_be(response_buffer, offset, SWO_SUCCESS);
-    offset += 2;
-
-    return io_legacy_apdu_tx(response_buffer, offset);
-}
+#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT

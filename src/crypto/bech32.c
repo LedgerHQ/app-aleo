@@ -64,9 +64,9 @@ int bech32_convert_bits(uint8_t* out, size_t* outlen, int outbits, const uint8_t
             out[(*outlen)++] = (val << (outbits - bits)) & maxv;
         }
     } else if (((val << (outbits - bits)) & maxv) || bits >= inbits) {
-        return 0;
+        return -1;
     }
-    return 1;
+    return 0;
 }
 
 int bech32_encode(char *output, const char *hrp, const uint8_t *data, size_t data_len, bech32_encoding enc) {
@@ -75,14 +75,14 @@ int bech32_encode(char *output, const char *hrp, const uint8_t *data, size_t dat
     while (hrp[i] != 0) {
         int ch = hrp[i];
         if (ch < 33 || ch > 126) {
-            return 0;
+            return -1;
         }
 
-        if (ch >= 'A' && ch <= 'Z') return 0;
+        if (ch >= 'A' && ch <= 'Z') return -1;
         chk = bech32_polymod_step(chk) ^ (ch >> 5);
         ++i;
     }
-    if (i + 7 + data_len > 90) return 0;
+    if (i + 7 + data_len > 90) return -1;
     chk = bech32_polymod_step(chk);
     while (*hrp != 0) {
         chk = bech32_polymod_step(chk) ^ (*hrp & 0x1f);
@@ -90,7 +90,7 @@ int bech32_encode(char *output, const char *hrp, const uint8_t *data, size_t dat
     }
     *(output++) = '1';
     for (i = 0; i < data_len; ++i) {
-        if (*data >> 5) return 0;
+        if (*data >> 5) return -1;
         chk = bech32_polymod_step(chk) ^ (*data);
         *(output++) = charset[*(data++)];
     }
@@ -102,5 +102,5 @@ int bech32_encode(char *output, const char *hrp, const uint8_t *data, size_t dat
         *(output++) = charset[(chk >> ((5 - i) * 5)) & 0x1f];
     }
     *output = 0;
-    return 1;
+    return 0;
 }

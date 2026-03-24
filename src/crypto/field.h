@@ -22,14 +22,19 @@ void field_from_int(field_t *a, uint64_t i);
 void field_to_big_int(const field_t *a, bigint_256_t *bigint);
 void field_from_big_int(field_t *a, const bigint_256_t *bigint);
 
-void field_random(field_t *a);
+int field_random(field_t *a);
 
 uint8_t field_from_bits(const uint8_t *input_bits,
                         const uint16_t input_bits_length,
                         field_t       *r,
                         uint8_t        max_field_count);
 
-// PRINT
+#ifdef HAVE_PRINTF
 void field_print(const field_t *a);
 void field_println(const field_t *a);
 void field_print_array(const field_t *array, size_t length);
+#else   // !HAVE_PRINTF
+#define field_print(...)
+#define field_println(...)
+#define field_print_array(...)
+#endif  // !HAVE_PRINTF

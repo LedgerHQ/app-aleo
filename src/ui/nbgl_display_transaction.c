@@ -136,10 +136,9 @@ static int display_review_transaction(void)
     return 0;
 }
 
-static int ui_display_transactions(void)
+// Flow used to display a clear-signed transaction
+int ui_display_transaction(void)
 {
-    // TODO check bad state
-
     if (memcmp(G_context.sign_transaction_datas.fee_program_id,
                "credits.aleo",
                G_context.sign_transaction_datas.fee_program_id_length)) {
@@ -160,10 +159,4 @@ static int ui_display_transactions(void)
     }
 
     return 0;
-}
-
-// Flow used to display a clear-signed transaction
-int ui_display_transaction(void)
-{
-    return ui_display_transactions();
 }

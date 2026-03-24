@@ -202,7 +202,7 @@ void fp256_inverse_assign(const fp256_parameters_t *p, fp256_t *a)
     fp256_t      b;
     fp256_t      c;
 
-    big_int_from_int(&one, 1);
+    big_int_from_u64(&one, 1);
     memcpy(&u, a, sizeof(fp256_t));
     memcpy(&v, &p->MODULUS, sizeof(fp256_t));
     memcpy(&b, &p->R2, sizeof(fp256_t));
@@ -262,7 +262,7 @@ void fp256_from_int(const fp256_parameters_t *p, fp256_t *a, uint64_t i)
 {
     bigint_256_t big;
 
-    big_int_from_int(&big, i);
+    big_int_from_u64(&big, i);
     fp256_from_big_int(p, a, &big);
 }
 
@@ -302,27 +302,14 @@ void fp256_to_big_int(const fp256_parameters_t *p, const fp256_t *a, bigint_256_
     bigint->u64[3] = carry;
 }
 
-void fp256_random(const fp256_parameters_t *p, fp256_t *a)
+int fp256_random(const fp256_parameters_t *p, fp256_t *a)
 {
     bigint_256_t big;
-    big_int_random(&big, &p->MODULUS.big);
+
+    if (big_int_random(&big, &p->MODULUS.big) != 0) {
+        return -1;
+    }
     fp256_from_big_int(p, a, &big);
-}
 
-void fp256_print(fp256_t *array, uint16_t length)
-{
-    for (uint16_t index = 0; index < length; index++) {
-        PRINTF("[%2d] : ", index);
-        big_int_print(&array[index].big);
-    }
-}
-
-void fp256_bg_print(const fp256_parameters_t *p, fp256_t *array, uint16_t length)
-{
-    for (uint16_t index = 0; index < length; index++) {
-        PRINTF("[%2d] : ", index);
-        fp256_t b;
-        fp256_to_big_int(p, &array[index], &b.big);
-        big_int_print(&b.big);
-    }
+    return 0;
 }

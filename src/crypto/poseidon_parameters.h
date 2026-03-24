@@ -11,7 +11,9 @@ typedef struct {
     uint8_t alpha;
 
     field_t *ark;
+    uint16_t ark_size;
     field_t *mds;
+    uint16_t mds_size;
 
 } poseidon_parameters_t;
 
