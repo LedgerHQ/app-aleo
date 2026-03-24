@@ -47,7 +47,8 @@ typedef enum {
  *      pad:    Enable padding or not.
  *  Returns 1 if successful.
  */
-int bech32_convert_bits(uint8_t* out, size_t* outlen, int outbits, const uint8_t* in, size_t inlen, int inbits, int pad);
+int bech32_convert_bits(uint8_t* out, size_t* outlen, size_t out_max, int outbits,
+                        const uint8_t* in, size_t inlen, int inbits, int pad);
 
 
 /** Encode a Bech32 or Bech32m string

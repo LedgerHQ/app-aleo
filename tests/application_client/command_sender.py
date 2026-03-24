@@ -116,13 +116,13 @@ class CommandSender:
         apdus = tx.gen_apdus_tx(tx_datas)
         if len(apdus) == 0:
             return
-        for apdu in apdus[:-1]:
-            apdu = bytes.fromhex(apdu)
-            response = self.backend.exchange(cla=apdu[0],
-                                             ins=apdu[1],
-                                             p1=apdu[2],
-                                             p2=apdu[3],
-                                             data=apdu[5:])
+        for item in apdus[:-1]:
+            apdu = bytes.fromhex(item)
+            self.backend.exchange(cla=apdu[0],
+                                  ins=apdu[1],
+                                  p1=apdu[2],
+                                  p2=apdu[3],
+                                  data=apdu[5:])
         apdu = bytes.fromhex(apdus[-1])
         with self.backend.exchange_async(cla=apdu[0],
                                          ins=apdu[1],

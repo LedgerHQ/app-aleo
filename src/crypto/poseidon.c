@@ -88,11 +88,11 @@ static int sponge_init(uint8_t rate)
     // Sanity check
     if (sponge.state_length * (sponge.parameters.full_rounds + sponge.parameters.partial_rounds)
         > sponge.parameters.ark_size) {
-        PRINTF("Poseidon ark paremeters size is too low\n");
+        PRINTF("Poseidon ark parameters size is too low\n");
         return -1;
     }
     if (sponge.state_length * sponge.state_length > sponge.parameters.mds_size) {
-        PRINTF("Poseidon mds paremeters size is too low\n");
+        PRINTF("Poseidon mds parameters size is too low\n");
         return -1;
     }
 

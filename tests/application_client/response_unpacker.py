@@ -70,5 +70,3 @@ def unpack_get_view_key_response(response: bytes) -> Tuple[int, bytes]:
 def unpack_sign_transaction_response(response: bytes) -> dict:
     tx = Transaction()
     return tx.unpack_response(response.hex())
-
-

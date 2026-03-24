@@ -41,7 +41,7 @@ int group_add_assign(group_t *a, const group_t *b)
     uint8_t      bn_y[32];
     bigint_256_t s;
 
-    if ((error = cx_bn_lock(32, 0)) != CX_OK) {
+    if (cx_bn_lock(32, 0) != CX_OK) {
         return -1;
     }
 
@@ -117,7 +117,7 @@ int group_scalar_multiply(const group_t *a, const scalar_t *b, group_t *r)
     scalar_to_big_int(b, &s);
     big_int_to_bn(&s, bn_scalar);
 
-    if ((error = cx_bn_lock(32, 0)) != CX_OK) {
+    if (cx_bn_lock(32, 0) != CX_OK) {
         return -1;
     }
 

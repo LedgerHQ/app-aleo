@@ -1,7 +1,5 @@
 import pytest
-import time
 
-from ledgered.devices import DeviceType, Device
 from ragger.error import ExceptionRAPDU, StatusWords
 from ragger.backend.interface import BackendInterface
 from ragger.navigator.navigation_scenario import NavigateWithScenario
@@ -15,20 +13,21 @@ def check_response(received: dict, expected: dict) -> bool:
     for key in expected.keys():
         if key not in received.keys():
             return False
-        if type(received[key]) == list:
+        if isinstance(received[key], list):
             index = 0
             for item in received[key]:
                 if item != expected[key][index]:
                     return False
                 index += 1
-        elif type(received[key]) == dict:
+        elif isinstance(received[key], dict):
             return check_response(received[key], expected[key])
         elif received[key] != expected[key]:
             return False
     return True
 
 
-def forge_public_transfer(max_base_fee: int, max_priority_fee: int, address_to: str, amount: int, program_checksum: str = '') -> dict:
+def forge_public_transfer(max_base_fee: int, max_priority_fee: int, address_to: str,
+                          amount: int, program_checksum: str = '') -> dict:
 
     data = {'type' : 'intent',
             'max_base_fee' : max_base_fee, 'max_priority_fee' : max_priority_fee,
@@ -42,7 +41,8 @@ def forge_public_transfer(max_base_fee: int, max_priority_fee: int, address_to: 
     return data
 
 
-def forge_private_transfer(max_base_fee: int, max_priority_fee: int, record: list[str], address_to: str, amount: int, program_checksum: str = '') -> dict:
+def forge_private_transfer(max_base_fee: int, max_priority_fee: int, record: list[str], address_to: str,
+                           amount: int, program_checksum: str = '') -> dict:
 
     data = {'type' : 'intent',
             'max_base_fee' : max_base_fee, 'max_priority_fee' : max_priority_fee,
@@ -96,14 +96,14 @@ def test_sign_transaction_errors(backend: BackendInterface, scenario_navigator: 
     with pytest.raises(ExceptionRAPDU) as e:
         backend.exchange_raw(bytes.fromhex("E006000113048000002c8000000080000000800000000000"))
     assert e.value.status == StatusWords.SWO_CONDITIONS_NOT_SATISFIED
-    
+
     backend.exchange_raw(bytes.fromhex("E006000014048000002c800000008000000080000000000211"))
     with pytest.raises(ExceptionRAPDU) as e:
         backend.exchange_raw(bytes.fromhex("E0060001022233"))
     assert e.value.status == StatusWords.SWO_WRONG_DATA_LENGTH
 
     tx_datas = forge_public_fee(500, 100, "7266375125414209082394925781071362722506946030314916664133746682226945366259field")
-    
+
     with pytest.raises(ExceptionRAPDU) as e:
         with client.sign_transaction(tx_datas=tx_datas):
             scenario_navigator.review_reject()
@@ -119,7 +119,7 @@ def test_sign_transaction_refused(backend: BackendInterface, scenario_navigator:
     client = CommandSender(backend)
     tx_datas = forge_public_transfer(500, 100, "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe", 1000)
     tx_datas['path'] = "m/44'/683'/0'/0'"
-    
+
     with pytest.raises(ExceptionRAPDU) as e:
         with client.sign_transaction(tx_datas=tx_datas):
             scenario_navigator.review_reject()
@@ -156,9 +156,9 @@ def test_sign_transaction_fee_timeout(backend: BackendInterface, scenario_naviga
                 'tpk': '6c33aa8071756445369c0f6cb3546e477af732bc1703b4aa2124a7c9e1b65207',
                 'gammas_count': 0
     }
-    assert(check_response(unpacked, expected))
+    assert check_response(unpacked, expected)
     if scenario_navigator.device.is_nano:
-        instruction = NavInsID.BOTH_CLICK
+        instruction = NavInsID.LEFT_CLICK
     else:
         instruction = NavInsID.USE_CASE_REVIEW_TAP
     scenario_navigator.navigator.navigate_until_text(navigate_instruction=instruction,
@@ -186,10 +186,10 @@ def test_sign_transaction_wrong_fee(backend: BackendInterface, scenario_navigato
                 'tpk': '6c33aa8071756445369c0f6cb3546e477af732bc1703b4aa2124a7c9e1b65207',
                 'gammas_count': 0
     }
-    assert(check_response(unpacked, expected))
+    assert check_response(unpacked, expected)
 
     tx_datas = forge_public_fee(5000, 1000, "7266375125414209082394925781071362722506946030314916664133746682226945366259field")
- 
+
     with pytest.raises(ExceptionRAPDU) as e:
         with client.sign_transaction(tx_datas=tx_datas):
             pass
@@ -213,7 +213,7 @@ def test_sign_transaction_transfer_public(backend: BackendInterface, scenario_na
                 'tpk': '6c33aa8071756445369c0f6cb3546e477af732bc1703b4aa2124a7c9e1b65207',
                 'gammas_count': 0
     }
-    assert(check_response(unpacked, expected))
+    assert check_response(unpacked, expected)
 
     tx_datas = forge_public_fee(500, 100, "7266375125414209082394925781071362722506946030314916664133746682226945366259field")
     with client.sign_transaction(tx_datas=tx_datas):
@@ -238,7 +238,7 @@ def test_sign_transaction_transfer_public(backend: BackendInterface, scenario_na
                 'tpk': '82ec6ee9302e9bc5731270438a9319c935eb695df74cbd18631f2e4e2a54740b',
                 'gammas_count': 0
     }
-    assert(check_response(unpacked, expected))
+    assert check_response(unpacked, expected)
 
 
 def test_sign_transaction_transfer_private(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
@@ -262,9 +262,10 @@ def test_sign_transaction_transfer_private(backend: BackendInterface, scenario_n
                 'gammas_count': 1,
                 'gammas': ['5da12afb13f3b9d1dd29a5cd0e0e180e6db92002dabf9a8bd5d83f8ce831fc03']
     }
-    assert(check_response(unpacked, expected))
+    assert check_response(unpacked, expected)
 
-    tx_datas = forge_private_fee(500, 100, record, "7266375125414209082394925781071362722506946030314916664133746682226945366259field")
+    tx_datas = forge_private_fee(500, 100, record,
+                                 "7266375125414209082394925781071362722506946030314916664133746682226945366259field")
     with client.sign_transaction(tx_datas=tx_datas):
         if scenario_navigator.device.is_nano:
             instruction = NavInsID.BOTH_CLICK
@@ -288,7 +289,7 @@ def test_sign_transaction_transfer_private(backend: BackendInterface, scenario_n
                 'gammas_count': 1,
                 'gammas': ['5da12afb13f3b9d1dd29a5cd0e0e180e6db92002dabf9a8bd5d83f8ce831fc03']
     }
-    assert(check_response(unpacked, expected))
+    assert check_response(unpacked, expected)
 
 
 def test_sign_transaction_transfer_private_zero_fees(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
@@ -312,4 +313,4 @@ def test_sign_transaction_transfer_private_zero_fees(backend: BackendInterface, 
                 'gammas_count': 1,
                 'gammas': ['5da12afb13f3b9d1dd29a5cd0e0e180e6db92002dabf9a8bd5d83f8ce831fc03']
     }
-    assert(check_response(unpacked, expected))
+    assert check_response(unpacked, expected)

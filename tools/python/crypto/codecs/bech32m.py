@@ -15,7 +15,7 @@ class BECH32M():
 		pass
 
 
-	def polymod_step(pre):
+	def polymod_step(pre: int):
 		b = pre >> 25
 		res = (pre & 0x1FFFFFF) << 5
 		res ^= (-((b >> 0) & 1) & 0x3B6A57B2)
@@ -26,13 +26,13 @@ class BECH32M():
 		return res
 
 
-	def final_constant(is_m_encoding):
+	def final_constant(is_m_encoding: bool) -> int:
 		if is_m_encoding:
 			return 0x2bc830a3
 		return 1
 
 
-	def convert_bits(output, output_bits, input, input_bits, pad):
+	def convert_bits(output: list[int], output_bits: int, input: list[int], input_bits: int, pad: bool) -> bool:
 		val = 0
 		bits = 0
 		max_v = (1 << output_bits) - 1
@@ -46,23 +46,24 @@ class BECH32M():
 			if bits:
 				output.append((val << (output_bits-bits)) & max_v)
 		elif ((val << (output_bits-bits)) & max_v) or bits >= input_bits:
-			return 0
-		return 1
+			return False
+
+		return True
 
 
-	def encode(output, hrp, data, is_m_encoding):
+	def encode(output: list[int], hrp: list[int], data: list[int], is_m_encoding: bool) -> bool:
 		chk = 1
 		for item in hrp:
 			ch = item
 			if ch < 33 or ch > 126:
-				return 0
+				return False
 			if ch >= 65 and ch <= 90:
-				return 0
+				return False
 			
 			chk = BECH32M.polymod_step(chk) ^ (ch >> 5)
 
 		if len(hrp)+7+len(data) > 90:
-			return 0
+			return False
 
 		chk = BECH32M.polymod_step(chk)
 		for item in hrp:
@@ -73,7 +74,7 @@ class BECH32M():
 
 		for i in range(0, len(data)):
 			if data[i] >> 5:
-				return 0
+				return False
 			chk = BECH32M.polymod_step(chk) ^ data[i]
 			output.append(ord(BECH32M.CHARSET[data[i]]))
 
@@ -83,15 +84,15 @@ class BECH32M():
 		for i in range(0, 6):
 			output.append(ord(BECH32M.CHARSET[(chk >> ((5-i)*5)) & 0x1f]))
 
-		return 1
+		return True
 
 
-	def decode(hrp, data, input):
+	def decode(hrp: list[int], data: list[int], input: list[int]) -> bool:
 		chk = 1
 		have_lower = False
 		have_upper = False
 		if len(input) < 8 or len(input) > 90:
-			return 0
+			return False
 		
 		data_offset = 0
 		while data_offset < len(input) and input[len(input)-1 - data_offset] != 49:
@@ -99,12 +100,12 @@ class BECH32M():
 
 		hrp_len = len(input) - (1+data_offset)
 		if 1+data_offset >= len(input) or data_offset < 6:
-			return 0
+			return False
 
 		for index in range(0, hrp_len):
 			ch = input[index]
 			if ch < 33 or ch > 126:
-				return 0
+				return False
 			if ch >= 97 and ch < 122:
 				have_lower = True
 			if ch >= 65 and ch <= 90:
@@ -126,9 +127,11 @@ class BECH32M():
 			if ch >= 65 and ch < 90:
 				have_upper = True
 			if v == -1:
-				return 0
+				return False
 			chk = BECH32M.polymod_step(chk) ^ v
 			if index+6 < len(input):
 				data.append(v)
 			index += 1
+
+		return True
 

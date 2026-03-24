@@ -21,7 +21,7 @@
 
 #if (API_LEVEL >= 26)
 #define ALEO_BIP32_SUPPORT (1)
-#endif // API_LEVEL
+#endif  // API_LEVEL
 
 #include "os.h"
 #ifdef ALEO_BIP32_SUPPORT
@@ -134,8 +134,7 @@ static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
 
 static int private_key_from_seed(const field_t *seed, scalar_t *sk_sig, scalar_t *r_sig)
 {
-    _Static_assert(HASH_INPUT_MAX_LENGTH >= 4,
-                   "hash_input size won't fit");
+    _Static_assert(HASH_INPUT_MAX_LENGTH >= 4, "hash_input size won't fit");
     int status = 0;
 
     // Compute sk_sig
@@ -189,8 +188,7 @@ static int view_key_from_private_and_compute_key(const private_key_t *private_ke
                                                  compute_key_t       *compute_key,
                                                  scalar_t            *view_key)
 {
-    _Static_assert(HASH_INPUT_MAX_LENGTH >= 6,
-                   "hash_input size won't fit");
+    _Static_assert(HASH_INPUT_MAX_LENGTH >= 6, "hash_input size won't fit");
     int status = 0;
 
     memset(hash_input, 0, sizeof(hash_input));
@@ -226,8 +224,7 @@ static int address_from_view_key(const scalar_t *view_key, group_t *address)
 
 static int graph_key_from_view_key(const scalar_t *view_key, field_t *graph_key)
 {
-    _Static_assert(HASH_INPUT_MAX_LENGTH >= 7,
-                   "hash_input size won't fit");
+    _Static_assert(HASH_INPUT_MAX_LENGTH >= 7, "hash_input size won't fit");
     int     status = 0;
     field_t f_view_key;
     scalar_to_field(view_key, &f_view_key);
@@ -277,19 +274,20 @@ int account_get_address_string(const uint32_t *path, uint8_t path_len, char addr
     big_int_to_bn(&address_big_int, address_bn);
 
     // Reverse bn
-	bn_reverse(address_bn);
-	bn_print(address_bn);
+    bn_reverse(address_bn);
+    bn_print(address_bn);
 
     uint8_t data[64];
     size_t  datalen = 0;
-    if ((status = bech32_convert_bits(data, &datalen, 5, address_bn, 32, 8, 1)) < 0) {
+    if ((status = bech32_convert_bits(data, &datalen, sizeof(data), 5, address_bn, 32, 8, 1)) < 0) {
         goto end;
     }
     status = bech32_encode(address, ADDRESS_PREFIX, data, datalen, BECH32_ENCODING_BECH32M);
     PRINTF("%s\n", address);
 
 end:
-    explicit_bzero(&account, sizeof(account));
+    explicit_bzero(hash_input, sizeof(hash_input));
+    explicit_bzero(&account, sizeof(account_t));
 
     return status;
 }
@@ -334,7 +332,8 @@ int account_get_view_key_string(const uint32_t *path, uint8_t path_len, char *vi
     PRINTF("%s\n", viewkey);
 
 end:
-    explicit_bzero(&account, sizeof(account));
+    explicit_bzero(hash_input, sizeof(hash_input));
+    explicit_bzero(&account, sizeof(account_t));
 
     return status;
 }
@@ -351,8 +350,7 @@ int account_generate_keys(const uint32_t *path, uint8_t path_len, account_t *acc
         < 0) {
         goto error;
     }
-    if ((status = compute_key_from_private_key(&account->private_key, &account->compute_key))
-        < 0) {
+    if ((status = compute_key_from_private_key(&account->private_key, &account->compute_key)) < 0) {
         goto error;
     }
     display_progression(1);
@@ -370,7 +368,8 @@ int account_generate_keys(const uint32_t *path, uint8_t path_len, account_t *acc
     return 0;
 
 error:
-    explicit_bzero(&account, sizeof(account));
+    explicit_bzero(hash_input, sizeof(hash_input));
+    explicit_bzero(account, sizeof(account_t));
     return status;
 }
 
@@ -401,7 +400,8 @@ int account_get_private_key_string(const uint32_t *path, uint8_t path_len, char 
     seed_from_private_key_string(private_key, &seed);
     field_println(&seed);
 
-    explicit_bzero(&account, sizeof(account));
+    explicit_bzero(hash_input, sizeof(hash_input));
+    explicit_bzero(&account, sizeof(account_t));
 
     return status;
 }

@@ -265,7 +265,7 @@ int big_int_random(bigint_256_t *a, const bigint_256_t *modulus)
 
     big_int_to_bn(modulus, bn);
 
-    if ((error = cx_bn_lock(32, 0)) != CX_OK) {
+    if (cx_bn_lock(32, 0) != CX_OK) {
         return -1;
     }
     if ((error = cx_bn_alloc_init(&cx_bn_modulus, sizeof(bn), bn, sizeof(bn))) != CX_OK) {

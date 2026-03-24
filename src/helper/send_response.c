@@ -157,8 +157,7 @@ int helper_send_response_get_view_key(void)
 
 int helper_send_response_sign_transaction(void)
 {
-    _Static_assert(RESPONSE_BUFFER_MAX_LENGTH >= 780,
-                   "response_buffer size won't fit");
+    _Static_assert(RESPONSE_BUFFER_MAX_LENGTH >= 780, "response_buffer size won't fit");
     size_t offset = 0;
     size_t i      = 0;
 

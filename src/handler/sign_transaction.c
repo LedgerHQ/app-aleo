@@ -216,12 +216,13 @@ int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool next_chunk)
             return io_send_sw(SWO_WRONG_DATA_LENGTH);
         }
 
-        apdu_rx_buffer.offset = 0;
-        apdu_rx_buffer.size   = length_offset + 2 + U2BE(cdata->ptr, length_offset);
-        if (apdu_rx_buffer.size >= sizeof(rx_transaction_array)) {
+        uint16_t declared_len = U2BE(cdata->ptr, length_offset);
+        if ((declared_len + 2 + length_offset) > sizeof(rx_transaction_array)) {
             apdu_rx_buffer.size = 0;
             return io_send_sw(SWO_INSUFFICIENT_MEMORY);
         }
+        apdu_rx_buffer.offset = 0;
+        apdu_rx_buffer.size   = length_offset + 2 + declared_len;
     }
     else if (!apdu_rx_buffer.size) {
         // Before a next we do need a begin

@@ -52,12 +52,5 @@ void ui_menu_main(void)
 {
     explicit_bzero(&G_context.account, sizeof(G_context.account));
     nbgl_useCaseHomeAndSettings(
-        APPNAME,
-        &ICON_APP_HOME,
-        "PLEASE BE CAREFUL THIS APP IS NOT OFFICIAL AND FOR TESTING PURPOSE ONLY",
-        INIT_HOME_PAGE,
-        NULL,
-        &infoList,
-        NULL,
-        app_quit);
+        APPNAME, &ICON_APP_HOME, NULL, INIT_HOME_PAGE, NULL, &infoList, NULL, app_quit);
 }

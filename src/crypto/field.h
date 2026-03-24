@@ -33,7 +33,7 @@ uint8_t field_from_bits(const uint8_t *input_bits,
 void field_print(const field_t *a);
 void field_println(const field_t *a);
 void field_print_array(const field_t *array, size_t length);
-#else   // !HAVE_PRINTF
+#else  // !HAVE_PRINTF
 #define field_print(...)
 #define field_println(...)
 #define field_print_array(...)

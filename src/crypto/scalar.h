@@ -24,7 +24,7 @@ int scalar_random(scalar_t *a);
 void scalar_print(const scalar_t *a);
 void scalar_println(const scalar_t *a);
 void scalar_print_array(const scalar_t *array, size_t length);
-#else   // !HAVE_PRINTF
+#else  // !HAVE_PRINTF
 #define scalar_print(...)
 #define scalar_println(...)
 #define scalar_print_array(...)

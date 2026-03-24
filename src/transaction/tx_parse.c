@@ -139,9 +139,9 @@ static int get_address(input_t *input, bool is_private, char address[ADDRESS_LEN
     size_t  datalen = 0;
 
     memset(address, 0, ADDRESS_LEN + 1);
-    if ((status = bech32_convert_bits(data, &datalen, 5, input->value, 32, 8, 1)) < 0) {
-        return -1;
-        ;
+    if ((status = bech32_convert_bits(data, &datalen, sizeof(data), 5, input->value, 32, 8, 1))
+        < 0) {
+        return status;
     }
     status = bech32_encode(address, ADDRESS_PREFIX, data, datalen, BECH32_ENCODING_BECH32M);
 

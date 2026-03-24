@@ -29,7 +29,7 @@ int group_g_scalar_multiply(const scalar_t *b, group_t *r);
 void group_print(const group_t *a);
 void group_println(const group_t *a);
 void group_print_array(const group_t *array, size_t length);
-#else   // !HAVE_PRINTF
+#else  // !HAVE_PRINTF
 #define group_print(...)
 #define group_println(...)
 #define group_print_array(...)

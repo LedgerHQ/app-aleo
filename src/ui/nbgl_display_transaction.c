@@ -125,6 +125,7 @@ static int display_review_transaction(void)
     pairList.pairs              = pairs;
     pairList.wrapping           = true;
 
+#ifdef HAVE_SE_TOUCH
     nbgl_useCaseReview(TYPE_TRANSACTION,
                        &pairList,
                        &ICON_APP_ALEO,
@@ -132,6 +133,15 @@ static int display_review_transaction(void)
                        review_subtitle,
                        "Sign transaction to send ALEO?",
                        review_transaction);
+#else   // !HAVE_SE_TOUCH
+    nbgl_useCaseReview(TYPE_TRANSACTION,
+                       &pairList,
+                       &ICON_APP_ALEO,
+                       "Review transaction to send ALEO?",
+                       review_subtitle,
+                       "Sign transaction",
+                       review_transaction);
+#endif  // HAVE_SE_TOUCH
 
     return 0;
 }

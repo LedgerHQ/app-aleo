@@ -111,12 +111,12 @@ static int hash_public_input(prepared_request_t *request, uint8_t input_index)
             field_print_array(&hash_input[hash_input_index - 1], 1);
         }
         else {
-            PRINTF("Public plaintext type unsuported (%d)\n", input->type[2]);
+            PRINTF("Public plaintext type unsupported (%d)\n", input->type[2]);
             return -1;
         }
     }
     else {
-        PRINTF("Public input value type unsuported (%d)\n", input->type[1]);
+        PRINTF("Public input value type unsupported (%d)\n", input->type[1]);
         return -1;
     }
     memcpy(&hash_input[hash_input_index++], &request->tcm, sizeof(field_t));
@@ -187,14 +187,14 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
                 bit_buffer, (uint16_t) bit_length, plaintext_fields, PLAINTEXT_FIELDS_MAX_SIZE);
         }
         else {
-            PRINTF("Private plaintext type unsuported (%d)\n", input->type[2]);
+            PRINTF("Private plaintext type unsupported (%d)\n", input->type[2]);
             return -1;
         }
         PRINTF("plaintext_fields : \n");
         field_print_array(plaintext_fields, num_randomizers);
     }
     else {
-        PRINTF("Private input value type unsuported (%d)\n", input->type[1]);
+        PRINTF("Private input value type unsupported (%d)\n", input->type[1]);
         return -1;
     }
 
@@ -384,7 +384,7 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     scalar_to_field(&account->private_key.sk_sig, &hash_input[5]);
     memcpy(&hash_input[6], &nonce, sizeof(field_t));
     if ((status = hash_to_scalar_psd4(hash_input, 4 + 3, &request->r)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("r : ");
     scalar_println(&request->r);
@@ -392,14 +392,14 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
 
     // Compute `g_r` as `r * G`. Note: This is the transition public key `tpk`.
     if ((status = group_g_scalar_multiply(&request->r, &request->tpk)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("tpk : ");
     group_println(&request->tpk);
 
     // Compute the transition view key `tvk` as `r * signer`.
     if ((status = group_scalar_multiply(&account->address, &request->r, &g_temp)) < 0) {
-        return status;
+        goto end;
     }
     memcpy(&request->tvk, &g_temp.x, sizeof(field_t));
     PRINTF("tvk : ");
@@ -410,7 +410,7 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     memset(hash_input, 0, sizeof(hash_input));
     memcpy(&hash_input[2], &request->tvk, sizeof(field_t));
     if ((status = hash_psd2(hash_input, 2 + 1, &request->tcm)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("tcm : ");
     field_println(&request->tcm);
@@ -432,9 +432,17 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     for (size_t i = 0; i < request->program_id_length; i++) {
         if (request->program_id[i] != '.') {
             if (is_name) {
+                if (offset >= sizeof(function_id_datas.program_id_name)) {
+                    status = -1;
+                    goto end;
+                }
                 function_id_datas.program_id_name[offset++] = request->program_id[i];
             }
             else {
+                if (offset >= sizeof(function_id_datas.program_id_network)) {
+                    status = -1;
+                    goto end;
+                }
                 function_id_datas.program_id_network[offset++] = request->program_id[i];
             }
         }
@@ -443,10 +451,14 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
             offset  = 0;
         }
     }
+    if (request->function_name_length >= sizeof(function_id_datas.function_name)) {
+        status = -1;
+        goto end;
+    }
     memcpy(function_id_datas.function_name, request->function_name, request->function_name_length);
 
     if ((status = bhp_1024_hash_function_id(&function_id_datas, &request->function_id)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("function_id : ");
     field_println(&request->function_id);
@@ -471,7 +483,7 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
         bn_to_big_int(request->program_checksum, &s);
         field_from_big_int(&program_checksum, &s);
         if ((status = add_field_to_message(&program_checksum)) < 0) {
-            return status;
+            goto end;
         }
         PRINTF("program_checksum : ");
         field_println(&program_checksum);
@@ -480,7 +492,7 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     display_progression(3);
     // Prepare the inputs.
     if ((status = prepare_inputs(account, request)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("message : \n");
     field_print_array(message, message_length);
@@ -488,7 +500,7 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     display_progression(4);
     // Compute challenge
     if ((status = hash_to_scalar_psd8(message, message_length, &request->challenge)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("challenge : ");
     scalar_println(&request->challenge);
@@ -502,6 +514,10 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     PRINTF("response : ");
     scalar_println(&request->response);
     display_progression(5);
+
+end:
+    explicit_bzero(hash_input, sizeof(hash_input));
+    explicit_bzero(message, sizeof(message));
 
     return status;
 }

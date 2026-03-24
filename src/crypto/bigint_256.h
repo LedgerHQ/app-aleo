@@ -33,7 +33,7 @@ int big_int_random(bigint_256_t *a, const bigint_256_t *modulus);
 void big_int_print(const bigint_256_t *a);
 void big_int_println(const bigint_256_t *a);
 void bn_print(uint8_t *bn);
-#else   // !HAVE_PRINTF
+#else  // !HAVE_PRINTF
 #define big_int_print(...)
 #define big_int_println(...)
 #define bn_print(...)
