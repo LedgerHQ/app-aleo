@@ -82,11 +82,12 @@ void scalar_mul_assign(scalar_t *a, const scalar_t *b)
     fp256_mul_assign(&scalar_parameters, a, b);
 }
 
-void scalar_random(scalar_t *a)
+int scalar_random(scalar_t *a)
 {
-    fp256_random(&scalar_parameters, a);
+    return fp256_random(&scalar_parameters, a);
 }
 
+#ifdef HAVE_PRINTF
 void scalar_print(const scalar_t *a)
 {
     big_int_print(&a->big);
@@ -105,3 +106,4 @@ void scalar_print_array(const scalar_t *array, size_t length)
         PRINTF(" scalar\n");
     }
 }
+#endif  // HAVE_PRINTF

@@ -18,9 +18,14 @@ void scalar_add_assign(scalar_t *a, const scalar_t *b);
 void scalar_sub_assign(scalar_t *a, const scalar_t *b);
 void scalar_mul_assign(scalar_t *a, const scalar_t *b);
 
-void scalar_random(scalar_t *a);
+int scalar_random(scalar_t *a);
 
-// PRINT
+#ifdef HAVE_PRINTF
 void scalar_print(const scalar_t *a);
 void scalar_println(const scalar_t *a);
 void scalar_print_array(const scalar_t *array, size_t length);
+#else  // !HAVE_PRINTF
+#define scalar_print(...)
+#define scalar_println(...)
+#define scalar_print_array(...)
+#endif  // !HAVE_PRINTF

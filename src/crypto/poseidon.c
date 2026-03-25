@@ -26,7 +26,9 @@
 #include "poseidon_parameters.h"
 #include "poseidon.h"
 
-#define CAPACITY (1)
+#define CAPACITY          (1)
+#define MAX_RATE          (8)
+#define SPONGE_STATE_SIZE (CAPACITY + MAX_RATE)
 
 typedef enum {
     SPONGE_MODE_ABSORBING,
@@ -42,7 +44,7 @@ typedef struct {
 typedef struct {
     uint8_t               rate;
     poseidon_parameters_t parameters;
-    field_t               state[CAPACITY + 8];
+    field_t               state[SPONGE_STATE_SIZE];
     uint8_t               state_length;
     duplex_sponge_mode_t  mode;
 } poseidon_sponge_t;
@@ -61,8 +63,13 @@ static const field_t F_DOMAIN_ALEO_POSEIDON_8 = {
 
 static poseidon_sponge_t sponge;
 
-static void sponge_init(uint8_t rate)
+static int sponge_init(uint8_t rate)
 {
+    // Sanity check
+    if (rate > MAX_RATE) {
+        PRINTF("Poseidon rate is too high (%d)\n", rate);
+        return -1;
+    }
     sponge.rate         = rate;
     sponge.state_length = (CAPACITY + rate);
 
@@ -77,6 +84,19 @@ static void sponge_init(uint8_t rate)
 
     // init parameters
     poseidon_parameters_init(&sponge.parameters, rate);
+
+    // Sanity check
+    if (sponge.state_length * (sponge.parameters.full_rounds + sponge.parameters.partial_rounds)
+        > sponge.parameters.ark_size) {
+        PRINTF("Poseidon ark parameters size is too low\n");
+        return -1;
+    }
+    if (sponge.state_length * sponge.state_length > sponge.parameters.mds_size) {
+        PRINTF("Poseidon mds parameters size is too low\n");
+        return -1;
+    }
+
+    return 0;
 }
 
 static void apply_ark(uint8_t round_number)
@@ -101,7 +121,7 @@ static void apply_s_box(bool is_full_round)
 
 static void apply_mds(void)
 {
-    field_t new_state[CAPACITY + 8];
+    field_t new_state[SPONGE_STATE_SIZE];
 
     memset(new_state, 0, sizeof(field_t) * sponge.state_length);
     for (uint8_t i = 0; i < sponge.state_length; i++) {
@@ -130,7 +150,7 @@ static void sponge_permute(void)
     }
 }
 
-static void absorb_internal(uint8_t rate_start, field_t *input, uint16_t input_length)
+static int absorb_internal(uint8_t rate_start, field_t *input, uint16_t input_length)
 {
     uint8_t first_chunk_size = input_length;
 
@@ -146,6 +166,14 @@ static void absorb_internal(uint8_t rate_start, field_t *input, uint16_t input_l
     // FIRST CHUNK
     uint8_t chunk_length = first_chunk_size;
 
+    // Sanity check
+    if ((CAPACITY + rate_start + chunk_length) > SPONGE_STATE_SIZE) {
+        return -1;
+    }
+    if (chunk_length > input_length) {
+        return -1;
+    }
+
     for (uint8_t i = 0; i < chunk_length; i++) {
         field_add_assign(&sponge.state[CAPACITY + rate_start + i], &input[i]);
     }
@@ -153,7 +181,7 @@ static void absorb_internal(uint8_t rate_start, field_t *input, uint16_t input_l
     if (total_num_chunks == 1) {
         sponge.mode.type              = SPONGE_MODE_ABSORBING;
         sponge.mode.next_absorb_index = rate_start + chunk_length;
-        return;
+        return 0;
     }
     else {
         sponge_permute();
@@ -169,6 +197,14 @@ static void absorb_internal(uint8_t rate_start, field_t *input, uint16_t input_l
             chunk_length = input_length - chunk_start;
         }
 
+        // Sanity check
+        if ((CAPACITY + rate_start + chunk_length) > SPONGE_STATE_SIZE) {
+            return -1;
+        }
+        if ((chunk_start + chunk_length) > input_length) {
+            return -1;
+        }
+
         for (uint8_t i = 0; i < chunk_length; i++) {
             field_add_assign(&sponge.state[CAPACITY + rate_start + i], &input[chunk_start + i]);
         }
@@ -176,23 +212,25 @@ static void absorb_internal(uint8_t rate_start, field_t *input, uint16_t input_l
         if (chunk_index == total_num_chunks - 2) {
             sponge.mode.type              = SPONGE_MODE_ABSORBING;
             sponge.mode.next_absorb_index = rate_start + chunk_length;
-            return;
+            return 0;
         }
         else {
             sponge_permute();
         }
         rate_start = 0;
     }
+
+    return 0;
 }
 
-static void squeeze_internal(uint8_t rate_start, field_t *output, uint16_t length)
+static int squeeze_internal(uint8_t rate_start, field_t *output, uint16_t output_length)
 {
-    uint8_t first_chunk_size = length;
+    uint8_t first_chunk_size = output_length;
 
     if ((sponge.rate - rate_start) < first_chunk_size) {
         first_chunk_size = sponge.rate - rate_start;
     }
-    uint8_t num_output_remaining = length - first_chunk_size;
+    uint8_t num_output_remaining = output_length - first_chunk_size;
     uint8_t total_num_chunks     = 1 + (num_output_remaining / sponge.rate);
     if (num_output_remaining % sponge.rate) {
         total_num_chunks += 1;
@@ -201,6 +239,14 @@ static void squeeze_internal(uint8_t rate_start, field_t *output, uint16_t lengt
     // FIRST CHUNK
     uint8_t chunk_length = first_chunk_size;
 
+    // Sanity check
+    if ((CAPACITY + rate_start + chunk_length) > SPONGE_STATE_SIZE) {
+        return -1;
+    }
+    if (chunk_length > output_length) {
+        return -1;
+    }
+
     for (uint8_t i = 0; i < chunk_length; i++) {
         memcpy(&output[i], &sponge.state[CAPACITY + rate_start + i], sizeof(field_t));
     }
@@ -208,7 +254,7 @@ static void squeeze_internal(uint8_t rate_start, field_t *output, uint16_t lengt
     if (total_num_chunks == 1) {
         sponge.mode.type               = SPONGE_MODE_SQUEEZING;
         sponge.mode.next_squeeze_index = rate_start + chunk_length;
-        return;
+        return 0;
     }
     else {
         sponge_permute();
@@ -216,7 +262,15 @@ static void squeeze_internal(uint8_t rate_start, field_t *output, uint16_t lengt
     rate_start = 0;
 
     // REST CHUNK
-    chunk_length = length - first_chunk_size;
+    chunk_length = output_length - first_chunk_size;
+
+    // Sanity check
+    if ((CAPACITY + rate_start + chunk_length) > SPONGE_STATE_SIZE) {
+        return -1;
+    }
+    if (first_chunk_size + chunk_length > output_length) {
+        return -1;
+    }
 
     for (uint8_t i = 0; i < chunk_length; i++) {
         memcpy(&output[first_chunk_size + i],
@@ -227,57 +281,85 @@ static void squeeze_internal(uint8_t rate_start, field_t *output, uint16_t lengt
     if (total_num_chunks == 2) {
         sponge.mode.type               = SPONGE_MODE_SQUEEZING;
         sponge.mode.next_squeeze_index = rate_start + chunk_length;
-        return;
+        return 0;
     }
     else {
         sponge_permute();
     }
-    rate_start = 0;
+
+    return 0;
 }
 
-static void sponge_absorb(field_t *input, uint16_t length)
+static int sponge_absorb(field_t *input, uint16_t input_length)
 {
     if (sponge.mode.type == SPONGE_MODE_ABSORBING) {
         if (sponge.mode.next_absorb_index == sponge.rate) {
             sponge_permute();
             sponge.mode.next_absorb_index = 0;
         }
-        absorb_internal(sponge.mode.next_absorb_index, input, length);
+        return absorb_internal(sponge.mode.next_absorb_index, input, input_length);
     }
     else if (sponge.mode.type == SPONGE_MODE_SQUEEZING) {
         sponge_permute();
-        absorb_internal(0, input, length);
+        return absorb_internal(0, input, input_length);
     }
+    else {
+        PRINTF("Bad poseidon sponge mode (%d)\n", sponge.mode.type);
+    }
+
+    return -1;
 }
 
-static void sponge_squeeze(field_t *output, uint16_t num_elements)
+static int sponge_squeeze(field_t *output, uint16_t num_elements)
 {
     if (!num_elements) {
-        return;
+        return -1;
     }
 
     memset(output, 0, sizeof(field_t) * num_elements);
     if (sponge.mode.type == SPONGE_MODE_ABSORBING) {
         sponge_permute();
-        squeeze_internal(0, output, num_elements);
+        return squeeze_internal(0, output, num_elements);
     }
     else if (sponge.mode.type == SPONGE_MODE_SQUEEZING) {
         if (sponge.mode.next_squeeze_index == sponge.rate) {
             sponge_permute();
             sponge.mode.next_squeeze_index = 0;
         }
-        squeeze_internal(sponge.mode.next_squeeze_index, output, num_elements);
+        return squeeze_internal(sponge.mode.next_squeeze_index, output, num_elements);
     }
+    else {
+        PRINTF("Bad poseidon sponge mode (%d)\n", sponge.mode.type);
+    }
+
+    return -1;
 }
 
-void poseidon_hash_many(uint8_t  rate,
-                        field_t *input,
-                        size_t   input_length,
-                        field_t *output,
-                        size_t   num_output)
+static int poseidon_hash_many(uint8_t  rate,
+                              field_t *input,
+                              size_t   input_length,
+                              field_t *output,
+                              size_t   num_output)
 {
+    field_t tmp[SPONGE_STATE_SIZE];
+
+    // Sanity check
+    if ((rate != 2) && (rate != 4) && (rate != 8)) {
+        PRINTF("Bad poseidon rate (%d)\n", rate);
+        return -1;
+    }
+    if (input_length < rate) {
+        PRINTF("Bad poseidon input length vs rate (%d < %d)\n", input_length, rate);
+        return -1;
+    }
+    if (num_output > SPONGE_STATE_SIZE) {
+        PRINTF("Bad poseidon num output (%d)\n", num_output);
+        return -1;
+    }
     // init sponge
-    sponge_init(rate);
+    if (sponge_init(rate) < 0) {
+        return -1;
+    }
 
     // Build preimage
     if (rate == 2) {
@@ -286,73 +368,106 @@ void poseidon_hash_many(uint8_t  rate,
     else if (rate == 4) {
         memcpy(&input[0], &F_DOMAIN_ALEO_POSEIDON_4, sizeof(F_DOMAIN_ALEO_POSEIDON_4));
     }
-    else if (rate == 8) {
+    else {
         memcpy(&input[0], &F_DOMAIN_ALEO_POSEIDON_8, sizeof(F_DOMAIN_ALEO_POSEIDON_8));
     }
-    else {
-        return;
-    }
 
-    field_from_int(&input[1], input_length);
+    field_from_int(&input[1], input_length - rate);
 
     // Pad to zero if necessary
-    for (uint8_t i = 2; i < rate; i++) {
-        memset(&input[i], 0, sizeof(field_t));
+    memset(&input[2], 0, sizeof(field_t) * (rate - 2));
+
+    if (sponge_absorb(input, input_length) < 0) {
+        return -1;
     }
-    input_length = rate + input_length;
+    if (sponge_squeeze(tmp, num_output) < 0) {
+        return -1;
+    }
 
-    // field_print_array(input, input_length);
-
-    sponge_absorb(input, input_length);
-
-    field_t tmp[CAPACITY + 8];
-    sponge_squeeze(tmp, num_output);
     memcpy(output, tmp, sizeof(field_t) * num_output);
+
+    return 0;
 }
 
-void hash_to_scalar_psd2(field_t *input, size_t input_length, scalar_t *r)
+int hash_to_scalar_psd2(field_t *input, size_t input_length, scalar_t *r)
 {
+    int     status = 0;
     field_t output[1];
-    poseidon_hash_many(2, input, input_length, output, 1);
-    scalar_from_field_lossy(r, &output[0]);
+
+    status = poseidon_hash_many(2, input, input_length, output, 1);
+    if (status == 0) {
+        scalar_from_field_lossy(r, &output[0]);
+    }
+
+    return status;
 }
 
-void hash_to_scalar_psd4(field_t *input, size_t input_length, scalar_t *r)
+int hash_to_scalar_psd4(field_t *input, size_t input_length, scalar_t *r)
 {
+    int     status = 0;
     field_t output[1];
-    poseidon_hash_many(4, input, input_length, output, 1);
-    scalar_from_field_lossy(r, &output[0]);
+
+    status = poseidon_hash_many(4, input, input_length, output, 1);
+    if (status == 0) {
+        scalar_from_field_lossy(r, &output[0]);
+    }
+
+    return status;
 }
 
-void hash_to_scalar_psd8(field_t *input, size_t input_length, scalar_t *r)
+int hash_to_scalar_psd8(field_t *input, size_t input_length, scalar_t *r)
 {
+    int     status = 0;
     field_t output[1];
-    poseidon_hash_many(8, input, input_length, output, 1);
-    scalar_from_field_lossy(r, &output[0]);
+
+    status = poseidon_hash_many(8, input, input_length, output, 1);
+    if (status == 0) {
+        scalar_from_field_lossy(r, &output[0]);
+    }
+
+    return status;
 }
 
-void hash_psd2(field_t *input, size_t input_length, field_t *r)
+int hash_psd2(field_t *input, size_t input_length, field_t *r)
 {
+    int     status = 0;
     field_t output[1];
-    poseidon_hash_many(2, input, input_length, output, 1);
-    memcpy(r, &output[0], sizeof(field_t));
+
+    status = poseidon_hash_many(2, input, input_length, output, 1);
+    if (status == 0) {
+        memcpy(r, &output[0], sizeof(field_t));
+    }
+
+    return status;
 }
 
-void hash_psd4(field_t *input, size_t input_length, field_t *r)
+int hash_psd4(field_t *input, size_t input_length, field_t *r)
 {
+    int     status = 0;
     field_t output[1];
-    poseidon_hash_many(4, input, input_length, output, 1);
-    memcpy(r, &output[0], sizeof(field_t));
+
+    status = poseidon_hash_many(4, input, input_length, output, 1);
+    if (status == 0) {
+        memcpy(r, &output[0], sizeof(field_t));
+    }
+
+    return status;
 }
 
-void hash_psd8(field_t *input, size_t input_length, field_t *r)
+int hash_psd8(field_t *input, size_t input_length, field_t *r)
 {
+    int     status = 0;
     field_t output[1];
-    poseidon_hash_many(8, input, input_length, output, 1);
-    memcpy(r, &output[0], sizeof(field_t));
+
+    status = poseidon_hash_many(8, input, input_length, output, 1);
+    if (status == 0) {
+        memcpy(r, &output[0], sizeof(field_t));
+    }
+
+    return status;
 }
 
-void hash_many_psd8(field_t *input, size_t input_length, field_t *output, size_t output_length)
+int hash_many_psd8(field_t *input, size_t input_length, field_t *output, size_t output_length)
 {
-    poseidon_hash_many(8, input, input_length, output, output_length);
+    return poseidon_hash_many(8, input, input_length, output, output_length);
 }

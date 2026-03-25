@@ -140,20 +140,7 @@ uint64_t u64_mac_with_carry(uint64_t a, uint64_t b, uint64_t c, uint64_t *carry)
     return p[1];
 }
 
-void big_int_print(const bigint_256_t *a)
-{
-    for (uint8_t i = 0; i < 4; i++) {
-        u64_print(a->u64[i]);
-    }
-}
-
-void big_int_println(const bigint_256_t *a)
-{
-    big_int_print(a);
-    PRINTF("\n");
-}
-
-void big_int_from_int(bigint_256_t *a, const uint64_t i)
+void big_int_from_u64(bigint_256_t *a, const uint64_t i)
 {
     a->u64[0] = i;
     a->u64[1] = 0;
@@ -238,15 +225,6 @@ void big_int_bit_reduce(bigint_256_t *a, uint32_t nb_bits)
     }
 }
 
-void bn_print(uint8_t *bn)
-{
-    UNUSED(bn);
-    for (size_t i = 0; i < 32; i++) {
-        PRINTF("%02x", bn[i]);
-    }
-    PRINTF("\n");
-}
-
 void big_int_to_bn(const bigint_256_t *a, uint8_t *bn)
 {
     memset(bn, 0, 32);
@@ -278,19 +256,59 @@ void bn_reverse(uint8_t *bn)
     }
 }
 
-void big_int_random(bigint_256_t *a, const bigint_256_t *modulus)
+int big_int_random(bigint_256_t *a, const bigint_256_t *modulus)
 {
-    uint8_t bn[32];
-    cx_bn_t cx_bn_modulus;
-    cx_bn_t cx_bn_r;
+    cx_err_t error;
+    cx_bn_t  cx_bn_modulus;
+    cx_bn_t  cx_bn_r;
+    uint8_t  bn[32];
 
     big_int_to_bn(modulus, bn);
 
-    (void) cx_bn_lock(32, 0);
-    (void) cx_bn_alloc_init(&cx_bn_modulus, sizeof(bn), bn, sizeof(bn));
-    (void) cx_bn_alloc(&cx_bn_r, sizeof(bn));
-    (void) cx_bn_rng(cx_bn_r, cx_bn_modulus);
-    (void) cx_bn_export(cx_bn_r, bn, sizeof(bn));
+    if (cx_bn_lock(32, 0) != CX_OK) {
+        return -1;
+    }
+    if ((error = cx_bn_alloc_init(&cx_bn_modulus, sizeof(bn), bn, sizeof(bn))) != CX_OK) {
+        goto end;
+    }
+    if ((error = cx_bn_alloc(&cx_bn_r, sizeof(bn))) != CX_OK) {
+        goto end;
+    }
+    if ((error = cx_bn_rng(cx_bn_r, cx_bn_modulus)) != CX_OK) {
+        goto end;
+    }
+    if ((error = cx_bn_export(cx_bn_r, bn, sizeof(bn))) != CX_OK) {
+        goto end;
+    }
     bn_to_big_int(bn, a);
-    (void) cx_bn_unlock();
+
+end:
+    cx_bn_unlock();
+    if (error != CX_OK) {
+        return -1;
+    }
+    return 0;
 }
+
+#ifdef HAVE_PRINTF
+void big_int_print(const bigint_256_t *a)
+{
+    for (uint8_t i = 0; i < 4; i++) {
+        u64_print(a->u64[i]);
+    }
+}
+
+void big_int_println(const bigint_256_t *a)
+{
+    big_int_print(a);
+    PRINTF("\n");
+}
+
+void bn_print(uint8_t *bn)
+{
+    for (size_t i = 0; i < 32; i++) {
+        PRINTF("%02x", bn[i]);
+    }
+    PRINTF("\n");
+}
+#endif  // HAVE_PRINTF

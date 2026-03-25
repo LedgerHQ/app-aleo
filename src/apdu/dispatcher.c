@@ -103,9 +103,8 @@ int apdu_dispatcher(const command_t *cmd)
 
             return handler_sign_transaction(&buf, cmd->p1, (bool) cmd->p2 == P2_CONTINUE);
 
-            // TODO : remove this for 'official' release
+#ifdef ENABLE_PRIVATE_KEY_MANAGEMENT
         case CMD_GET_PRIVATE_KEY:
-#warning "Need to remove direct private key handling"
             if (cmd->p1 >= 4) {
                 return io_send_sw(SWO_INCORRECT_P1_P2);
             }
@@ -143,6 +142,7 @@ int apdu_dispatcher(const command_t *cmd)
                       PRIVATE_KEY_LEN);
             return io_send_sw(SWO_SUCCESS);
             break;
+#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT
 
         default:
             return io_send_sw(SWO_INVALID_INS);

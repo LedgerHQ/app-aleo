@@ -49,8 +49,11 @@ void validate_view_key(bool choice)
 void validate_transaction(bool choice)
 {
     if (choice) {
-        sign_prepared_request(&G_context.account,
-                              &G_context.sign_transaction_datas.prepared_request);
+        if (sign_prepared_request(&G_context.account,
+                                  &G_context.sign_transaction_datas.prepared_request)
+            < 0) {
+            io_send_sw(SWO_INCORRECT_DATA);
+        }
 
         helper_send_response_sign_transaction();
     }

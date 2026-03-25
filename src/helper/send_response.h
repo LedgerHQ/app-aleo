@@ -35,6 +35,16 @@ int helper_send_response_get_address(void);
 int helper_send_response_get_view_key(void);
 
 /**
+ * Helper to send APDU response with transaction signature.
+ *
+ * response = see doc/SIGN_TRANSACTION.md
+ *
+ * @return zero or positive integer if success, -1 otherwise.
+ *
+ */
+int helper_send_response_sign_transaction(void);
+
+/**
  * Helper to send APDU response with private key. For dev purpose only!
  *
  * response = PRIVATE_KEY_LEN (1) ||
@@ -43,6 +53,6 @@ int helper_send_response_get_view_key(void);
  * @return zero or positive integer if success, -1 otherwise.
  *
  */
+#ifdef ENABLE_PRIVATE_KEY_MANAGEMENT
 int helper_send_response_get_private_key(void);
-
-int helper_send_response_sign_transaction(void);
+#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT

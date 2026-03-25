@@ -49,3 +49,28 @@
  * Length of private key.
  */
 #define PRIVATE_KEY_LEN (59)
+
+/**
+ * Maximum number of inputs for a single signature.
+ */
+#define MAX_NB_OF_INPUTS (8)
+
+/**
+ * Maximum number of records for a single signature.
+ */
+#define MAX_NB_OF_RECORDS (8)
+
+/**
+ * Maximum length of program id name.
+ */
+#define PROGRAM_ID_NETWORK_MAX_LEN (64)
+
+/**
+ * Maximum length of program id name.
+ */
+#define PROGRAM_ID_NAME_MAX_LEN (64)
+
+/**
+ * Maximum length of function name.
+ */
+#define FUNCTION_NAME_MAX_LEN (64)

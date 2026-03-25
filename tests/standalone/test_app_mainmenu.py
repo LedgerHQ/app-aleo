@@ -1,5 +1,5 @@
 from ledgered.devices import DeviceType, Device
-from ragger.navigator import Navigator, NavInsID, NavIns
+from ragger.navigator import Navigator, NavInsID
 
 
 # In this test we check the behavior of the device main menu

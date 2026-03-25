@@ -30,10 +30,6 @@ void fp256_sum_of_products(const fp256_parameters_t *p,
                            uint8_t                   length,
                            fp256_t                  *r);
 
-void fp256_bg_print(const fp256_parameters_t *p, fp256_t *array, uint16_t length);
-
 void fp256_from_int(const fp256_parameters_t *p, fp256_t *a, uint64_t i);
 
-void fp256_random(const fp256_parameters_t *p, fp256_t *a);
-
-void fp256_print(fp256_t *array, uint16_t length);
+int fp256_random(const fp256_parameters_t *p, fp256_t *a);

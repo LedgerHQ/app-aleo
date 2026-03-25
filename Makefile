@@ -29,8 +29,8 @@ APPNAME = "Aleo"
 
 # Application version
 APPVERSION_M = 0
-APPVERSION_N = 0
-APPVERSION_P = 3
+APPVERSION_N = 1
+APPVERSION_P = 0
 APPVERSION = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
 
 # Application source files
@@ -56,8 +56,8 @@ endif
 # Possibles curves are: secp256k1, secp256r1, ed25519 and bls12381g1
 # If your app needs it, you can specify multiple curves by using:
 # `CURVE_APP_LOAD_PARAMS = <curve1> <curve2>`
-CURVE_APP_LOAD_PARAMS = secp256k1
-#CURVE_APP_LOAD_PARAMS = bls12377g1
+#CURVE_APP_LOAD_PARAMS = secp256k1
+CURVE_APP_LOAD_PARAMS = bls12377g1 # needs API_LEVEL >= 26
 
 # Application allowed derivation paths.
 # You should request a specific path for your app.
@@ -82,7 +82,7 @@ VARIANT_VALUES = ALEO
 #DEBUG = 1
 # Force specific private key for dev purpose only
 #TEST_PRIVATE_KEY = APrivateKey1zkp5J89jFEgyDwNTzqxpxgLog5swheeyboJv3tQSUBGFZNY
-DEFINES += TEST_PRIVATE_KEY=\"$(TEST_PRIVATE_KEY)\"
+#DEFINES += TEST_PRIVATE_KEY=\"$(TEST_PRIVATE_KEY)\"
 
 ########################################
 #     Application custom permissions   #
