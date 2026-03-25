@@ -217,6 +217,12 @@ static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx)
 
 int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
 {
+    if (!data->prepared_request.program_id) {
+        return -1;
+    }
+    if (!data->prepared_request.function_name) {
+        return -1;
+    }
     if (memcmp(data->prepared_request.program_id,
                "credits.aleo",
                data->prepared_request.program_id_length)) {

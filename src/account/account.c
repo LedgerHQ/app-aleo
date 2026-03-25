@@ -93,7 +93,8 @@ static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
 
 #ifndef ALEO_BIP32_SUPPORT
     // TODO : Temporary code start
-    uint8_t  seed_bn[64];
+    uint8_t seed_bn[64];
+    memset(seed_bn, 0, sizeof(seed_bn));
     cx_err_t error = os_derive_bip32_with_seed_no_throw(
         HDW_NORMAL, CX_CURVE_256K1, path, path_len, seed_bn, NULL, NULL, 0);
     if (error != CX_OK) {
@@ -102,6 +103,7 @@ static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
     }
 
     bigint_256_t seed_big_int;
+    memset(&seed_big_int, 0, sizeof(seed_big_int));
     bn_to_big_int(seed_bn, &seed_big_int);
     field_from_big_int(seed, &seed_big_int);
 
