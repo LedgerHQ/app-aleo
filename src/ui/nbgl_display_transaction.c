@@ -56,7 +56,6 @@ static void review_transaction(bool confirm)
             nbgl_useCaseSpinner("Calculating fees");
         }
         else {
-            validate_transaction(true);
             nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
             G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
         }
