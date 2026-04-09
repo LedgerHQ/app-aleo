@@ -200,23 +200,6 @@ int big_int_compare(const bigint_256_t *a, const bigint_256_t *b)
     return 0;
 }
 
-void big_int_to_le(const bigint_256_t *a)
-{
-    PRINTF("To LE : ");
-    for (size_t i = 0; i < 256; i++) {
-        uint64_t val  = a->u64[i / 64];
-        uint64_t mask = ((uint64_t) 1) << (i % 64);
-        UNUSED(val);
-        if (val & mask) {
-            PRINTF("true, ");
-        }
-        else {
-            PRINTF("false, ");
-        }
-    }
-    PRINTF("\n");
-}
-
 void big_int_bit_reduce(bigint_256_t *a, uint32_t nb_bits)
 {
     for (size_t i = nb_bits; i < 256; i++) {
@@ -283,7 +266,9 @@ int big_int_random(bigint_256_t *a, const bigint_256_t *modulus)
     bn_to_big_int(bn, a);
 
 end:
-    cx_bn_unlock();
+    if (cx_bn_unlock() != CX_OK) {
+        return -1;
+    }
     if (error != CX_OK) {
         return -1;
     }

@@ -21,8 +21,6 @@ int  big_int_compare(const bigint_256_t *a, const bigint_256_t *b);
 
 void big_int_bit_reduce(bigint_256_t *a, uint32_t nb_bits);
 
-void big_int_to_le(const bigint_256_t *a);
-
 void big_int_to_bn(const bigint_256_t *a, uint8_t *bn);
 void bn_to_big_int(const uint8_t *bn, bigint_256_t *a);
 void bn_reverse(uint8_t *bn);
