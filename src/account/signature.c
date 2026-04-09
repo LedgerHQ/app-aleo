@@ -132,7 +132,7 @@ static int hash_public_input(prepared_request_t *request, uint8_t input_index)
 static int hash_private_input(prepared_request_t *request, uint8_t input_index)
 {
     int      status           = 0;
-    uint8_t  hash_input_index = 0;
+    size_t   hash_input_index = 0;
     input_t *input            = &request->inputs[input_index];
     uint8_t  num_randomizers  = 0;
     field_t  input_view_key;
