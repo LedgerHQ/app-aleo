@@ -145,7 +145,9 @@ int group_scalar_multiply(const group_t *a, const scalar_t *b, group_t *r)
     }
 
 end:
-    cx_bn_unlock();
+    if (cx_bn_unlock() != CX_OK) {
+        return -1;
+    }
     if (error != CX_OK) {
         return -1;
     }
