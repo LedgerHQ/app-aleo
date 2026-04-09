@@ -103,47 +103,6 @@ int apdu_dispatcher(const command_t *cmd)
 
             return handler_sign_transaction(&buf, cmd->p1, (bool) cmd->p2 == P2_CONTINUE);
 
-#ifdef ENABLE_PRIVATE_KEY_MANAGEMENT
-        case CMD_GET_PRIVATE_KEY:
-            if (cmd->p1 >= 4) {
-                return io_send_sw(SWO_INCORRECT_P1_P2);
-            }
-
-            if (!cmd->data) {
-                return io_send_sw(SWO_WRONG_DATA_LENGTH);
-            }
-
-            buf.ptr    = cmd->data;
-            buf.size   = cmd->lc;
-            buf.offset = 0;
-
-            explicit_bzero(&G_context, sizeof(G_context));
-            G_context.state = STATE_NONE;
-
-            if (!buffer_read_u8(&buf, &G_context.bip32_path_len)
-                || !buffer_read_bip32_path(
-                    &buf, G_context.bip32_path, (size_t) G_context.bip32_path_len)) {
-                return io_send_sw(SWO_WRONG_DATA_LENGTH);
-            }
-            (void) account_get_private_key_string(
-                G_context.bip32_path, G_context.bip32_path_len, G_context.private_key);
-            return helper_send_response_get_private_key();
-
-        case CMD_SET_PRIVATE_KEY:
-            if (cmd->p1 >= 4) {
-                return io_send_sw(SWO_INCORRECT_P1_P2);
-            }
-
-            if ((!cmd->data) || (cmd->lc != PRIVATE_KEY_LEN)) {
-                return io_send_sw(SWO_WRONG_DATA_LENGTH);
-            }
-            nvm_write((void *) &N_storage.private_keys[cmd->p1 * PRIVATE_KEY_LEN],
-                      cmd->data,
-                      PRIVATE_KEY_LEN);
-            return io_send_sw(SWO_SUCCESS);
-            break;
-#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT
-
         default:
             return io_send_sw(SWO_INVALID_INS);
     }

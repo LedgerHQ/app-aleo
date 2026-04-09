@@ -197,18 +197,3 @@ int helper_send_response_sign_transaction(void)
 
     return io_legacy_apdu_tx(response_buffer, offset);
 }
-
-#ifdef ENABLE_PRIVATE_KEY_MANAGEMENT
-int helper_send_response_get_private_key(void)
-{
-    size_t offset = 0;
-
-    memset(response_buffer, 0, sizeof(response_buffer));
-    response_buffer[offset++] = PRIVATE_KEY_LEN;
-    memmove(&response_buffer[offset], G_context.private_key, PRIVATE_KEY_LEN);
-    offset += PRIVATE_KEY_LEN;
-    response_buffer[offset] = 0;
-
-    return io_send_response_pointer(response_buffer, offset, SWO_SUCCESS);
-}
-#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT

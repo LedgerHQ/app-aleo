@@ -45,7 +45,3 @@ int account_get_address_string(const uint32_t *path, uint8_t path_len, char addr
 int account_get_view_key_string(const uint32_t *path, uint8_t path_len, char *view_key);
 
 int account_generate_keys(const uint32_t *path, uint8_t path_len, account_t *account);
-
-#ifdef ENABLE_PRIVATE_KEY_MANAGEMENT
-int account_get_private_key_string(const uint32_t *path, uint8_t path_len, char *private_key);
-#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT

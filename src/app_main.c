@@ -73,12 +73,6 @@ void app_main()
         internal_storage_t storage;
         explicit_bzero(&storage, sizeof(storage));
         storage.initialized = 0x01;
-#if defined(ENABLE_PRIVATE_KEY_MANAGEMENT) && defined(TEST_PRIVATE_KEY)
-        PRINTF("Fill private keys with %s\n", test_private_key);
-        for (uint8_t i = 0; i < 4; i++) {
-            memcpy(&storage.private_keys[i * PRIVATE_KEY_LEN], test_private_key, PRIVATE_KEY_LEN);
-        }
-#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT && TEST_PRIVATE_KEY
         nvm_write((void *) &N_storage, &storage, sizeof(internal_storage_t));
     }
 

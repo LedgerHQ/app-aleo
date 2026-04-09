@@ -62,35 +62,8 @@ static void display_progression(uint8_t step)
     nbgl_useCaseSpinner(&text_buffer[step % 2]);
 }
 
-#ifdef ENABLE_PRIVATE_KEY_MANAGEMENT
-static void seed_from_private_key_string(const char *private_key_string, field_t *seed)
-{
-    uint8_t      base_58_output[MAX_ENC_INPUT_SIZE];
-    uint8_t      seed_bn[32];
-    bigint_256_t seed_big_int;
-
-    base58_decode(private_key_string, PRIVATE_KEY_LEN, base_58_output, sizeof(base_58_output));
-
-    for (size_t i = 0; i < sizeof(seed_bn); i++) {
-        seed_bn[sizeof(seed_bn) - 1 - i] = base_58_output[sizeof(PRIVATE_KEY_PREFIX) + i];
-    }
-    bn_to_big_int(seed_bn, &seed_big_int);
-    field_from_big_int(seed, &seed_big_int);
-}
-#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT
-
 static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
 {
-#ifdef ENABLE_PRIVATE_KEY_MANAGEMENT
-    uint32_t account_number = path[2] & 7;
-    PRINTF("Get seed path from account %d\n", account_number);
-    if ((account_number < 4) && (N_storage.private_keys[account_number * PRIVATE_KEY_LEN] == 'A')) {
-        seed_from_private_key_string(
-            (const char *) &N_storage.private_keys[account_number * PRIVATE_KEY_LEN], seed);
-        return 0;
-    }
-#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT
-
 #ifndef ALEO_BIP32_SUPPORT
     // TODO : Temporary code start
     uint8_t seed_bn[64];
@@ -376,37 +349,3 @@ error:
     explicit_bzero(account, sizeof(account_t));
     return status;
 }
-
-#ifdef ENABLE_PRIVATE_KEY_MANAGEMENT
-int account_get_private_key_string(const uint32_t *path, uint8_t path_len, char *private_key)
-{
-    account_t    account;
-    bigint_256_t seed_big_int;
-    uint8_t      seed_bn[32];
-    uint8_t      base_58_input[MAX_ENC_INPUT_SIZE];
-    int          status = get_seed(path, path_len, &account.private_key.seed);
-
-    if (status < 0) {
-        return status;
-    }
-
-    field_to_big_int(&account.private_key.seed, &seed_big_int);
-    big_int_to_bn(&seed_big_int, seed_bn);
-    memset(base_58_input, 0, sizeof(base_58_input));
-    memcpy(base_58_input, PRIVATE_KEY_PREFIX, sizeof(PRIVATE_KEY_PREFIX));
-    for (size_t i = 0; i < sizeof(seed_bn); i++) {
-        base_58_input[sizeof(PRIVATE_KEY_PREFIX) + i] = seed_bn[sizeof(seed_bn) - 1 - i];
-    }
-    base58_encode(base_58_input, sizeof(PRIVATE_KEY_PREFIX) + sizeof(seed_bn), private_key, 64);
-    PRINTF("%s\n", private_key);
-
-    field_t seed;
-    seed_from_private_key_string(private_key, &seed);
-    field_println(&seed);
-
-    explicit_bzero(hash_input, sizeof(hash_input));
-    explicit_bzero(&account, sizeof(account_t));
-
-    return status;
-}
-#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT
