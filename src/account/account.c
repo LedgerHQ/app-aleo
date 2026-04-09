@@ -101,6 +101,7 @@ static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
         explicit_bzero(seed, sizeof(field_t));
         return -1;
     }
+    bn_print(seed_bn);
 
     bigint_256_t seed_big_int;
     memset(&seed_big_int, 0, sizeof(seed_big_int));
@@ -112,19 +113,20 @@ static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
 #else   // ALEO_BIP32_SUPPORT
     uint8_t      seed_bn[32];
     bigint_256_t seed_big_int;
-    cx_err_t     error = sys_hdkey_derive(HDKEY_DERIVE_MODE_BLS12377_ALEO,
-                                      CX_CURVE_BLS12_377_G1,
-                                      path,
-                                      path_len,
-                                      seed_bn,
-                                      32,
-                                      NULL,
-                                      0,
-                                      NULL,
-                                      0);
-    if (error != CX_OK) {
+    bolos_err_t  error = sys_hdkey_derive(HDKEY_DERIVE_MODE_BLS12377_ALEO,
+                                         CX_CURVE_BLS12_377_G1,
+                                         path,
+                                         path_len,
+                                         seed_bn,
+                                         32,
+                                         NULL,
+                                         0,
+                                         NULL,
+                                         0);
+    if (error != SWO_OK) {
         return -1;
     }
+    bn_print(seed_bn);
 
     bn_reverse(seed_bn);
     bn_to_big_int(seed_bn, &seed_big_int);
