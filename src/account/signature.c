@@ -23,7 +23,6 @@
 #include "globals.h"
 #include "group.h"
 #include "poseidon.h"
-#include "bhp_512.h"
 #include "bhp_1024.h"
 #include "bits.h"
 #include "field.h"
