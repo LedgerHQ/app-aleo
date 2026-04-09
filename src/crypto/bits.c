@@ -99,6 +99,9 @@ int bits_from_plaintext(const uint8_t *plaintext,
         }
         out_offset += plaintext_bit_length;
     }
+    else {
+        return -1;
+    }
 
     return out_offset;
 }
