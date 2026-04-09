@@ -473,14 +473,30 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     _Static_assert(MESSAGE_MAX_LENGTH >= 16, "message size won't fit");
     message_length = 8;
     memset(message, 0, sizeof(message));
-    add_field_to_message(&request->tpk.x);
-    add_field_to_message(&account->compute_key.pk_sig.x);
-    add_field_to_message(&account->compute_key.pr_sig.x);
-    add_field_to_message(&account->address.x);
-    add_field_to_message(&request->tvk);
-    add_field_to_message(&request->tcm);
-    add_field_to_message(&request->function_id);
-    add_field_to_message(is_root);
+    if ((status = add_field_to_message(&request->tpk.x)) < 0) {
+        goto end;
+    }
+    if ((status = add_field_to_message(&account->compute_key.pk_sig.x)) < 0) {
+        goto end;
+    }
+    if ((status = add_field_to_message(&account->compute_key.pr_sig.x)) < 0) {
+        goto end;
+    }
+    if ((status = add_field_to_message(&account->address.x)) < 0) {
+        goto end;
+    }
+    if ((status = add_field_to_message(&request->tvk)) < 0) {
+        goto end;
+    }
+    if ((status = add_field_to_message(&request->tcm)) < 0) {
+        goto end;
+    }
+    if ((status = add_field_to_message(&request->function_id)) < 0) {
+        goto end;
+    }
+    if ((status = add_field_to_message(is_root)) < 0) {
+        goto end;
+    }
     if (request->program_checksum) {
         bigint_256_t s;
         field_t      program_checksum;
