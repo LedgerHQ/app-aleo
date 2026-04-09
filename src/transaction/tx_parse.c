@@ -21,6 +21,7 @@
 #include <string.h>   // memset, explicit_bzero
 
 #include "os.h"
+#include "ledger_assert.h"
 #include "globals.h"
 
 #include "bech32.h"
@@ -216,6 +217,9 @@ static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx)
 
 int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
 {
+    LEDGER_ASSERT(data != NULL, "NULL data");
+    LEDGER_ASSERT(tx != NULL, "NULL tx");
+
     if (!data->prepared_request.program_id) {
         return -1;
     }

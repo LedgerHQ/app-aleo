@@ -21,6 +21,7 @@
 #include <string.h>   // memset, explicit_bzero
 
 #include "os.h"
+#include "ledger_assert.h"
 #include "globals.h"
 #include "tlv_library.h"
 
@@ -212,6 +213,9 @@ int tx_extract_prepared_request(const buffer_t *cdata, prepared_request_t *prepa
 {
     TLV_reception_t received_tags;
 
+    LEDGER_ASSERT(cdata != NULL, "NULL cdata");
+    LEDGER_ASSERT(prepared_request != NULL, "NULL prepared_request");
+
     explicit_bzero(prepared_request, sizeof(prepared_request_t));
     if (!prepared_request_tlv_parser(cdata, prepared_request, &received_tags)) {
         return -1;
@@ -224,6 +228,8 @@ int tx_extract_prepared_request(const buffer_t *cdata, prepared_request_t *prepa
 int tx_extract_intent(buffer_t *cdata)
 {
     TLV_reception_t received_tags;
+
+    LEDGER_ASSERT(cdata != NULL, "NULL cdata");
 
     explicit_bzero(&G_context.sign_transaction_datas, sizeof(G_context.sign_transaction_datas));
     if (!intent_tlv_parser(cdata, &G_context.sign_transaction_datas, &received_tags)) {

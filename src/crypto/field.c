@@ -105,6 +105,9 @@ uint8_t field_from_bits(const uint8_t *input_bits,
     uint8_t      field_count       = 0;
     uint16_t     input_bits_offset = 0;
 
+    LEDGER_ASSERT(input_bits != NULL, "NULL input_bits");
+    LEDGER_ASSERT(r != NULL, "NULL r");
+
     while ((input_bits_offset < input_bits_length) && (field_count < max_field_count)) {
         memset(bn, 0, sizeof(bn));
         if ((input_bits_length - input_bits_offset) >= (FIELD_MODULUS_BITS - 1)) {

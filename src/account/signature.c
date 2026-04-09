@@ -20,6 +20,7 @@
 #include <stdbool.h>  // bool
 
 #include "os.h"
+#include "ledger_assert.h"
 #include "globals.h"
 #include "group.h"
 #include "poseidon.h"
@@ -367,8 +368,11 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     int      status = 0;
     field_t *is_root;
     group_t  g_temp;
+    field_t  nonce;
 
-    field_t nonce;
+    LEDGER_ASSERT(account != NULL, "NULL account");
+    LEDGER_ASSERT(request != NULL, "NULL request");
+
     if ((status = field_random(&nonce)) < 0) {
         goto end;
     }

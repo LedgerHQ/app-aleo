@@ -7,8 +7,6 @@ typedef struct {
 } bigint_256_t;
 
 void     u64_print(uint64_t val);
-uint64_t u64_add_carry(uint64_t *c, uint64_t a, uint64_t b);
-uint64_t u64_sub_borrow(uint64_t *c, uint64_t a, uint64_t b);
 void     u64_mul(uint64_t a, uint64_t b, uint64_t *r);
 uint64_t u64_mac_with_carry(uint64_t a, uint64_t b, uint64_t c, uint64_t *carry);
 

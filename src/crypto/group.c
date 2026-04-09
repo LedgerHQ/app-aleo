@@ -41,6 +41,9 @@ int group_add_assign(group_t *a, const group_t *b)
     uint8_t      bn_y[32];
     bigint_256_t s;
 
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(b != NULL, "NULL b");
+
     if (cx_bn_lock(32, 0) != CX_OK) {
         return -1;
     }
@@ -108,6 +111,10 @@ int group_scalar_multiply(const group_t *a, const scalar_t *b, group_t *r)
     uint8_t      bn_y[32];
     uint8_t      bn_scalar[32];
     bigint_256_t s;
+
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(b != NULL, "NULL b");
+    LEDGER_ASSERT(r != NULL, "NULL r");
 
     field_to_big_int(&a->x, &s);
     big_int_to_bn(&s, bn_x);

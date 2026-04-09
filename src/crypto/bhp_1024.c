@@ -20,6 +20,7 @@
 #include <stdbool.h>  // bool
 #include <string.h>   // memmove
 
+#include "ledger_assert.h"
 #include "os_utils.h"
 #include "cx.h"
 
@@ -31,6 +32,9 @@ int bhp_1024_hash_function_id(const function_id_datas_t *data, field_t *hash)
 {
     uint8_t offset = 0;
     uint8_t length = 0;
+
+    LEDGER_ASSERT(data != NULL, "NULL data");
+    LEDGER_ASSERT(hash != NULL, "NULL hash");
 
     U2LE_ENCODE(&bhp_buffer[offset], 0, data->network_id);
     offset += 2;

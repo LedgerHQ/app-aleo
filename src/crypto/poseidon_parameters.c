@@ -20,6 +20,7 @@
 #include <stdbool.h>  // bool
 #include <string.h>   // memmove
 
+#include "ledger_assert.h"
 #include "poseidon_parameters.h"
 
 #define ARK_RATE_2_SIZE (117)
@@ -961,6 +962,8 @@ const field_t mds_rate_8[MDS_RATE_8_SIZE]={
 
 void poseidon_parameters_init(poseidon_parameters_t *parameters, uint8_t rate)
 {
+    LEDGER_ASSERT(parameters != NULL, "NULL parameters");
+
     switch (rate) {
         case 2:
             parameters->full_rounds    = 8;

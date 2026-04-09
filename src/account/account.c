@@ -24,6 +24,7 @@
 #endif  // API_LEVEL
 
 #include "os.h"
+#include "ledger_assert.h"
 #ifdef ALEO_BIP32_SUPPORT
 #include "os_hdkey.h"
 #endif  // ALEO_BIP32_SUPPORT
@@ -224,6 +225,9 @@ int account_get_address_string(const uint32_t *path, uint8_t path_len, char addr
     uint8_t      address_bn[32];
     int          status = 0;
 
+    LEDGER_ASSERT(path != NULL, "NULL path");
+    LEDGER_ASSERT(address != NULL, "NULL address");
+
     if ((status = get_seed(path, path_len, &account.private_key.seed)) < 0) {
         goto end;
     }
@@ -269,16 +273,19 @@ end:
     return status;
 }
 
-int account_get_view_key_string(const uint32_t *path, uint8_t path_len, char *viewkey)
+int account_get_view_key_string(const uint32_t *path, uint8_t path_len, char viewkey[VIEW_KEY_LEN])
 {
     account_t    account;
     bigint_256_t view_key_big_int;
     uint8_t      view_key_bn[32];
     uint8_t      base_58_input[MAX_ENC_INPUT_SIZE];
-    int          status = get_seed(path, path_len, &account.private_key.seed);
+    int          status = 0;
 
-    if (status < 0) {
-        return status;
+    LEDGER_ASSERT(path != NULL, "NULL path");
+    LEDGER_ASSERT(viewkey != NULL, "NULL viewkey");
+
+    if ((status = get_seed(path, path_len, &account.private_key.seed)) < 0) {
+        goto end;
     }
 
     if ((status = private_key_from_seed(
@@ -318,6 +325,10 @@ end:
 int account_generate_keys(const uint32_t *path, uint8_t path_len, account_t *account)
 {
     int status = 0;
+
+    LEDGER_ASSERT(path != NULL, "NULL path");
+    LEDGER_ASSERT(account != NULL, "NULL account");
+
     display_progression(0);
     if ((status = get_seed(path, path_len, &account->private_key.seed)) < 0) {
         goto error;

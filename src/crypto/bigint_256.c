@@ -22,6 +22,7 @@
 
 #include "os.h"
 #include "cx.h"
+#include "ledger_assert.h"
 
 #include "bigint_256.h"
 #include "write.h"
@@ -34,7 +35,7 @@ void u64_print(uint64_t val)
     PRINTF("%08x ", (uint32_t) (val >> 0));
 }
 
-uint64_t u64_add_carry(uint64_t *c, uint64_t a, uint64_t b)
+static uint64_t u64_add_carry(uint64_t *c, uint64_t a, uint64_t b)
 {
     uint32_t bn_a[2];
     uint32_t bn_b[2];
@@ -60,7 +61,7 @@ uint64_t u64_add_carry(uint64_t *c, uint64_t a, uint64_t b)
     return r;
 }
 
-uint64_t u64_sub_borrow(uint64_t *c, uint64_t a, uint64_t b)
+static uint64_t u64_sub_borrow(uint64_t *c, uint64_t a, uint64_t b)
 {
     uint64_t val = 0;
 
@@ -95,6 +96,8 @@ void u64_mul(uint64_t a, uint64_t b, uint64_t *r)
     uint32_t bn_b[2];
     uint64_t val = 0;
 
+    LEDGER_ASSERT(r != NULL, "NULL r");
+
     r[0]    = 0;
     r[1]    = 0;
     bn_a[0] = (uint32_t) (a >> 32);
@@ -125,6 +128,8 @@ uint64_t u64_mac_with_carry(uint64_t a, uint64_t b, uint64_t c, uint64_t *carry)
     uint64_t cr = 0;
     uint64_t p[2];
 
+    LEDGER_ASSERT(carry != NULL, "NULL carry");
+
     u64_mul(b, c, p);
 
     cr   = 0;
@@ -142,6 +147,8 @@ uint64_t u64_mac_with_carry(uint64_t a, uint64_t b, uint64_t c, uint64_t *carry)
 
 void big_int_from_u64(bigint_256_t *a, const uint64_t i)
 {
+    LEDGER_ASSERT(a != NULL, "NULL a");
+
     a->u64[0] = i;
     a->u64[1] = 0;
     a->u64[2] = 0;
@@ -150,6 +157,8 @@ void big_int_from_u64(bigint_256_t *a, const uint64_t i)
 
 bool big_int_is_zero(const bigint_256_t *a)
 {
+    LEDGER_ASSERT(a != NULL, "NULL a");
+
     if (!a->u64[0] && !a->u64[1] && !a->u64[2] && !a->u64[3]) {
         return true;
     }
@@ -158,6 +167,8 @@ bool big_int_is_zero(const bigint_256_t *a)
 
 bool big_int_is_even(const bigint_256_t *a)
 {
+    LEDGER_ASSERT(a != NULL, "NULL a");
+
     if (a->u64[0] & 1) {
         return false;
     }
@@ -168,6 +179,9 @@ bool big_int_is_even(const bigint_256_t *a)
 bool big_int_add_nocarry(bigint_256_t *a, const bigint_256_t *b)
 {
     uint64_t carry = 0;
+
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(b != NULL, "NULL b");
 
     for (uint8_t i = 0; i < 4; i++) {
         a->u64[i] = u64_add_carry(&carry, a->u64[i], b->u64[i]);
@@ -180,6 +194,9 @@ bool big_int_sub_noborrow(bigint_256_t *a, const bigint_256_t *b)
 {
     uint64_t borrow = 0;
 
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(b != NULL, "NULL b");
+
     for (uint8_t i = 0; i < 4; i++) {
         a->u64[i] = u64_sub_borrow(&borrow, a->u64[i], b->u64[i]);
     }
@@ -189,6 +206,9 @@ bool big_int_sub_noborrow(bigint_256_t *a, const bigint_256_t *b)
 
 int big_int_compare(const bigint_256_t *a, const bigint_256_t *b)
 {
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(b != NULL, "NULL b");
+
     for (uint8_t i = 0; i < 4; i++) {
         if (a->u64[3 - i] > b->u64[3 - i]) {
             return 1;
@@ -202,6 +222,8 @@ int big_int_compare(const bigint_256_t *a, const bigint_256_t *b)
 
 void big_int_bit_reduce(bigint_256_t *a, uint32_t nb_bits)
 {
+    LEDGER_ASSERT(a != NULL, "NULL a");
+
     for (size_t i = nb_bits; i < 256; i++) {
         uint64_t mask = ((uint64_t) 1) << (i % 64);
         a->u64[i / 64] &= ~mask;
@@ -210,6 +232,9 @@ void big_int_bit_reduce(bigint_256_t *a, uint32_t nb_bits)
 
 void big_int_to_bn(const bigint_256_t *a, uint8_t *bn)
 {
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(bn != NULL, "NULL bn");
+
     memset(bn, 0, 32);
     for (size_t i = 0; i < 4; i++) {
         uint64_t val = a->u64[i];
@@ -222,6 +247,9 @@ void big_int_to_bn(const bigint_256_t *a, uint8_t *bn)
 
 void bn_to_big_int(const uint8_t *bn, bigint_256_t *a)
 {
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(bn != NULL, "NULL bn");
+
     memset(a, 0, sizeof(bigint_256_t));
     for (size_t i = 0; i < 32; i++) {
         uint64_t val = bn[31 - i];
@@ -232,6 +260,8 @@ void bn_to_big_int(const uint8_t *bn, bigint_256_t *a)
 
 void bn_reverse(uint8_t *bn)
 {
+    LEDGER_ASSERT(bn != NULL, "NULL bn");
+
     for (size_t i = 0; i < (32 + 1) / 2; i++) {
         uint8_t inter  = bn[i];
         bn[i]          = bn[32 - 1 - i];
@@ -245,6 +275,9 @@ int big_int_random(bigint_256_t *a, const bigint_256_t *modulus)
     cx_bn_t  cx_bn_modulus;
     cx_bn_t  cx_bn_r;
     uint8_t  bn[32];
+
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(modulus != NULL, "NULL modulus");
 
     big_int_to_bn(modulus, bn);
 
@@ -278,6 +311,8 @@ end:
 #ifdef HAVE_PRINTF
 void big_int_print(const bigint_256_t *a)
 {
+    LEDGER_ASSERT(a != NULL, "NULL a");
+
     for (uint8_t i = 0; i < 4; i++) {
         u64_print(a->u64[i]);
     }
@@ -285,12 +320,16 @@ void big_int_print(const bigint_256_t *a)
 
 void big_int_println(const bigint_256_t *a)
 {
+    LEDGER_ASSERT(a != NULL, "NULL a");
+
     big_int_print(a);
     PRINTF("\n");
 }
 
 void bn_print(uint8_t *bn)
 {
+    LEDGER_ASSERT(bn != NULL, "NULL bn");
+
     for (size_t i = 0; i < 32; i++) {
         PRINTF("%02x", bn[i]);
     }

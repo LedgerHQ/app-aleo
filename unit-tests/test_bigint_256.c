@@ -18,39 +18,6 @@ static void test_u64(void **state)
     a = 0x12345678abcdef12;
     u64_print(a);
 
-    // u64_add_carry
-    a = 0x815b6a4c561231fe;
-    b = 0x9478f42e2d654a56;
-    c = 0;
-    r = u64_add_carry(&c, a, b);
-    assert_int_equal(r, 0x15d45e7a83777c54);
-    assert_int_equal(c, 1);
-
-    // u64_sub_borrow
-    a = 0x9478f42e2d654a56;
-    b = 0x815b6a4c561231fe;
-    c = 0;
-    r = u64_sub_borrow(&c, a, b);
-    assert_int_equal(r, 0x131d89e1d7531858);
-    assert_int_equal(c, 0);
-
-    c = 1;
-    r = u64_sub_borrow(&c, a, b);
-    assert_int_equal(r, 0x131d89e1d7531857);
-    assert_int_equal(c, 0);
-
-    a = 0x815b6a4c561231fe;
-    b = 0x9478f42e2d654a56;
-    c = 0;
-    r = u64_sub_borrow(&c, a, b);
-    assert_int_equal(r, 0xece2761e28ace7a8);
-    assert_int_equal(c, 1);
-
-    c = 1;
-    r = u64_sub_borrow(&c, a, b);
-    assert_int_equal(r, 0xece2761e28ace7a7);
-    assert_int_equal(c, 1);
-
     // u64_mul
     uint64_t res[2] = {0};
     a               = 0x815b6a4c561231fe;

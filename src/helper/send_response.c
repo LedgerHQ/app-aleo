@@ -21,6 +21,7 @@
 
 #include "buffer.h"
 
+#include "ledger_assert.h"
 #include "send_response.h"
 #include "constants.h"
 #include "globals.h"

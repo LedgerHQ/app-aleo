@@ -31,6 +31,8 @@ static void fp256_div2_assign(fp256_t *a)
 {
     uint64_t t = 0;
 
+    LEDGER_ASSERT(a != NULL, "NULL a");
+
     for (int i = 3; i >= 0; i--) {
         uint64_t t2 = a->big.u64[i] << 63;
         a->big.u64[i] >>= 1;
@@ -41,6 +43,9 @@ static void fp256_div2_assign(fp256_t *a)
 
 static bool fp256_is_valid(const fp256_parameters_t *p, const fp256_t *a)
 {
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(p != NULL, "NULL p");
+
     if (big_int_compare(&a->big, &p->MODULUS.big) < 0) {
         return true;
     }
@@ -49,6 +54,9 @@ static bool fp256_is_valid(const fp256_parameters_t *p, const fp256_t *a)
 
 static void fp256_reduce(const fp256_parameters_t *p, fp256_t *a)
 {
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(p != NULL, "NULL p");
+
     if (fp256_is_valid(p, a) == false) {
         big_int_sub_noborrow(&a->big, &p->MODULUS.big);
     }
@@ -56,12 +64,20 @@ static void fp256_reduce(const fp256_parameters_t *p, fp256_t *a)
 
 void fp256_add_assign(const fp256_parameters_t *p, fp256_t *a, const fp256_t *b)
 {
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(b != NULL, "NULL b");
+    LEDGER_ASSERT(p != NULL, "NULL p");
+
     big_int_add_nocarry(&a->big, &b->big);
     fp256_reduce(p, a);
 }
 
 void fp256_sub_assign(const fp256_parameters_t *p, fp256_t *a, const fp256_t *b)
 {
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(b != NULL, "NULL b");
+    LEDGER_ASSERT(p != NULL, "NULL p");
+
     if (big_int_compare(&a->big, &b->big) < 0) {
         big_int_add_nocarry(&a->big, &p->MODULUS.big);
     }
@@ -74,6 +90,10 @@ void fp256_mul_assign(const fp256_parameters_t *p, fp256_t *a, const fp256_t *b)
     uint64_t carry1 = 0;
     uint64_t carry2 = 0;
     uint64_t k[2]   = {0, 0};
+
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(b != NULL, "NULL b");
+    LEDGER_ASSERT(p != NULL, "NULL p");
 
     // Iteration 0
     r[0] = u64_mac_with_carry(r[0], a->big.u64[0], b->big.u64[0], &carry1);
@@ -152,6 +172,9 @@ void fp256_pow_assign(const fp256_parameters_t *p, fp256_t *a, uint8_t alpha)
 {
     fp256_t r;
 
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(p != NULL, "NULL p");
+
     memcpy(&r, a, sizeof(fp256_t));
     for (uint8_t i = 0; i < (alpha - 1); i++) {
         fp256_mul_assign(p, a, &r);
@@ -166,6 +189,11 @@ void fp256_sum_of_products(const fp256_parameters_t *p,
 {
     uint64_t carry = 0;
     uint64_t u0 = 0, u1 = 0, u2 = 0, u3 = 0;
+
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(b != NULL, "NULL b");
+    LEDGER_ASSERT(p != NULL, "NULL p");
+    LEDGER_ASSERT(r != NULL, "NULL r");
 
     for (uint8_t j = 0; j < 4; j++) {
         uint64_t t0 = u0, t1 = u1, t2 = u2, t3 = u3, t4 = 0;
@@ -201,6 +229,9 @@ void fp256_inverse_assign(const fp256_parameters_t *p, fp256_t *a)
     fp256_t      u;
     fp256_t      b;
     fp256_t      c;
+
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(p != NULL, "NULL p");
 
     big_int_from_u64(&one, 1);
     memcpy(&u, a, sizeof(fp256_t));
@@ -252,6 +283,10 @@ void fp256_inverse_assign(const fp256_parameters_t *p, fp256_t *a)
 
 void fp256_from_big_int(const fp256_parameters_t *p, fp256_t *a, const bigint_256_t *bigint)
 {
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(p != NULL, "NULL p");
+    LEDGER_ASSERT(bigint != NULL, "NULL bigint");
+
     memcpy(&a->big, bigint, sizeof(bigint_256_t));
     if (big_int_is_zero(bigint) == false) {
         fp256_mul_assign(p, a, &p->R2);
@@ -262,6 +297,9 @@ void fp256_from_int(const fp256_parameters_t *p, fp256_t *a, uint64_t i)
 {
     bigint_256_t big;
 
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(p != NULL, "NULL p");
+
     big_int_from_u64(&big, i);
     fp256_from_big_int(p, a, &big);
 }
@@ -270,6 +308,10 @@ void fp256_to_big_int(const fp256_parameters_t *p, const fp256_t *a, bigint_256_
 {
     uint64_t carry = 0;
     uint64_t k[2]  = {0, 0};
+
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(p != NULL, "NULL p");
+    LEDGER_ASSERT(bigint != NULL, "NULL bigint");
 
     memcpy(bigint, &a->big, sizeof(bigint_256_t));
 
@@ -305,6 +347,9 @@ void fp256_to_big_int(const fp256_parameters_t *p, const fp256_t *a, bigint_256_
 int fp256_random(const fp256_parameters_t *p, fp256_t *a)
 {
     bigint_256_t big;
+
+    LEDGER_ASSERT(a != NULL, "NULL a");
+    LEDGER_ASSERT(p != NULL, "NULL p");
 
     if (big_int_random(&big, &p->MODULUS.big) != 0) {
         return -1;

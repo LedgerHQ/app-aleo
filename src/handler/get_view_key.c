@@ -22,6 +22,7 @@
 
 #include "os.h"
 #include "cx.h"
+#include "ledger_assert.h"
 #include "io.h"
 #include "buffer.h"
 #include "crypto_helpers.h"
@@ -35,6 +36,8 @@
 
 int handler_get_view_key(buffer_t *cdata)
 {
+    LEDGER_ASSERT(cdata != NULL, "NULL cdata");
+
     explicit_bzero(&G_context, sizeof(G_context));
     G_context.req_type = CONFIRM_VIEW_KEY;
     G_context.state    = STATE_NONE;
