@@ -370,7 +370,9 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     group_t  g_temp;
 
     field_t nonce;
-    field_random(&nonce);
+    if ((status = field_random(&nonce)) < 0) {
+        goto end;
+    }
     PRINTF("nonce : ");
     field_println(&nonce);
 
