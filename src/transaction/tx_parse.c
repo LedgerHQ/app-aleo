@@ -150,7 +150,6 @@ static int get_address(input_t *input, bool is_private, char address[ADDRESS_LEN
 
 static int parse_transfer_public(sign_transaction_datas_t *data, tx_t *tx)
 {
-    PRINTF("parse_transfer_public\n");
     tx->transfer.type = TX_TRANSFER_PUBLIC;
     int status = get_address(&data->prepared_request.inputs[0], false, tx->transfer.address_to);
     if (status == 0) {

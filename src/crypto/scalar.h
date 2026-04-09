@@ -13,6 +13,7 @@ void scalar_from_field_lossy(scalar_t *a, const field_t *f);
 void scalar_to_field(const scalar_t *a, field_t *f);
 
 void scalar_to_big_int(const scalar_t *a, bigint_256_t *bigint);
+void scalar_from_big_int(scalar_t *a, const bigint_256_t *bigint);
 
 void scalar_add_assign(scalar_t *a, const scalar_t *b);
 void scalar_sub_assign(scalar_t *a, const scalar_t *b);

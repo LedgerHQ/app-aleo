@@ -39,7 +39,7 @@ static void fp256_div2_assign(fp256_t *a)
     }
 }
 
-bool fp256_is_valid(const fp256_parameters_t *p, const fp256_t *a)
+static bool fp256_is_valid(const fp256_parameters_t *p, const fp256_t *a)
 {
     if (big_int_compare(&a->big, &p->MODULUS.big) < 0) {
         return true;
@@ -47,7 +47,7 @@ bool fp256_is_valid(const fp256_parameters_t *p, const fp256_t *a)
     return false;
 }
 
-void fp256_reduce(const fp256_parameters_t *p, fp256_t *a)
+static void fp256_reduce(const fp256_parameters_t *p, fp256_t *a)
 {
     if (fp256_is_valid(p, a) == false) {
         big_int_sub_noborrow(&a->big, &p->MODULUS.big);
