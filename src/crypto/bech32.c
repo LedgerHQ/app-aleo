@@ -27,6 +27,12 @@
 
 #include "bech32.h"
 
+#define MIN_BECH32_CHAR_VALUE   (33) // ascii '!'
+#define MAX_BECH32_CHAR_VALUE  (126) // ascii '~'
+#define MAX_BECH32_LENGTH       (90)
+#define CHECKSUM_LENGTH          (6)
+#define TO_BITS                  (5)
+
 static uint32_t bech32_polymod_step(uint32_t pre) {
     uint8_t b = pre >> 25;
     return ((pre & 0x1FFFFFF) << 5) ^
@@ -80,15 +86,15 @@ int bech32_encode(char *output, const char *hrp, const uint8_t *data, size_t dat
     size_t i = 0;
     while (hrp[i] != 0) {
         int ch = hrp[i];
-        if (ch < 33 || ch > 126) {
+        if (ch < MIN_BECH32_CHAR_VALUE || ch > MAX_BECH32_CHAR_VALUE) { // ASCII printable characters except space & delete
             return -1;
         }
 
         if (ch >= 'A' && ch <= 'Z') return -1;
-        chk = bech32_polymod_step(chk) ^ (ch >> 5);
+        chk = bech32_polymod_step(chk) ^ (ch >> TO_BITS);
         ++i;
     }
-    if (i + 7 + data_len > 90) return -1;
+    if (i + 1 + CHECKSUM_LENGTH + data_len > MAX_BECH32_LENGTH) return -1;
     chk = bech32_polymod_step(chk);
     while (*hrp != 0) {
         chk = bech32_polymod_step(chk) ^ (*hrp & 0x1f);
@@ -96,16 +102,16 @@ int bech32_encode(char *output, const char *hrp, const uint8_t *data, size_t dat
     }
     *(output++) = '1';
     for (i = 0; i < data_len; ++i) {
-        if (*data >> 5) return -1;
+        if (*data >> TO_BITS) return -1;
         chk = bech32_polymod_step(chk) ^ (*data);
         *(output++) = charset[*(data++)];
     }
-    for (i = 0; i < 6; ++i) {
+    for (i = 0; i < CHECKSUM_LENGTH; ++i) {
         chk = bech32_polymod_step(chk);
     }
     chk ^= bech32_final_constant(enc);
-    for (i = 0; i < 6; ++i) {
-        *(output++) = charset[(chk >> ((5 - i) * 5)) & 0x1f];
+    for (i = 0; i < CHECKSUM_LENGTH; ++i) {
+        *(output++) = charset[(chk >> ((TO_BITS - i) * TO_BITS)) & 0x1f];
     }
     *output = 0;
     return 0;

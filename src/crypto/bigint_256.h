@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>  // uint*_t
+#include <stdbool.h>  // bool
 
 typedef struct {
     uint64_t u64[4];
