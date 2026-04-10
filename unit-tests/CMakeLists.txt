@@ -107,7 +107,6 @@ add_library(varint         SHARED $ENV{BOLOS_SDK}/lib_standard_app/varint.c)
 add_library(apdu_parser    SHARED $ENV{BOLOS_SDK}/lib_standard_app/parser.c)
 add_library(stubs_os_utils SHARED stubs/os_utils_stubs.c)
 add_library(tlv_library    SHARED $ENV{BOLOS_SDK}/lib_tlv/tlv_library.c)
-target_link_libraries(tlv_library PUBLIC stubs_os_utils)
 
 add_library(stubs_ox SHARED 
   stubs/ox_bn_stubs.c
@@ -127,21 +126,21 @@ add_library(stubs_nbgl     SHARED stubs/nbgl/nbgl_use_case_stubs.c)
 add_library(stubs_os_hdkey SHARED stubs/os_hdkey_stubs.c)
 
 # ── App shared libraries ─────────────────────────────────────────────────────
-add_library(bits        SHARED ../src/crypto/bits.c)
-add_library(bigint_256  SHARED ../src/crypto/bigint_256.c)
-add_library(fp256       SHARED ../src/crypto/fp256.c)
-add_library(field       SHARED ../src/crypto/field.c)
-add_library(scalar      SHARED ../src/crypto/scalar.c)
-add_library(group       SHARED ../src/crypto/group.c)
-add_library(poseidon    SHARED ../src/crypto/poseidon.c ../src/crypto/poseidon_parameters.c)
-add_library(bech32      SHARED ../src/crypto/bech32.c)
-add_library(bhp_1024    SHARED ../src/crypto/bhp_1024.c)
-add_library(account     SHARED ../src/account/account.c)
-add_library(signature   SHARED ../src/account/signature.c)
-add_library(transaction SHARED ../src/transaction/tx_extract.c ../src/transaction/tx_parse.c)
+add_library(bits          SHARED ../src/crypto/bits.c)
+add_library(bigint_256    SHARED ../src/crypto/bigint_256.c)
+add_library(fp256         SHARED ../src/crypto/fp256.c)
+add_library(field         SHARED ../src/crypto/field.c)
+add_library(scalar        SHARED ../src/crypto/scalar.c)
+add_library(group         SHARED ../src/crypto/group.c)
+add_library(poseidon      SHARED ../src/crypto/poseidon.c ../src/crypto/poseidon_parameters.c)
+add_library(bech32        SHARED ../src/crypto/bech32.c)
+add_library(bhp_1024      SHARED ../src/crypto/bhp_1024.c ../src/crypto/bhp_1024_parameters.c)
+add_library(account       SHARED ../src/account/account.c)
+add_library(signature     SHARED ../src/account/signature.c)
+add_library(transaction   SHARED ../src/transaction/tx_extract.c ../src/transaction/tx_parse.c)
 
 # Common link set for tests that use TLV parsing
-set(COMMON_LIBS buffer read write varint format cmocka gcov)
+set(COMMON_LIBS buffer read write varint format cmocka gcov stubs_os_utils)
 
 # ── test_hl_context ──────────────────────────────────────────────────────────
 add_executable(test_bigint_256 test_bigint_256.c)
@@ -187,4 +186,3 @@ add_test(test_signature test_signature)
 add_executable(test_transaction test_transaction.c)
 target_link_libraries(test_transaction PUBLIC transaction tlv_library account stubs_os_hdkey stubs_nbgl bech32 poseidon base58 bip32 group scalar field fp256 bigint_256 bits stubs_ox ${COMMON_LIBS})
 add_test(test_transaction test_transaction)
-
