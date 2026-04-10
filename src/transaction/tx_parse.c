@@ -117,7 +117,7 @@ static int get_u64(input_t *input, bool is_private, uint64_t *value)
         return -1;
     }
     *value = 0;
-    for (int i = 0; i < (int)U64_VALUE_LENGTH; i++) {
+    for (int i = 0; i < (int) U64_VALUE_LENGTH; i++) {
         *value <<= 8;
         *value += input->value[U64_VALUE_LENGTH - 1 - i];
     }

@@ -18,4 +18,4 @@
 /**
  * OS status word for OK
  */
-#define SWO_OK 0x0000 
+#define SWO_OK 0x0000

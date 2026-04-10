@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdint.h>  // uint*_t
+#include <stdint.h>   // uint*_t
 #include <stdbool.h>  // bool
 
 typedef struct {
