@@ -89,6 +89,7 @@ include_directories(.)
 include_directories(../src)
 include_directories(../src/crypto)
 include_directories(../src/account)
+include_directories(../src/helper)
 include_directories(../src/transaction)
 include_directories($ENV{BOLOS_SDK}/lib_standard_app)
 include_directories($ENV{BOLOS_SDK}/include)
@@ -138,6 +139,7 @@ add_library(bhp_1024      SHARED ../src/crypto/bhp_1024.c ../src/crypto/bhp_1024
 add_library(account       SHARED ../src/account/account.c)
 add_library(signature     SHARED ../src/account/signature.c)
 add_library(transaction   SHARED ../src/transaction/tx_extract.c ../src/transaction/tx_parse.c)
+add_library(send_response SHARED ../src/helper/send_response.c)
 
 # Common link set for tests that use TLV parsing
 set(COMMON_LIBS buffer read write varint format cmocka gcov stubs_os_utils)
@@ -186,3 +188,7 @@ add_test(test_signature test_signature)
 add_executable(test_transaction test_transaction.c)
 target_link_libraries(test_transaction PUBLIC transaction tlv_library account stubs_os_hdkey stubs_nbgl bech32 poseidon base58 bip32 group scalar field fp256 bigint_256 bits stubs_ox ${COMMON_LIBS})
 add_test(test_transaction test_transaction)
+
+add_executable(test_send_response test_send_response.c)
+target_link_libraries(test_send_response PUBLIC send_response group scalar field fp256 bigint_256 bits stubs_ox ${COMMON_LIBS})
+add_test(test_send_response test_send_response)

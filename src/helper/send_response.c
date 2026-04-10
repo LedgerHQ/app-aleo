@@ -30,19 +30,25 @@
 
 #include "group.h"
 
-#define RESPONSE_BUFFER_MAX_LENGTH (800)
+#define RESPONSE_BUFFER_MAX_LENGTH (500)
 
 static uint8_t response_buffer[RESPONSE_BUFFER_MAX_LENGTH];
 
-static size_t add_tlv_field(uint8_t *in_buffer, uint8_t type, field_t *f)
+static int add_tlv_field(uint8_t *in_buffer, size_t in_buffer_size, uint8_t type, field_t *f)
 {
-    size_t       offset = 0;
+    int          offset = 0;
     bigint_256_t b;
 
     if (type <= 0x7f) {
+        if (in_buffer_size < (1 + 1 + 32)) {
+            return -1;
+        }
         in_buffer[offset++] = type;
     }
     else {
+        if (in_buffer_size < (2 + 1 + 32)) {
+            return -1;
+        }
         in_buffer[offset++] = 0x81;
         in_buffer[offset++] = type;
     }
@@ -56,18 +62,25 @@ static size_t add_tlv_field(uint8_t *in_buffer, uint8_t type, field_t *f)
     return offset;
 }
 
-static size_t add_tlv_group(uint8_t *in_buffer, uint8_t type, group_t *g)
+static int add_tlv_group(uint8_t *in_buffer, size_t in_buffer_size, uint8_t type, group_t *g)
 {
-    return add_tlv_field(in_buffer, type, &g->x);
+    return add_tlv_field(in_buffer, in_buffer_size, type, &g->x);
 }
 
-static size_t add_tlv_uint8(uint8_t *in_buffer, uint8_t type, uint8_t u)
+static int add_tlv_uint8(uint8_t *in_buffer, size_t in_buffer_size, uint8_t type, uint8_t u)
 {
-    size_t offset = 0;
+    int offset = 0;
+
     if (type <= 0x7f) {
+        if (in_buffer_size < (1 + 1 + 1)) {
+            return -1;
+        }
         in_buffer[offset++] = type;
     }
     else {
+        if (in_buffer_size < (2 + 1 + 1)) {
+            return -1;
+        }
         in_buffer[offset++] = 0x81;
         in_buffer[offset++] = type;
     }
@@ -78,6 +91,7 @@ static size_t add_tlv_uint8(uint8_t *in_buffer, uint8_t type, uint8_t u)
 }
 
 static size_t add_tlv_signature(uint8_t             *in_buffer,
+                                size_t               in_buffer_size,
                                 uint8_t              type,
                                 const scalar_t      *challenge,
                                 const scalar_t      *response,
@@ -87,9 +101,15 @@ static size_t add_tlv_signature(uint8_t             *in_buffer,
     bigint_256_t b;
 
     if (type <= 0x7f) {
+        if (in_buffer_size < (1 + 1 + 128)) {
+            return -1;
+        }
         in_buffer[offset++] = type;
     }
     else {
+        if (in_buffer_size < (2 + 1 + 128)) {
+            return -1;
+        }
         in_buffer[offset++] = 0x81;
         in_buffer[offset++] = type;
     }
@@ -158,41 +178,84 @@ int helper_send_response_get_view_key(void)
 
 int helper_send_response_sign_transaction(void)
 {
-    _Static_assert(RESPONSE_BUFFER_MAX_LENGTH >= 780, "response_buffer size won't fit");
+    _Static_assert(RESPONSE_BUFFER_MAX_LENGTH >= 492, "response_buffer size won't fit");
+
     size_t offset = 0;
     size_t i      = 0;
+    int    len    = 0;
 
     memset(response_buffer, 0, sizeof(response_buffer));
     // Type
-    offset += add_tlv_uint8(&response_buffer[offset], 0x01, 0x2a);  // 3 bytes
+    if ((len = add_tlv_uint8(
+             &response_buffer[offset], RESPONSE_BUFFER_MAX_LENGTH - offset, 0x01, 0x2a))  // 3 bytes
+        < 0) {
+        return len;
+    }
+    offset += len;
     // Version
-    offset += add_tlv_uint8(&response_buffer[offset], 0x02, 0x01);  // 3 bytes
-    offset += add_tlv_signature(&response_buffer[offset],           // 130 bytes
-                                0x15,
-                                &G_context.sign_transaction_datas.prepared_request.challenge,
-                                &G_context.sign_transaction_datas.prepared_request.response,
-                                &G_context.account.compute_key);
+    if ((len = add_tlv_uint8(
+             &response_buffer[offset], RESPONSE_BUFFER_MAX_LENGTH - offset, 0x02, 0x01))  // 3 bytes
+        < 0) {
+        return len;
+    }
+    offset += len;
+
+    // Signature
+    if ((len = add_tlv_signature(&response_buffer[offset],
+                                 RESPONSE_BUFFER_MAX_LENGTH - offset,
+                                 0x15,
+                                 &G_context.sign_transaction_datas.prepared_request.challenge,
+                                 &G_context.sign_transaction_datas.prepared_request.response,
+                                 &G_context.account.compute_key))  // 130 bytes
+        < 0) {
+        return len;
+    }
+    offset += len;
     // TVK
-    offset += add_tlv_field(&response_buffer[offset],
-                            0xbf,
-                            &G_context.sign_transaction_datas.prepared_request.tvk);  // 35 bytes
+    if ((len = add_tlv_field(&response_buffer[offset],
+                             RESPONSE_BUFFER_MAX_LENGTH - offset,
+                             0xbf,
+                             &G_context.sign_transaction_datas.prepared_request.tvk))  // 35 bytes
+        < 0) {
+        return len;
+    }
+    offset += len;
     // TPK
-    offset += add_tlv_group(&response_buffer[offset],
-                            0xc0,
-                            &G_context.sign_transaction_datas.prepared_request.tpk);  // 67 bytes
+    if ((len = add_tlv_group(&response_buffer[offset],
+                             RESPONSE_BUFFER_MAX_LENGTH - offset,
+                             0xc0,
+                             &G_context.sign_transaction_datas.prepared_request.tpk))  // 35 bytes
+        < 0) {
+        return len;
+    }
+    offset += len;
     // Gammas count
-    offset += add_tlv_uint8(
-        &response_buffer[offset],
-        0xc1,
-        G_context.sign_transaction_datas.prepared_request.gammas_count);  // 4 bytes
+    if ((len = add_tlv_uint8(
+             &response_buffer[offset],
+             RESPONSE_BUFFER_MAX_LENGTH - offset,
+             0xc1,
+             G_context.sign_transaction_datas.prepared_request.gammas_count))  // 4 bytes
+        < 0) {
+        return len;
+    }
+    offset += len;
 
     for (i = 0; i < G_context.sign_transaction_datas.prepared_request.gammas_count;
-         i++) {  // 67*8 bytes
-        offset += add_tlv_group(&response_buffer[offset],
-                                0xc2,
-                                &G_context.sign_transaction_datas.prepared_request.gammas[i]);
+         i++) {  // 35*8 bytes
+        if ((len = add_tlv_group(
+                 &response_buffer[offset],
+                 RESPONSE_BUFFER_MAX_LENGTH - offset,
+                 0xc2,
+                 &G_context.sign_transaction_datas.prepared_request.gammas[i]))  // 35 bytes
+            < 0) {
+            return len;
+        }
+        offset += len;
     }
 
+    if ((RESPONSE_BUFFER_MAX_LENGTH - offset) < 2) {
+        return -1;
+    }
     write_u16_be(response_buffer, offset, SWO_SUCCESS);  // 2 bytes
     offset += 2;
 
