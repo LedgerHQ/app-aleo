@@ -12,14 +12,14 @@
 
 typedef struct {
     int                 status;
-    function_id_datas_t datas;
+    function_id_datas_t data;
     field_t             hash[2];
 } bhp_test_t;
 
 static bhp_test_t bhp_tests[] = {
     {
      .status = 0,
-     .datas  = {.network_id         = 0,
+     .data   = {.network_id         = 0,
                    .program_id_name    = "credits",
                    .program_id_network = "aleo",
                    .function_name      = "transfer_public"},
@@ -31,7 +31,7 @@ static bhp_test_t bhp_tests[] = {
      },
     {
      .status = 0,
-     .datas  = {.network_id         = 0,
+     .data   = {.network_id         = 0,
                    .program_id_name    = "credits",
                    .program_id_network = "aleo",
                    .function_name      = "transfer_private"},
@@ -43,7 +43,7 @@ static bhp_test_t bhp_tests[] = {
      },
     {
      .status = 0,
-     .datas  = {.network_id         = 0,
+     .data   = {.network_id         = 0,
                    .program_id_name    = "credits",
                    .program_id_network = "aleo",
                    .function_name      = "transfer_private_to_public"},
@@ -55,7 +55,7 @@ static bhp_test_t bhp_tests[] = {
      },
     {
      .status = 0,
-     .datas  = {.network_id         = 0,
+     .data   = {.network_id         = 0,
                    .program_id_name    = "credits",
                    .program_id_network = "aleo",
                    .function_name      = "transfer_public_to_private"},
@@ -67,7 +67,7 @@ static bhp_test_t bhp_tests[] = {
      },
     {
      .status = 0,
-     .datas  = {.network_id         = 0,
+     .data   = {.network_id         = 0,
                    .program_id_name    = "credits",
                    .program_id_network = "aleo",
                    .function_name      = "fee_public"},
@@ -79,7 +79,7 @@ static bhp_test_t bhp_tests[] = {
      },
     {
      .status = 0,
-     .datas  = {.network_id         = 0,
+     .data   = {.network_id         = 0,
                    .program_id_name    = "credits",
                    .program_id_network = "aleo",
                    .function_name      = "fee_private"},
@@ -91,7 +91,7 @@ static bhp_test_t bhp_tests[] = {
      },
     {
      .status = 0,
-     .datas  = {.network_id         = 0,
+     .data   = {.network_id         = 0,
                    .program_id_name    = "credits",
                    .program_id_network = "aleo",
                    .function_name      = "split"},
@@ -105,7 +105,7 @@ static bhp_test_t bhp_tests[] = {
  // failure
     {
      .status = -1,
-     .datas  = {.network_id         = 0,
+     .data   = {.network_id         = 0,
                    .program_id_name    = "null",
                    .program_id_network = "null",
                    .function_name      = "null"},
@@ -131,14 +131,14 @@ static void test_bhp_1024(void **state)
 
     int index = 0;
     while (bhp_tests[index].status != -1111) {
-        bhp_tests[index].datas.network_id = 0;
-        assert_int_equal(bhp_1024_hash_function_id(&bhp_tests[index].datas, &hash),
+        bhp_tests[index].data.network_id = 0;
+        assert_int_equal(bhp_1024_hash_function_id(&bhp_tests[index].data, &hash),
                          bhp_tests[index].status);
         if (bhp_tests[index].status == 0) {
             check_field(&hash, &bhp_tests[index].hash[0]);
         }
-        bhp_tests[index].datas.network_id = 1;
-        assert_int_equal(bhp_1024_hash_function_id(&bhp_tests[index].datas, &hash),
+        bhp_tests[index].data.network_id = 1;
+        assert_int_equal(bhp_1024_hash_function_id(&bhp_tests[index].data, &hash),
                          bhp_tests[index].status);
         if (bhp_tests[index].status == 0) {
             check_field(&hash, &bhp_tests[index].hash[1]);

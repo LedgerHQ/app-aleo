@@ -155,7 +155,7 @@ static void test_tx_parse(void **state)
     memset(&G_context, 0, sizeof(G_context));
     tx_t tx;
 
-    sign_transaction_datas_t datas = {
+    sign_transaction_datas_t datas_public = {
         .max_base_fee             = 100,
         .max_priority_fee         = 500,
         .fee_function_name_length = 10,
@@ -182,65 +182,65 @@ static void test_tx_parse(void **state)
                                      }
     };
 
-    datas.prepared_request.inputs_count = 1;
-    assert_int_equal(tx_parse(&datas, &tx), -1);
-    datas.prepared_request.inputs_count = 2;
+    datas_public.prepared_request.inputs_count = 1;
+    assert_int_equal(tx_parse(&datas_public, &tx), -1);
+    datas_public.prepared_request.inputs_count = 2;
 
     // get_u64
-    datas.prepared_request.inputs[1].type_length = 2;
-    assert_int_equal(tx_parse(&datas, &tx), -1);
-    datas.prepared_request.inputs[1].type_length = 3;
+    datas_public.prepared_request.inputs[1].type_length = 2;
+    assert_int_equal(tx_parse(&datas_public, &tx), -1);
+    datas_public.prepared_request.inputs[1].type_length = 3;
 
-    uint8_t type_1[3]                     = "\x01\x00\x0c";
-    uint8_t type_2[3]                     = "\x02\x00\x0c";
-    uint8_t type_3[3]                     = "\x01\x01\x0c";
-    datas.prepared_request.inputs[1].type = type_2;
-    assert_int_equal(tx_parse(&datas, &tx), -1);
-    datas.prepared_request.inputs[1].type = type_3;
-    assert_int_equal(tx_parse(&datas, &tx), -1);
-    datas.prepared_request.inputs[1].type = type_1;
+    uint8_t type_1[3]                            = "\x01\x00\x0c";
+    uint8_t type_2[3]                            = "\x02\x00\x0c";
+    uint8_t type_3[3]                            = "\x01\x01\x0c";
+    datas_public.prepared_request.inputs[1].type = type_2;
+    assert_int_equal(tx_parse(&datas_public, &tx), -1);
+    datas_public.prepared_request.inputs[1].type = type_3;
+    assert_int_equal(tx_parse(&datas_public, &tx), -1);
+    datas_public.prepared_request.inputs[1].type = type_1;
 
-    datas.prepared_request.inputs[0].type_length = 2;
-    assert_int_equal(tx_parse(&datas, &tx), -1);
-    datas.prepared_request.inputs[0].type_length = 3;
-    uint8_t type_11[3]                           = "\x01\x00\x00";
-    uint8_t type_12[3]                           = "\x02\x00\x00";
-    uint8_t type_13[3]                           = "\x01\x01\x00";
-    datas.prepared_request.inputs[0].type        = type_12;
-    assert_int_equal(tx_parse(&datas, &tx), -1);
-    datas.prepared_request.inputs[0].type = type_13;
-    assert_int_equal(tx_parse(&datas, &tx), -1);
-    datas.prepared_request.inputs[0].type = type_11;
+    datas_public.prepared_request.inputs[0].type_length = 2;
+    assert_int_equal(tx_parse(&datas_public, &tx), -1);
+    datas_public.prepared_request.inputs[0].type_length = 3;
+    uint8_t type_11[3]                                  = "\x01\x00\x00";
+    uint8_t type_12[3]                                  = "\x02\x00\x00";
+    uint8_t type_13[3]                                  = "\x01\x01\x00";
+    datas_public.prepared_request.inputs[0].type        = type_12;
+    assert_int_equal(tx_parse(&datas_public, &tx), -1);
+    datas_public.prepared_request.inputs[0].type = type_13;
+    assert_int_equal(tx_parse(&datas_public, &tx), -1);
+    datas_public.prepared_request.inputs[0].type = type_11;
 
-    char program_id[12]               = "credits.aleo";
-    datas.prepared_request.program_id = NULL;
-    assert_int_equal(tx_parse(&datas, &tx), -1);
-    datas.prepared_request.program_id = program_id;
+    char program_id[12]                      = "credits.aleo";
+    datas_public.prepared_request.program_id = NULL;
+    assert_int_equal(tx_parse(&datas_public, &tx), -1);
+    datas_public.prepared_request.program_id = program_id;
 
-    char function_name[15]               = "transfer_public";
-    datas.prepared_request.function_name = NULL;
-    assert_int_equal(tx_parse(&datas, &tx), -1);
-    datas.prepared_request.function_name = function_name;
+    char function_name[15]                      = "transfer_public";
+    datas_public.prepared_request.function_name = NULL;
+    assert_int_equal(tx_parse(&datas_public, &tx), -1);
+    datas_public.prepared_request.function_name = function_name;
 
-    char program_id_2[12]             = "credots.aleo";
-    datas.prepared_request.program_id = program_id_2;
-    assert_int_equal(tx_parse(&datas, &tx), -1);
-    datas.prepared_request.program_id = program_id;
+    char program_id_2[12]                    = "credots.aleo";
+    datas_public.prepared_request.program_id = program_id_2;
+    assert_int_equal(tx_parse(&datas_public, &tx), -1);
+    datas_public.prepared_request.program_id = program_id;
 
-    char function_name_2[15]             = "tronsfer_public";
-    datas.prepared_request.function_name = function_name_2;
-    assert_int_equal(tx_parse(&datas, &tx), -1);
-    datas.prepared_request.function_name = function_name;
+    char function_name_2[15]                    = "tronsfer_public";
+    datas_public.prepared_request.function_name = function_name_2;
+    assert_int_equal(tx_parse(&datas_public, &tx), -1);
+    datas_public.prepared_request.function_name = function_name;
 
-    assert_int_equal(tx_parse(&datas, &tx), 0);
+    assert_int_equal(tx_parse(&datas_public, &tx), 0);
 
-    char function_name_3[26]                    = "transfer_public_to_private";
-    datas.prepared_request.function_name_length = sizeof(function_name_3);
-    datas.prepared_request.function_name        = function_name_3;
-    datas.prepared_request.inputs[0].type       = type_12;
-    assert_int_equal(tx_parse(&datas, &tx), 0);
-    datas.prepared_request.inputs[0].type = type_11;
-    assert_int_equal(tx_parse(&datas, &tx), -1);
+    char function_name_3[26]                           = "transfer_public_to_private";
+    datas_public.prepared_request.function_name_length = sizeof(function_name_3);
+    datas_public.prepared_request.function_name        = function_name_3;
+    datas_public.prepared_request.inputs[0].type       = type_12;
+    assert_int_equal(tx_parse(&datas_public, &tx), 0);
+    datas_public.prepared_request.inputs[0].type = type_11;
+    assert_int_equal(tx_parse(&datas_public, &tx), -1);
 
     const uint8_t hash_record_c[96]
         = "\xf4\x69\x19\x61\x50\x7b\x8f\x32\x92\xaf\x47\xac\x64\xdf\x59\xf7"
