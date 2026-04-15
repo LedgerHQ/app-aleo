@@ -21,6 +21,7 @@
 #include <string.h>   // memmove
 
 #include "os.h"
+#include "ledger_assert.h"
 #include "field.h"
 #include "scalar.h"
 #include "poseidon_parameters.h"
@@ -394,6 +395,9 @@ int hash_to_scalar_psd2(field_t *input, size_t input_length, scalar_t *r)
     int     status = 0;
     field_t output[1];
 
+    LEDGER_ASSERT(input != NULL, "NULL input");
+    LEDGER_ASSERT(r != NULL, "NULL r");
+
     status = poseidon_hash_many(2, input, input_length, output, 1);
     if (status == 0) {
         scalar_from_field_lossy(r, &output[0]);
@@ -406,6 +410,9 @@ int hash_to_scalar_psd4(field_t *input, size_t input_length, scalar_t *r)
 {
     int     status = 0;
     field_t output[1];
+
+    LEDGER_ASSERT(input != NULL, "NULL input");
+    LEDGER_ASSERT(r != NULL, "NULL r");
 
     status = poseidon_hash_many(4, input, input_length, output, 1);
     if (status == 0) {
@@ -420,6 +427,9 @@ int hash_to_scalar_psd8(field_t *input, size_t input_length, scalar_t *r)
     int     status = 0;
     field_t output[1];
 
+    LEDGER_ASSERT(input != NULL, "NULL input");
+    LEDGER_ASSERT(r != NULL, "NULL r");
+
     status = poseidon_hash_many(8, input, input_length, output, 1);
     if (status == 0) {
         scalar_from_field_lossy(r, &output[0]);
@@ -432,6 +442,9 @@ int hash_psd2(field_t *input, size_t input_length, field_t *r)
 {
     int     status = 0;
     field_t output[1];
+
+    LEDGER_ASSERT(input != NULL, "NULL input");
+    LEDGER_ASSERT(r != NULL, "NULL r");
 
     status = poseidon_hash_many(2, input, input_length, output, 1);
     if (status == 0) {
@@ -446,6 +459,9 @@ int hash_psd4(field_t *input, size_t input_length, field_t *r)
     int     status = 0;
     field_t output[1];
 
+    LEDGER_ASSERT(input != NULL, "NULL input");
+    LEDGER_ASSERT(r != NULL, "NULL r");
+
     status = poseidon_hash_many(4, input, input_length, output, 1);
     if (status == 0) {
         memcpy(r, &output[0], sizeof(field_t));
@@ -459,6 +475,9 @@ int hash_psd8(field_t *input, size_t input_length, field_t *r)
     int     status = 0;
     field_t output[1];
 
+    LEDGER_ASSERT(input != NULL, "NULL input");
+    LEDGER_ASSERT(r != NULL, "NULL r");
+
     status = poseidon_hash_many(8, input, input_length, output, 1);
     if (status == 0) {
         memcpy(r, &output[0], sizeof(field_t));
@@ -469,5 +488,8 @@ int hash_psd8(field_t *input, size_t input_length, field_t *r)
 
 int hash_many_psd8(field_t *input, size_t input_length, field_t *output, size_t output_length)
 {
+    LEDGER_ASSERT(input != NULL, "NULL input");
+    LEDGER_ASSERT(output != NULL, "NULL output");
+
     return poseidon_hash_many(8, input, input_length, output, output_length);
 }

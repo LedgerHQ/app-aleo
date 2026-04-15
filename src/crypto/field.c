@@ -38,18 +38,17 @@ const field_t FIELD_ONE = {
 // BLS12-377
 static const fp256_parameters_t field_parameters = {
     .MODULUS_BITS = FIELD_MODULUS_BITS,
- // 8444461749428370424248824938781546531375899335154063827935233455917409239041
-    .MODULUS = {.big.u64 = 725501752471715841U,
-                6461107452199829505U,  6968279316240510977U,
-                1345280370688173398U},
-    .R       = {.big.u64 = 9015221291577245683U,
-                8239323489949974514U,  1646089257421115374U,
-                958099254763297437U },
-    .R2      = {.big.u64 = 2726216793283724667U,
-                14712177743343147295U, 12091039717619697043U,
-                81024008013859129U  },
-    .INV     = 725501752471715839U
-};
+    // 8444461749428370424248824938781546531375899335154063827935233455917409239041
+    .MODULUS
+    = {.big.u64
+       = {725501752471715841U, 6461107452199829505U, 6968279316240510977U, 1345280370688173398U}},
+    .R
+    = {.big.u64
+       = {9015221291577245683U, 8239323489949974514U, 1646089257421115374U, 958099254763297437U}},
+    .R2
+    = {.big.u64
+       = {2726216793283724667U, 14712177743343147295U, 12091039717619697043U, 81024008013859129U}},
+    .INV = 725501752471715839U};
 
 void field_assign(field_t *a, const field_t *b)
 {
@@ -105,6 +104,9 @@ uint8_t field_from_bits(const uint8_t *input_bits,
     uint8_t      bn[32];
     uint8_t      field_count       = 0;
     uint16_t     input_bits_offset = 0;
+
+    LEDGER_ASSERT(input_bits != NULL, "NULL input_bits");
+    LEDGER_ASSERT(r != NULL, "NULL r");
 
     while ((input_bits_offset < input_bits_length) && (field_count < max_field_count)) {
         memset(bn, 0, sizeof(bn));

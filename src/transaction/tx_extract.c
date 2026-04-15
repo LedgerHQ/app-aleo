@@ -21,6 +21,7 @@
 #include <string.h>   // memset, explicit_bzero
 
 #include "os.h"
+#include "ledger_assert.h"
 #include "globals.h"
 #include "tlv_library.h"
 
@@ -101,7 +102,7 @@ static bool get_input_count(const tlv_data_t *data, prepared_request_t *cookie)
 static bool get_input_value(const tlv_data_t *data, prepared_request_t *cookie)
 {
     buffer_t buff;
-    if (!get_buffer_from_tlv_data(data, &buff, 1, 128)) {
+    if (!get_buffer_from_tlv_data(data, &buff, 1, INPUT_VALUE_MAX_LEN)) {
         return false;
     }
     if (cookie->inputs_value_offset >= MAX_NB_OF_INPUTS) {
@@ -116,7 +117,7 @@ static bool get_input_value(const tlv_data_t *data, prepared_request_t *cookie)
 static bool get_input_type(const tlv_data_t *data, prepared_request_t *cookie)
 {
     buffer_t buff;
-    if (!get_buffer_from_tlv_data(data, &buff, 1, 128)) {
+    if (!get_buffer_from_tlv_data(data, &buff, 1, INPUT_TYPE_MAX_LEN)) {
         return false;
     }
     if (cookie->inputs_type_offset >= MAX_NB_OF_INPUTS) {
@@ -136,7 +137,7 @@ static bool get_nested_call_count(const tlv_data_t *data, prepared_request_t *co
 static bool get_program_checksum(const tlv_data_t *data, prepared_request_t *cookie)
 {
     buffer_t buff;
-    if (!get_buffer_from_tlv_data(data, &buff, 32, 32)) {
+    if (!get_buffer_from_tlv_data(data, &buff, sizeof(field_t), sizeof(field_t))) {
         return false;
     }
     cookie->program_checksum = (uint8_t *) buff.ptr;
@@ -212,6 +213,9 @@ int tx_extract_prepared_request(const buffer_t *cdata, prepared_request_t *prepa
 {
     TLV_reception_t received_tags;
 
+    LEDGER_ASSERT(cdata != NULL, "NULL cdata");
+    LEDGER_ASSERT(prepared_request != NULL, "NULL prepared_request");
+
     explicit_bzero(prepared_request, sizeof(prepared_request_t));
     if (!prepared_request_tlv_parser(cdata, prepared_request, &received_tags)) {
         return -1;
@@ -224,6 +228,8 @@ int tx_extract_prepared_request(const buffer_t *cdata, prepared_request_t *prepa
 int tx_extract_intent(buffer_t *cdata)
 {
     TLV_reception_t received_tags;
+
+    LEDGER_ASSERT(cdata != NULL, "NULL cdata");
 
     explicit_bzero(&G_context.sign_transaction_datas, sizeof(G_context.sign_transaction_datas));
     if (!intent_tlv_parser(cdata, &G_context.sign_transaction_datas, &received_tags)) {

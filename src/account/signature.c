@@ -20,10 +20,10 @@
 #include <stdbool.h>  // bool
 
 #include "os.h"
+#include "ledger_assert.h"
 #include "globals.h"
 #include "group.h"
 #include "poseidon.h"
-#include "bhp_512.h"
 #include "bhp_1024.h"
 #include "bits.h"
 #include "field.h"
@@ -133,7 +133,7 @@ static int hash_public_input(prepared_request_t *request, uint8_t input_index)
 static int hash_private_input(prepared_request_t *request, uint8_t input_index)
 {
     int      status           = 0;
-    uint8_t  hash_input_index = 0;
+    size_t   hash_input_index = 0;
     input_t *input            = &request->inputs[input_index];
     uint8_t  num_randomizers  = 0;
     field_t  input_view_key;
@@ -368,9 +368,14 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     int      status = 0;
     field_t *is_root;
     group_t  g_temp;
+    field_t  nonce;
 
-    field_t nonce;
-    field_random(&nonce);
+    LEDGER_ASSERT(account != NULL, "NULL account");
+    LEDGER_ASSERT(request != NULL, "NULL request");
+
+    if ((status = field_random(&nonce)) < 0) {
+        goto end;
+    }
     PRINTF("nonce : ");
     field_println(&nonce);
 
@@ -468,14 +473,30 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     _Static_assert(MESSAGE_MAX_LENGTH >= 16, "message size won't fit");
     message_length = 8;
     memset(message, 0, sizeof(message));
-    add_field_to_message(&request->tpk.x);
-    add_field_to_message(&account->compute_key.pk_sig.x);
-    add_field_to_message(&account->compute_key.pr_sig.x);
-    add_field_to_message(&account->address.x);
-    add_field_to_message(&request->tvk);
-    add_field_to_message(&request->tcm);
-    add_field_to_message(&request->function_id);
-    add_field_to_message(is_root);
+    if ((status = add_field_to_message(&request->tpk.x)) < 0) {
+        goto end;
+    }
+    if ((status = add_field_to_message(&account->compute_key.pk_sig.x)) < 0) {
+        goto end;
+    }
+    if ((status = add_field_to_message(&account->compute_key.pr_sig.x)) < 0) {
+        goto end;
+    }
+    if ((status = add_field_to_message(&account->address.x)) < 0) {
+        goto end;
+    }
+    if ((status = add_field_to_message(&request->tvk)) < 0) {
+        goto end;
+    }
+    if ((status = add_field_to_message(&request->tcm)) < 0) {
+        goto end;
+    }
+    if ((status = add_field_to_message(&request->function_id)) < 0) {
+        goto end;
+    }
+    if ((status = add_field_to_message(is_root)) < 0) {
+        goto end;
+    }
     if (request->program_checksum) {
         bigint_256_t s;
         field_t      program_checksum;

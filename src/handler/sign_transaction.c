@@ -22,6 +22,7 @@
 
 #include "os.h"
 #include "cx.h"
+#include "ledger_assert.h"
 #include "io.h"
 #include "buffer.h"
 #include "crypto_helpers.h"
@@ -200,6 +201,8 @@ end:
 int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool next_chunk)
 {
     int status = 0;
+
+    LEDGER_ASSERT(cdata != NULL, "NULL cdata");
 
     if (!cdata->size) {
         // Reject empty data

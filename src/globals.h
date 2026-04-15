@@ -18,9 +18,6 @@ extern global_ctx_t G_context;
  */
 typedef struct internal_storage_t {
     uint8_t initialized;
-#ifdef ENABLE_PRIVATE_KEY_MANAGEMENT
-    uint8_t private_keys[PRIVATE_KEY_LEN * 4];
-#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT
 } internal_storage_t;
 
 extern const internal_storage_t N_storage_real;

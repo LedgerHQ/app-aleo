@@ -14,3 +14,8 @@
  * Application specific swap error code
  */
 #define SWAP_ERROR_CODE 0x00
+
+/**
+ * OS status word for OK
+ */
+#define SWO_OK 0x0000

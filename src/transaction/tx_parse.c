@@ -21,12 +21,20 @@
 #include <string.h>   // memset, explicit_bzero
 
 #include "os.h"
+#include "ledger_assert.h"
 #include "globals.h"
 
 #include "bech32.h"
 #include "account.h"
 #include "tx_types.h"
 #include "tx.h"
+
+#define U64_TYPE_LENGTH      (3)
+#define U64_VALUE_LENGTH     sizeof(uint64_t)
+#define ADDRESS_TYPE_LENGTH  (3)
+#define ADDRESS_VALUE_LENGTH sizeof(field_t)
+
+#define NB_OF_PROGRAMS (6)
 
 typedef struct {
     const char *string;
@@ -46,7 +54,7 @@ static int parse_transfer_private_to_public(sign_transaction_datas_t *data, tx_t
 static int parse_fee_public(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx);
 
-static const program_infos_t program_infos[6] = {
+static const program_infos_t program_infos[NB_OF_PROGRAMS] = {
     {
      .string        = "transfer_public",
      .string_length = 15,
@@ -95,7 +103,7 @@ static int get_u64(input_t *input, bool is_private, uint64_t *value)
 {
     int status = 0;
 
-    if ((input->type_length != 3) || (input->value_length != 8)) {
+    if ((input->type_length != U64_TYPE_LENGTH) || (input->value_length != U64_VALUE_LENGTH)) {
         return -1;
     }
     else if (is_private && (input->type[0] != INPUT_ID_PRIVATE)) {
@@ -109,9 +117,9 @@ static int get_u64(input_t *input, bool is_private, uint64_t *value)
         return -1;
     }
     *value = 0;
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < (int) U64_VALUE_LENGTH; i++) {
         *value <<= 8;
-        *value += input->value[7 - i];
+        *value += input->value[U64_VALUE_LENGTH - 1 - i];
     }
 
     return status;
@@ -121,7 +129,8 @@ static int get_address(input_t *input, bool is_private, char address[ADDRESS_LEN
 {
     int status = 0;
 
-    if ((input->type_length != 3) || (input->value_length != 32)) {
+    if ((input->type_length != ADDRESS_TYPE_LENGTH)
+        || (input->value_length != ADDRESS_VALUE_LENGTH)) {
         return -1;
     }
     else if (is_private && (input->type[0] != INPUT_ID_PRIVATE)) {
@@ -135,11 +144,12 @@ static int get_address(input_t *input, bool is_private, char address[ADDRESS_LEN
         return -1;
     }
 
-    uint8_t data[64];
+    uint8_t data[ADDRESS_LEN + 1];
     size_t  datalen = 0;
 
     memset(address, 0, ADDRESS_LEN + 1);
-    if ((status = bech32_convert_bits(data, &datalen, sizeof(data), 5, input->value, 32, 8, 1))
+    if ((status = bech32_convert_bits(
+             data, &datalen, sizeof(data), 5, input->value, ADDRESS_VALUE_LENGTH, 8, 1))
         < 0) {
         return status;
     }
@@ -150,7 +160,6 @@ static int get_address(input_t *input, bool is_private, char address[ADDRESS_LEN
 
 static int parse_transfer_public(sign_transaction_datas_t *data, tx_t *tx)
 {
-    PRINTF("parse_transfer_public\n");
     tx->transfer.type = TX_TRANSFER_PUBLIC;
     int status = get_address(&data->prepared_request.inputs[0], false, tx->transfer.address_to);
     if (status == 0) {
@@ -217,6 +226,9 @@ static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx)
 
 int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
 {
+    LEDGER_ASSERT(data != NULL, "NULL data");
+    LEDGER_ASSERT(tx != NULL, "NULL tx");
+
     if (!data->prepared_request.program_id) {
         return -1;
     }
@@ -230,7 +242,7 @@ int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
         return -1;
     }
     tx->type = TX_UNKNOWN;
-    for (uint8_t i = 0; i < 6; i++) {
+    for (uint8_t i = 0; i < NB_OF_PROGRAMS; i++) {
         if (data->prepared_request.function_name_length != program_infos[i].string_length) {
             continue;
         }

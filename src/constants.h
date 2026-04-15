@@ -74,3 +74,13 @@
  * Maximum length of function name.
  */
 #define FUNCTION_NAME_MAX_LEN (64)
+
+/**
+ * Maximum length of input value.
+ */
+#define INPUT_VALUE_MAX_LEN (128)
+
+/**
+ * Maximum length of input type.
+ */
+#define INPUT_TYPE_MAX_LEN (128)

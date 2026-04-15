@@ -17,10 +17,6 @@ typedef enum {
     CMD_GET_ADDRESS      = 0x05,  /// get public address
     CMD_SIGN_TRANSACTION = 0x06,  /// sign transaction
     CMD_GET_VIEW_KEY     = 0x07,  /// get the view key
-#ifdef ENABLE_PRIVATE_KEY_MANAGEMENT
-    CMD_GET_PRIVATE_KEY = 0xD1,
-    CMD_SET_PRIVATE_KEY = 0xFD,
-#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT
 } command_e;
 
 typedef enum {
@@ -149,9 +145,6 @@ typedef struct {
     union {
         char address[ADDRESS_LEN];
         char view_key[VIEW_KEY_LEN];
-#ifdef ENABLE_PRIVATE_KEY_MANAGEMENT
-        char private_key[PRIVATE_KEY_LEN];
-#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT
     };
     request_type_e req_type;                    /// user request
     uint32_t       bip32_path[MAX_BIP32_PATH];  /// BIP32 path

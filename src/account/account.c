@@ -24,6 +24,7 @@
 #endif  // API_LEVEL
 
 #include "os.h"
+#include "ledger_assert.h"
 #ifdef ALEO_BIP32_SUPPORT
 #include "os_hdkey.h"
 #endif  // ALEO_BIP32_SUPPORT
@@ -62,35 +63,8 @@ static void display_progression(uint8_t step)
     nbgl_useCaseSpinner(&text_buffer[step % 2]);
 }
 
-#ifdef ENABLE_PRIVATE_KEY_MANAGEMENT
-static void seed_from_private_key_string(const char *private_key_string, field_t *seed)
-{
-    uint8_t      base_58_output[MAX_ENC_INPUT_SIZE];
-    uint8_t      seed_bn[32];
-    bigint_256_t seed_big_int;
-
-    base58_decode(private_key_string, PRIVATE_KEY_LEN, base_58_output, sizeof(base_58_output));
-
-    for (size_t i = 0; i < sizeof(seed_bn); i++) {
-        seed_bn[sizeof(seed_bn) - 1 - i] = base_58_output[sizeof(PRIVATE_KEY_PREFIX) + i];
-    }
-    bn_to_big_int(seed_bn, &seed_big_int);
-    field_from_big_int(seed, &seed_big_int);
-}
-#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT
-
 static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
 {
-#ifdef ENABLE_PRIVATE_KEY_MANAGEMENT
-    uint32_t account_number = path[2] & 7;
-    PRINTF("Get seed path from account %d\n", account_number);
-    if ((account_number < 4) && (N_storage.private_keys[account_number * PRIVATE_KEY_LEN] == 'A')) {
-        seed_from_private_key_string(
-            (const char *) &N_storage.private_keys[account_number * PRIVATE_KEY_LEN], seed);
-        return 0;
-    }
-#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT
-
 #ifndef ALEO_BIP32_SUPPORT
     // TODO : Temporary code start
     uint8_t seed_bn[64];
@@ -101,6 +75,7 @@ static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
         explicit_bzero(seed, sizeof(field_t));
         return -1;
     }
+    bn_print(seed_bn);
 
     bigint_256_t seed_big_int;
     memset(&seed_big_int, 0, sizeof(seed_big_int));
@@ -112,19 +87,20 @@ static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
 #else   // ALEO_BIP32_SUPPORT
     uint8_t      seed_bn[32];
     bigint_256_t seed_big_int;
-    cx_err_t     error = sys_hdkey_derive(HDKEY_DERIVE_MODE_BLS12377_ALEO,
-                                      CX_CURVE_BLS12_377_G1,
-                                      path,
-                                      path_len,
-                                      seed_bn,
-                                      32,
-                                      NULL,
-                                      0,
-                                      NULL,
-                                      0);
-    if (error != CX_OK) {
+    bolos_err_t  error = sys_hdkey_derive(HDKEY_DERIVE_MODE_BLS12377_ALEO,
+                                         CX_CURVE_BLS12_377_G1,
+                                         path,
+                                         path_len,
+                                         seed_bn,
+                                         32,
+                                         NULL,
+                                         0,
+                                         NULL,
+                                         0);
+    if (error != SWO_OK) {
         return -1;
     }
+    bn_print(seed_bn);
 
     bn_reverse(seed_bn);
     bn_to_big_int(seed_bn, &seed_big_int);
@@ -249,6 +225,9 @@ int account_get_address_string(const uint32_t *path, uint8_t path_len, char addr
     uint8_t      address_bn[32];
     int          status = 0;
 
+    LEDGER_ASSERT(path != NULL, "NULL path");
+    LEDGER_ASSERT(address != NULL, "NULL address");
+
     if ((status = get_seed(path, path_len, &account.private_key.seed)) < 0) {
         goto end;
     }
@@ -294,16 +273,19 @@ end:
     return status;
 }
 
-int account_get_view_key_string(const uint32_t *path, uint8_t path_len, char *viewkey)
+int account_get_view_key_string(const uint32_t *path, uint8_t path_len, char viewkey[VIEW_KEY_LEN])
 {
     account_t    account;
     bigint_256_t view_key_big_int;
     uint8_t      view_key_bn[32];
     uint8_t      base_58_input[MAX_ENC_INPUT_SIZE];
-    int          status = get_seed(path, path_len, &account.private_key.seed);
+    int          status = 0;
 
-    if (status < 0) {
-        return status;
+    LEDGER_ASSERT(path != NULL, "NULL path");
+    LEDGER_ASSERT(viewkey != NULL, "NULL viewkey");
+
+    if ((status = get_seed(path, path_len, &account.private_key.seed)) < 0) {
+        goto end;
     }
 
     if ((status = private_key_from_seed(
@@ -343,6 +325,10 @@ end:
 int account_generate_keys(const uint32_t *path, uint8_t path_len, account_t *account)
 {
     int status = 0;
+
+    LEDGER_ASSERT(path != NULL, "NULL path");
+    LEDGER_ASSERT(account != NULL, "NULL account");
+
     display_progression(0);
     if ((status = get_seed(path, path_len, &account->private_key.seed)) < 0) {
         goto error;
@@ -374,37 +360,3 @@ error:
     explicit_bzero(account, sizeof(account_t));
     return status;
 }
-
-#ifdef ENABLE_PRIVATE_KEY_MANAGEMENT
-int account_get_private_key_string(const uint32_t *path, uint8_t path_len, char *private_key)
-{
-    account_t    account;
-    bigint_256_t seed_big_int;
-    uint8_t      seed_bn[32];
-    uint8_t      base_58_input[MAX_ENC_INPUT_SIZE];
-    int          status = get_seed(path, path_len, &account.private_key.seed);
-
-    if (status < 0) {
-        return status;
-    }
-
-    field_to_big_int(&account.private_key.seed, &seed_big_int);
-    big_int_to_bn(&seed_big_int, seed_bn);
-    memset(base_58_input, 0, sizeof(base_58_input));
-    memcpy(base_58_input, PRIVATE_KEY_PREFIX, sizeof(PRIVATE_KEY_PREFIX));
-    for (size_t i = 0; i < sizeof(seed_bn); i++) {
-        base_58_input[sizeof(PRIVATE_KEY_PREFIX) + i] = seed_bn[sizeof(seed_bn) - 1 - i];
-    }
-    base58_encode(base_58_input, sizeof(PRIVATE_KEY_PREFIX) + sizeof(seed_bn), private_key, 64);
-    PRINTF("%s\n", private_key);
-
-    field_t seed;
-    seed_from_private_key_string(private_key, &seed);
-    field_println(&seed);
-
-    explicit_bzero(hash_input, sizeof(hash_input));
-    explicit_bzero(&account, sizeof(account_t));
-
-    return status;
-}
-#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT

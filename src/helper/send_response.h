@@ -43,16 +43,3 @@ int helper_send_response_get_view_key(void);
  *
  */
 int helper_send_response_sign_transaction(void);
-
-/**
- * Helper to send APDU response with private key. For dev purpose only!
- *
- * response = PRIVATE_KEY_LEN (1) ||
- *            G_context.private_key (PRIVATE_KEY_LEN)
- *
- * @return zero or positive integer if success, -1 otherwise.
- *
- */
-#ifdef ENABLE_PRIVATE_KEY_MANAGEMENT
-int helper_send_response_get_private_key(void);
-#endif  // ENABLE_PRIVATE_KEY_MANAGEMENT

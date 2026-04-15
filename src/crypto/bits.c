@@ -22,11 +22,14 @@
 
 #include "os.h"
 #include "cx.h"
+#include "ledger_assert.h"
 
 #include "bits.h"
 
 void bits_add_single(uint8_t *output, uint16_t output_bit_offset, bool bit)
 {
+    LEDGER_ASSERT(output != NULL, "NULL output");
+
     if (bit) {
         output[(output_bit_offset) / 8] |= (1 << ((output_bit_offset) % 8));
     }
@@ -42,6 +45,9 @@ int bits_add(const uint8_t *input,
              uint16_t       output_offset,
              uint16_t       output_max_bits)
 {
+    LEDGER_ASSERT(input != NULL, "NULL input");
+    LEDGER_ASSERT(output != NULL, "NULL output");
+
     if ((output_offset + input_length) > output_max_bits) {
         return -1;
     }
@@ -59,6 +65,10 @@ int bits_from_plaintext(const uint8_t *plaintext,
                         uint8_t       *out,
                         uint16_t       output_max_bits)
 {
+    LEDGER_ASSERT(plaintext != NULL, "NULL plaintext");
+    LEDGER_ASSERT(plaintext_type != NULL, "NULL plaintext_type");
+    LEDGER_ASSERT(out != NULL, "NULL out");
+
     uint16_t out_offset = 0;
 
     if (output_max_bits < 2) {
@@ -98,6 +108,9 @@ int bits_from_plaintext(const uint8_t *plaintext,
             return -1;
         }
         out_offset += plaintext_bit_length;
+    }
+    else {
+        return -1;
     }
 
     return out_offset;

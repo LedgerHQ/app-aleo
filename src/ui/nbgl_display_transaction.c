@@ -156,7 +156,7 @@ int ui_display_transaction(void)
     }
 
     if (G_context.tx.type == TX_TRANSFER) {
-        display_review_transaction();
+        return display_review_transaction();
     }
     else if (G_context.tx.type == TX_FEE) {
         validate_transaction(true);
