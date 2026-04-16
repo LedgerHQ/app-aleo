@@ -1,4 +1,3 @@
-
 #include <stddef.h>  // size_t
 #include "field.h"
 

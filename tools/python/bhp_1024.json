@@ -1,0 +1,12 @@
+{
+	"credits.aleo" : [
+		{"function" : "transfer_public"},
+		{"function" : "transfer_private"},
+		{"function" : "transfer_private_to_public"},
+		{"function" : "transfer_public_to_private"},
+		{"function" : "fee_public"},
+		{"function" : "fee_private"},
+		{"function" : "split"},
+		{"function" : "join"}
+	]
+}

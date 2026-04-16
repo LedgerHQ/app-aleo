@@ -66,12 +66,12 @@ const function_hashes_t credits_aleo[NB_OF_CREDITS_ALEO_FUNCTIONS] = {
      = {{.big.u64
          = {0xb56e347d9733de05, 0x29c0febaeb2bee52, 0x6c4d0ed1285f19fd, 0x0ec48ec3bdf25eb8}},
         {.big.u64
-         = {0x921936604e6eddfe, 0x429d23effcfce58b, 0x072b665308c3d12b, 0x1241fcb49a8a9b72}}}}
+         = {0x921936604e6eddfe, 0x429d23effcfce58b, 0x072b665308c3d12b, 0x1241fcb49a8a9b72}}}},
 };
 
 const bhp_1024_parameter_t bhp_1024_parameters[NB_OF_PROGRAMS] = {
     {.program_id         = "credits",
      .program_id_network = "aleo",
      .nb_of_functions    = NB_OF_CREDITS_ALEO_FUNCTIONS,
-     .functions          = credits_aleo}
+     .functions          = credits_aleo},
 };
