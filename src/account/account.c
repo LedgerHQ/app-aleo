@@ -27,6 +27,7 @@
 #include "ledger_assert.h"
 #ifdef ALEO_BIP32_SUPPORT
 #include "os_hdkey.h"
+#include "sw.h"
 #endif  // ALEO_BIP32_SUPPORT
 #include "globals.h"
 #include "group.h"
