@@ -101,6 +101,102 @@ static bhp_test_t bhp_tests[] = {
            {.big.u64
             = {0x0bb53e032f965178, 0x6cd697d8b5df7efc, 0x12e2736c492f2495, 0x0529c62123003bca}}},
      },
+    {
+     .status = 0,
+     .data   = {.network_id         = 0,
+                   .program_id_name    = "ldgbatcher",
+                   .program_id_network = "aleo",
+                   .function_name      = "transfer_private_2"},
+     .hash
+        = {{.big.u64
+            = {0xfbac5db2cf40ee19, 0x35f84ea37404640a, 0x17c4e3abc57fd1af, 0x10fd9156abb4b25d}},
+           {.big.u64
+            = {0x0adab560276134ff, 0x26f8fcc13392b029, 0xebe7b1410049b4fa, 0x0f76243a00adcb04}}},
+     },
+    {
+     .status = 0,
+     .data   = {.network_id         = 0,
+                   .program_id_name    = "ldgbatcher",
+                   .program_id_network = "aleo",
+                   .function_name      = "transfer_private_3"},
+     .hash
+        = {{.big.u64
+            = {0x51d1819b35bd5afe, 0x7accaa4a95486cda, 0xfc5e6bb51a18e791, 0x06d9fa4e36adf23f}},
+           {.big.u64
+            = {0x2b280960f9104bb0, 0x89c946f7320e64ec, 0xb7b44e27df42f1bf, 0x09973bace4c635bb}}},
+     },
+    {
+     .status = 0,
+     .data   = {.network_id         = 0,
+                   .program_id_name    = "ldgbatcher",
+                   .program_id_network = "aleo",
+                   .function_name      = "transfer_private_4"},
+     .hash
+        = {{.big.u64
+            = {0xcbe4ecaf43a86fbd, 0x436a1c6d5d7ee950, 0x8ebc87b6b4f39c34, 0x08a9be65eae4015a}},
+           {.big.u64
+            = {0x6262160bc158aa69, 0x9f358ea890f25727, 0x47afbee2159b7169, 0x049678e2c92437f1}}},
+     },
+    {
+     .status = 0,
+     .data   = {.network_id         = 0,
+                   .program_id_name    = "ldgbatcher",
+                   .program_id_network = "aleo",
+                   .function_name      = "transfer_private_5"},
+     .hash
+        = {{.big.u64
+            = {0xf02deda9358effd9, 0x7af6cc22336a456f, 0x49707780bac09b39, 0x032593eb33a6126b}},
+           {.big.u64
+            = {0x4381976d822ee991, 0x722647a911af9a02, 0x227764d2e098df27, 0x04d1650192aaae55}}},
+     },
+    {
+     .status = 0,
+     .data   = {.network_id         = 0,
+                   .program_id_name    = "ldgbatcher",
+                   .program_id_network = "aleo",
+                   .function_name      = "transfer_private_6"},
+     .hash
+        = {{.big.u64
+            = {0x515ac7ada0c40928, 0x10049221ede7929f, 0x1b4ad180928a06f1, 0x05d48d51f6859276}},
+           {.big.u64
+            = {0x3c3e9cf604ee9167, 0x74752c0f54d3d4ab, 0xeec47b38bbc7aafb, 0x0082a015a8e3000f}}},
+     },
+    {
+     .status = 0,
+     .data   = {.network_id         = 0,
+                   .program_id_name    = "ldgbatcher",
+                   .program_id_network = "aleo",
+                   .function_name      = "transfer_private_7"},
+     .hash
+        = {{.big.u64
+            = {0xd38d1c5eb82bb4e8, 0x861ca80304fcf75c, 0xa221533214f43459, 0x0834c1485357a6d0}},
+           {.big.u64
+            = {0xb7a238c350488600, 0x200d32f3bddc5d2f, 0xce9f3b41e042d62c, 0x108c157aa7eff088}}},
+     },
+    {
+     .status = 0,
+     .data   = {.network_id         = 0,
+                   .program_id_name    = "ldgbatcher",
+                   .program_id_network = "aleo",
+                   .function_name      = "transfer_private_8"},
+     .hash
+        = {{.big.u64
+            = {0x1b43a65addfd26f2, 0xd555e2822f91a008, 0x20659e4d709f0eff, 0x0ebb5b25c8e7b7cd}},
+           {.big.u64
+            = {0x555767c5a872f04e, 0xdda7b950e1bed997, 0xc76b9bc219ba999c, 0x0521b68860091346}}},
+     },
+    {
+     .status = 0,
+     .data   = {.network_id         = 0,
+                   .program_id_name    = "ldgbatcher",
+                   .program_id_network = "aleo",
+                   .function_name      = "transfer_private_2"},
+     .hash
+        = {{.big.u64
+            = {0xfbac5db2cf40ee19, 0x35f84ea37404640a, 0x17c4e3abc57fd1af, 0x10fd9156abb4b25d}},
+           {.big.u64
+            = {0x0adab560276134ff, 0x26f8fcc13392b029, 0xebe7b1410049b4fa, 0x0f76243a00adcb04}}},
+     },
 
  // failure
     {

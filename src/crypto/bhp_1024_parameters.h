@@ -19,5 +19,5 @@ typedef struct {
     const function_hashes_t *functions;
 } bhp_1024_parameter_t;
 
-#define NB_OF_PROGRAMS (1)
+#define NB_OF_PROGRAMS (2)
 extern const bhp_1024_parameter_t bhp_1024_parameters[NB_OF_PROGRAMS];

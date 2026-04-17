@@ -8,5 +8,14 @@
 		{"function" : "fee_private"},
 		{"function" : "split"},
 		{"function" : "join"}
+	],
+	"ldgbatcher.aleo" : [
+		{"function" : "transfer_private_2"},
+		{"function" : "transfer_private_3"},
+		{"function" : "transfer_private_4"},
+		{"function" : "transfer_private_5"},
+		{"function" : "transfer_private_6"},
+		{"function" : "transfer_private_7"},
+		{"function" : "transfer_private_8"}
 	]
 }

@@ -53,7 +53,7 @@
 /**
  * Maximum number of inputs for a single signature.
  */
-#define MAX_NB_OF_INPUTS (8)
+#define MAX_NB_OF_INPUTS (16)
 
 /**
  * Maximum number of records for a single signature.
