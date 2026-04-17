@@ -144,12 +144,23 @@ static bool get_program_checksum(const tlv_data_t *data, prepared_request_t *coo
     return true;
 }
 
+static bool get_r_hint(const tlv_data_t *data, prepared_request_t *cookie)
+{
+    buffer_t buff;
+    if (!get_buffer_from_tlv_data(data, &buff, sizeof(scalar_t), sizeof(scalar_t))) {
+        return false;
+    }
+    cookie->r_hint = (uint8_t *) buff.ptr;
+    return true;
+}
+
 #define PREPARED_REQUEST_TLV_TAGS(X)                                                           \
     X(0x01, TAG_PREPARED_REQUEST_STRUCTURE_TYPE, NULL, ENFORCE_UNIQUE_TAG)                     \
     X(0x02, TAG_PREPARED_REQUEST_VERSION, NULL, ENFORCE_UNIQUE_TAG)                            \
     X(0xc3, TAG_PREPARED_REQUEST_NETWORK_ID, get_network_id, ENFORCE_UNIQUE_TAG)               \
     X(0xb5, TAG_PREPARED_REQUEST_PROGRAM_ID, get_program_id, ENFORCE_UNIQUE_TAG)               \
     X(0xc4, TAG_PREPARED_REQUEST_PROGRAM_CHECKSUM, get_program_checksum, ENFORCE_UNIQUE_TAG)   \
+    X(0xc5, TAG_PREPARED_REQUEST_R_HINT, get_r_hint, ENFORCE_UNIQUE_TAG)                       \
     X(0xb6, TAG_PREPARED_REQUEST_FUNCTION_NAME, get_function_name, ENFORCE_UNIQUE_TAG)         \
     X(0xba, TAG_PREPARED_REQUEST_NESTED_CALL_COUNT, get_nested_call_count, ENFORCE_UNIQUE_TAG) \
     X(0xb7, TAG_PREPARED_REQUEST_INPUT_COUNT, get_input_count, ENFORCE_UNIQUE_TAG)             \

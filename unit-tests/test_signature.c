@@ -207,6 +207,23 @@ static void test_signature(void **state)
         .big.u64 = {0xa302f8c4e97b2cb7, 0xc41ec07b5815e53f, 0x168ca6d7bdc9365e, 0x3a6f4913f6a850c}
     };
 
+    request.r_hint = NULL;
+    prepare_random_ok(random_bn);
+    prepare_scalar_mult_ok();
+    prepare_scalar_mult_ok();
+    assert_int_equal(sign_prepared_request(&account, &request), 0);
+    assert_int_equal(request.gammas_count, 0);
+    check_scalar(&request.r, &r_1);
+    check_field(&request.tvk, &tvk_1);
+    check_group(&request.tpk, &tpk_1);
+    check_field(&request.tcm, &tcm_1);
+    check_scalar(&request.challenge, &challenge_1);
+    check_scalar(&request.response, &response_1);
+
+    uint8_t r_hint[32]
+        = "\x6c\xad\xd0\x1e\xbc\xbc\x7d\x81\x6b\x58\x60\x01\x54\x72\x94\xdc\xd5\x04\x09\x45\xbe\x9d"
+          "\xf2\x32\xcd\xc2\x53\x2d\xa2\x76\x8f\x00";
+    request.r_hint = r_hint;
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
@@ -226,6 +243,7 @@ static void test_signature(void **state)
         .big.u64 = {0x1821a9a8969fd50d, 0x25a0a26f70d168f0, 0x4cd4d6d76b60ce3e, 0x45f6663ec4bbcce}
     };
     request.is_root = false;
+	request.r_hint = NULL;
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();

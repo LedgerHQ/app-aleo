@@ -147,6 +147,26 @@ static void test_tx_extract(void **state)
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         -1);
+
+    uint8_t r_hint[35]
+        = "\x81\xc5\x20\x01\x81\xb9\x01\x02\x81\xb9\x01\x03\x81\xb9\x01\x04\x81\xb9\x01\x05\x81\xb9"
+          "\x01\x06\x81\xb9\x01\x07\x81\xb9\x01\x08\x81\xb9\x01";
+    buffer.ptr    = r_hint;
+    buffer.size   = sizeof(r_hint);
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        0);
+
+    uint8_t r_hint_2[36]
+        = "\x81\xc5\x21\x01\x81\xb9\x01\x02\x81\xb9\x01\x03\x81\xb9\x01\x04\x81\xb9\x01\x05\x81\xb9"
+          "\x01\x06\x81\xb9\x01\x07\x81\xb9\x01\x08\x81\xb9\x01\x51";
+    buffer.ptr    = r_hint_2;
+    buffer.size   = sizeof(r_hint_2);
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
 }
 
 static void test_tx_parse(void **state)
