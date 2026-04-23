@@ -23,6 +23,8 @@
 #include "os.h"
 #include "cx.h"
 #include "ledger_assert.h"
+#include "nbgl_use_case.h"
+#include "menu.h"
 #include "io.h"
 #include "buffer.h"
 #include "crypto_helpers.h"
@@ -56,6 +58,9 @@ static int sign_root_tx(buffer_t *cdata)
         = account_generate_keys(G_context.bip32_path, G_context.bip32_path_len, &G_context.account);
     if (status < 0) {
         explicit_bzero(&G_context.account, sizeof(G_context.account));
+#ifndef FUZZ
+        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
+#endif  // FUZZ
         return io_send_sw(SW_DISPLAY_BIP32_PATH_FAIL);
     }
 
@@ -68,6 +73,9 @@ static int sign_root_tx(buffer_t *cdata)
     // Extract intent
     if ((status = tx_extract_intent(cdata)) < 0) {
         explicit_bzero(&G_context.account, sizeof(G_context.account));
+#ifndef FUZZ
+        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
+#endif  // FUZZ
         goto end;
     }
     G_context.sign_transaction_datas.prepared_request.is_root = true;
@@ -77,6 +85,9 @@ static int sign_root_tx(buffer_t *cdata)
     // Parse intent
     if ((status = tx_parse(&G_context.sign_transaction_datas, &G_context.tx)) < 0) {
         explicit_bzero(&G_context.account, sizeof(G_context.account));
+#ifndef FUZZ
+        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
+#endif  // FUZZ
         goto end;
     }
 
@@ -85,6 +96,9 @@ static int sign_root_tx(buffer_t *cdata)
     // Display & sign transaction
     if ((status = ui_display_transaction()) < 0) {
         explicit_bzero(&G_context.account, sizeof(G_context.account));
+#ifndef FUZZ
+        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
+#endif  // FUZZ
     }
 
 end:
@@ -101,6 +115,7 @@ static int sign_nested_call_tx(buffer_t *cdata)
     }
 
     if (G_context.signing_state != SIGNING_STATE_NESTED_CALL) {
+        PRINTF("sign_nested_call_tx wrong state : %d\n", G_context.signing_state);
         explicit_bzero(&G_context.account, sizeof(G_context.account));
         return io_send_sw(SWO_CONDITIONS_NOT_SATISFIED);
     }
@@ -139,9 +154,19 @@ static int sign_nested_call_tx(buffer_t *cdata)
     }
 
     G_context.nested_call_offset++;
-    if (G_context.nested_call_offset == G_context.nested_call_count) {
-        G_context.fees_waiting_time_ms = 0;
-        G_context.signing_state        = SIGNING_STATE_WAIT_FEES;
+    if (G_context.nested_call_offset >= G_context.nested_call_count) {
+        if ((G_context.sign_transaction_datas.max_base_fee != 0)
+            || (G_context.sign_transaction_datas.max_priority_fee != 0)) {
+            G_context.fees_waiting_time_ms = 0;
+            G_context.signing_state        = SIGNING_STATE_WAIT_FEES;
+#ifndef FUZZ
+            nbgl_useCaseSpinner("Calculating fees");
+#endif  // FUZZ
+        }
+        else {
+            nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
+            G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
+        }
     }
 
 end:
@@ -153,6 +178,7 @@ static int sign_fee_tx(buffer_t *cdata)
     int status = 0;
 
     if (G_context.signing_state != SIGNING_STATE_WAIT_FEES) {
+        PRINTF("sign_fee_tx wrong state : %d\n", G_context.signing_state);
         explicit_bzero(&G_context.account, sizeof(G_context.account));
         return io_send_sw(SWO_CONDITIONS_NOT_SATISFIED);
     }

@@ -348,7 +348,7 @@ static void display_progression(uint8_t step)
     }
     else if (G_context.signing_state == SIGNING_STATE_NESTED_CALL) {
         text = "Prepare Tx";
-        current_step += step + ((1 + G_context.nested_call_offset) * 5);
+        current_step += step + (G_context.nested_call_offset * 5);
     }
     else {
         text = "Prepare Tx";
@@ -442,40 +442,7 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     }
 
     // Compute the function ID.
-    function_id_datas_t function_id_datas;
-    memset(&function_id_datas, 0, sizeof(function_id_datas));
-    function_id_datas.network_id = request->network_id;
-    uint8_t is_name              = 1;
-    uint8_t offset               = 0;
-    for (size_t i = 0; i < request->program_id_length; i++) {
-        if (request->program_id[i] != '.') {
-            if (is_name) {
-                if (offset >= sizeof(function_id_datas.program_id_name)) {
-                    status = -1;
-                    goto end;
-                }
-                function_id_datas.program_id_name[offset++] = request->program_id[i];
-            }
-            else {
-                if (offset >= sizeof(function_id_datas.program_id_network)) {
-                    status = -1;
-                    goto end;
-                }
-                function_id_datas.program_id_network[offset++] = request->program_id[i];
-            }
-        }
-        else {
-            is_name = 0;
-            offset  = 0;
-        }
-    }
-    if (request->function_name_length >= sizeof(function_id_datas.function_name)) {
-        status = -1;
-        goto end;
-    }
-    memcpy(function_id_datas.function_name, request->function_name, request->function_name_length);
-
-    if ((status = bhp_1024_hash_function_id(&function_id_datas, &request->function_id)) < 0) {
+    if ((status = bhp_1024_hash_function_id(request)) < 0) {
         goto end;
     }
     PRINTF("function_id : ");

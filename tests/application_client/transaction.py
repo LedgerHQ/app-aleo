@@ -62,7 +62,7 @@ class Transaction():
         elif t.value <= 255:
             val += f"81{t.value:02x}"
         else:
-            val += f"82{t.value:02x}"
+            val += f"82{t.value:04x}"
 
         # length
         length = len(v)//2
@@ -71,7 +71,7 @@ class Transaction():
         elif length <= 255:
             val += f"81{length:02x}"
         else:
-            val += f"82{length:02x}"
+            val += f"82{length:04x}"
 
         # value
         val += v

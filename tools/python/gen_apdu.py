@@ -217,6 +217,19 @@ def generate_root_apdu(cmd, nested_call_count):
 
 	return apdus
 
+def generate_nested_call_apdu(cmd):
+
+	req = ''
+	# request
+	req += generate_request_apdu(cmd['request'], 1, 0)
+
+	# Request length
+	req_start = '{:04x}'.format(len(req)//2)
+
+	apdus = gen_apdu_array('e0', '06', '01', req_start+req)
+
+	return apdus
+
 
 def generate_fee_apdu(cmd):
 
@@ -248,15 +261,19 @@ if __name__ == "__main__":
 	for cmd in cmds:
 		print(cmd)
 		if cmd['type'] == 'root':
-			apdu = generate_root_apdu(cmd, 0)
+			nested_call_count = 0
+			if 'nested_call_count' in cmd['request']:
+				nested_call_count = cmd['request']['nested_call_count']
+			apdu = generate_root_apdu(cmd, nested_call_count)
 			for item in apdu:
 				print('echo {} | python3 -m ledgerblue.runScript --apdu'.format(item))
 		elif cmd['type'] == 'nested_call':
-			pass
+			apdu = generate_nested_call_apdu(cmd)
+			for item in apdu:
+				print('echo {} | python3 -m ledgerblue.runScript --apdu'.format(item))
 		elif cmd['type'] == 'fee':
 			apdu = generate_fee_apdu(cmd)
 			for item in apdu:
 				print('echo {} | python3 -m ledgerblue.runScript --apdu'.format(item))
-			pass
 
 	exit(0)

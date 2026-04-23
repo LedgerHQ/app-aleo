@@ -25,38 +25,29 @@
 #include "os_utils.h"
 #include "cx.h"
 
-#include "bhp_1024_parameters.h"
+#include "db_program_function.h"
 #include "bhp_1024.h"
 
-int bhp_1024_hash_function_id(const function_id_datas_t *data, field_t *hash)
+int bhp_1024_hash_function_id(prepared_request_t *request)
 {
-    size_t             index         = 0;
-    size_t             program_index = 0;
-    function_hashes_t *functions     = NULL;
+    size_t                 index         = 0;
+    size_t                 program_index = 0;
+    function_parameters_t *functions     = NULL;
 
-    LEDGER_ASSERT(data != NULL, "NULL data");
-    LEDGER_ASSERT(hash != NULL, "NULL hash");
+    LEDGER_ASSERT(request != NULL, "NULL request");
 
-    if (data->network_id >= NETWORK_ID_COUNT) {
+    if (request->network_id >= NETWORK_ID_COUNT) {
         return -1;
     }
 
+    // Find program
     for (index = 0; index < NB_OF_PROGRAMS; index++) {
-        if (strlen(data->program_id_name) != strlen(PIC(bhp_1024_parameters[index].program_id))) {
+        if (request->program_id_length != strlen(PIC(program_parameters[index].program_id))) {
             continue;
         }
-        if (memcmp(data->program_id_name,
-                   PIC(bhp_1024_parameters[index].program_id),
-                   strlen(data->program_id_name))) {
-            continue;
-        }
-        if (strlen(data->program_id_network)
-            != strlen(PIC(bhp_1024_parameters[index].program_id_network))) {
-            continue;
-        }
-        if (memcmp(data->program_id_network,
-                   PIC(bhp_1024_parameters[index].program_id_network),
-                   strlen(data->program_id_network))) {
+        if (memcmp(request->program_id,
+                   PIC(program_parameters[index].program_id),
+                   request->program_id_length)) {
             continue;
         }
         break;
@@ -65,18 +56,23 @@ int bhp_1024_hash_function_id(const function_id_datas_t *data, field_t *hash)
     if (index >= NB_OF_PROGRAMS) {
         return -1;
     }
-    program_index = index;
-    functions     = PIC(bhp_1024_parameters[program_index].functions);
 
-    for (index = 0; index < bhp_1024_parameters[program_index].nb_of_functions; index++) {
-        if (strlen(data->function_name) != strlen(PIC(functions[index].string))) {
+    // Find program's function
+    program_index = index;
+    functions     = PIC(program_parameters[program_index].functions);
+
+    for (index = 0; index < program_parameters[program_index].nb_of_functions; index++) {
+        if (request->function_name_length != strlen(PIC(functions[index].string))) {
             continue;
         }
-        if (memcmp(
-                data->function_name, PIC(functions[index].string), strlen(data->function_name))) {
+        if (memcmp(request->function_name,
+                   PIC(functions[index].string),
+                   request->function_name_length)) {
             continue;
         }
-        memcpy(hash, PIC(&functions[index].hashes[data->network_id]), sizeof(field_t));
+        memcpy(&request->function_id,
+               PIC(&functions[index].bhp_1024_hashes[request->network_id]),
+               sizeof(field_t));
         return 0;
     }
 

@@ -104,32 +104,27 @@ typedef struct {
 
 typedef enum {
     TX_UNKNOWN,
-    TX_TRANSFER,
-    TX_FEE,
+    TX_TRANSFER_START,
+    TX_ALEO_TRANSFER_PUBLIC = TX_TRANSFER_START,
+    TX_ALEO_TRANSFER_PRIVATE,
+    TX_ALEO_TRANSFER_BATCH_PRIVATE,
+    TX_ALEO_TRANSFER_PRIVATE_TO_PUBLIC,
+    TX_ALEO_TRANSFER_PUBLIC_TO_PRIVATE,
+    TX_ALEO_TRANSFER_END = TX_ALEO_TRANSFER_PUBLIC_TO_PRIVATE,
+    TX_FEE_START,
+    TX_FEE_PUBLIC = TX_FEE_START,
+    TX_FEE_PRIVATE,
+    TX_FEE_END = TX_FEE_PRIVATE,
 } tx_type_e;
 
-typedef enum {
-    TX_TRANSFER_PUBLIC,
-    TX_TRANSFER_PRIVATE,
-    TX_TRANSFER_PUBLIC_TO_PRIVATE,
-    TX_TRANSFER_PRIVATE_TO_PUBLIC,
-} tx_transfer_type_e;
-
-typedef enum {
-    TX_FEE_PUBLIC,
-    TX_FEE_PRIVATE,
-} tx_fee_type_e;
-
 typedef struct {
-    tx_transfer_type_e type;
-    char               address_to[ADDRESS_LEN + 1];
-    uint64_t           amount;
+    char     address_to[ADDRESS_LEN + 1];
+    uint64_t amount;
 } tx_transfer_t;
 
 typedef struct {
-    tx_fee_type_e type;
-    uint64_t      base_fee;
-    uint64_t      priority_fee;
+    uint64_t base_fee;
+    uint64_t priority_fee;
 } tx_fee_t;
 
 typedef struct {

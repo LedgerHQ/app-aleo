@@ -52,10 +52,18 @@ static void print_signature_data(sign_transaction_datas_t *data)
         }
         PRINTF("\n");
     }
+    PRINTF("nested_call_count  : %d\n", data->prepared_request.nested_call_count);
     if (data->prepared_request.program_checksum) {
         PRINTF("program_checksum : ");
         for (int j = 0; j < 32; j++) {
             PRINTF("%02x", data->prepared_request.program_checksum[j]);
+        }
+        PRINTF("\n");
+    }
+    if (data->prepared_request.r_hint) {
+        PRINTF("r_hint : ");
+        for (int j = 0; j < 32; j++) {
+            PRINTF("%02x", data->prepared_request.r_hint[j]);
         }
         PRINTF("\n");
     }
