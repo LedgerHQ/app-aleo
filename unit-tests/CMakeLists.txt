@@ -23,8 +23,6 @@ ENABLE_TESTING()
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED True)
 add_definitions(-DPRINTF=)
-add_definitions(-DALEO_BIP32_SUPPORT=1)
-#add_definitions(-DHAVE_SECP256K1_CURVE=1)
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall -pedantic -g -O0 --coverage")
 
 set(GCC_COVERAGE_LINK_FLAGS "--coverage -lgcov")
