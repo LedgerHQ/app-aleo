@@ -30,7 +30,7 @@ APPNAME = "Aleo"
 # Application version
 APPVERSION_M = 1
 APPVERSION_N = 0
-APPVERSION_P = 0
+APPVERSION_P = 1
 APPVERSION = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
 
 # Application source files
@@ -56,7 +56,6 @@ endif
 # Possibles curves are: secp256k1, secp256r1, ed25519 and bls12381g1
 # If your app needs it, you can specify multiple curves by using:
 # `CURVE_APP_LOAD_PARAMS = <curve1> <curve2>`
-#CURVE_APP_LOAD_PARAMS = secp256k1
 CURVE_APP_LOAD_PARAMS = bls12377g1 # needs API_LEVEL >= 26
 
 # Application allowed derivation paths.

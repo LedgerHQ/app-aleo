@@ -18,7 +18,7 @@ def test_get_view_key_confirm_accepted(backend: BackendInterface, scenario_navig
     response = client.get_async_response().data
     _, address = unpack_get_view_key_response(response)
 
-    assert address.decode("utf-8") == "AViewKey1drYogP8waPN7ZMMpFvX1jQATn28BTK7KNTyD7DKo4bWJ"
+    assert address.decode("utf-8") == "AViewKey1fnXDtDJz1Vr8hRFXa7ZxwWA37E3TX9MrQJei691gSJkA"
 
 
 # In this test we check that the CMD_GET_VIEW_KEY in confirmation mode replies an error if the user refuses

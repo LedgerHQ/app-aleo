@@ -111,7 +111,6 @@ static void test_signature(void **state)
     };
 
     // sign_prepared_request
-
     request.program_id_length = 1;
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();

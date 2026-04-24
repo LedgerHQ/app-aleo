@@ -19,16 +19,10 @@
 #include <stddef.h>   // size_t
 #include <stdbool.h>  // bool
 
-#if (API_LEVEL >= 26)
-#define ALEO_BIP32_SUPPORT (1)
-#endif  // API_LEVEL
-
 #include "os.h"
 #include "ledger_assert.h"
-#ifdef ALEO_BIP32_SUPPORT
 #include "os_hdkey.h"
 #include "sw.h"
-#endif  // ALEO_BIP32_SUPPORT
 #include "globals.h"
 #include "group.h"
 #include "poseidon.h"
@@ -61,31 +55,13 @@ static void display_progression(uint8_t step)
 {
     // %2 is an ugly hack to force spinner text update by changing the pointer value
     snprintf(&text_buffer[step % 2], sizeof(text_buffer) - (step % 2), "Loading transaction");
+#ifndef FUZZ
     nbgl_useCaseSpinner(&text_buffer[step % 2]);
+#endif  // FUZZ
 }
 
 static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
 {
-#ifndef ALEO_BIP32_SUPPORT
-    // TODO : Temporary code start
-    uint8_t seed_bn[64];
-    memset(seed_bn, 0, sizeof(seed_bn));
-    cx_err_t error = os_derive_bip32_with_seed_no_throw(
-        HDW_NORMAL, CX_CURVE_256K1, path, path_len, seed_bn, NULL, NULL, 0);
-    if (error != CX_OK) {
-        explicit_bzero(seed, sizeof(field_t));
-        return -1;
-    }
-    bn_print(seed_bn);
-
-    bigint_256_t seed_big_int;
-    memset(&seed_big_int, 0, sizeof(seed_big_int));
-    bn_to_big_int(seed_bn, &seed_big_int);
-    field_from_big_int(seed, &seed_big_int);
-
-    // TODO : Temporary code end
-
-#else   // ALEO_BIP32_SUPPORT
     uint8_t      seed_bn[32];
     bigint_256_t seed_big_int;
     bolos_err_t  error = sys_hdkey_derive(HDKEY_DERIVE_MODE_BLS12377_ALEO,
@@ -106,7 +82,6 @@ static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
     bn_reverse(seed_bn);
     bn_to_big_int(seed_bn, &seed_big_int);
     field_from_big_int(seed, &seed_big_int);
-#endif  // ALEO_BIP32_SUPPORT
 
     return 0;
 }

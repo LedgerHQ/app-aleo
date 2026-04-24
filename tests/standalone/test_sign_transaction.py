@@ -142,7 +142,7 @@ def test_sign_transaction_refused(backend: BackendInterface, scenario_navigator:
 def test_sign_transaction_fee_timeout(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
     tx_datas = forge_public_transfer(500, 100, "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe", 1000)
-    tx_datas['path'] = "m/44'/683'/0'/0'/0'"
+    tx_datas['path'] = "m/44'/683'/0'/0'"
     with client.sign_transaction(tx_datas=tx_datas):
         scenario_navigator.review_approve_with_spinner("Calculating fees")
 
@@ -150,10 +150,10 @@ def test_sign_transaction_fee_timeout(backend: BackendInterface, scenario_naviga
     unpacked = unpack_sign_transaction_response(response)
     expected = {'structure_type': 42,
                 'version': 1,
-                'signature': {'pk_sig': '52635af7828f4ceadb4fb51ce14255a4fe2f8a29985d0ba4554f79da61f52007',
-                              'pr_sig': '0778a6061189b5c56da8b5a6881197e52ad01f45960dcb1cd769a0799e3cda09'},
-                'tvk': 'b535d8905fba7d5151378ab894b12e18778656b894f4eab8b35c7511098f9312',
-                'tpk': '6c33aa8071756445369c0f6cb3546e477af732bc1703b4aa2124a7c9e1b65207',
+                'signature': {'pk_sig': '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig': '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'tvk': '8609d03e8e81abcb979748b01c38a1425e50efaf6e55d4944c4e910c57094f12',
+                'tpk': '849385c14f1819e42afe5bff7ab752bb17ab3fc4b12fbe13fa3d1b789a257912',
                 'gammas_count': 0
     }
     assert check_response(unpacked, expected)
@@ -172,7 +172,7 @@ def test_sign_transaction_fee_timeout(backend: BackendInterface, scenario_naviga
 def test_sign_transaction_wrong_fee(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
     tx_datas = forge_public_transfer(500, 100, "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe", 1000)
-    tx_datas['path'] = "m/44'/683'/0'/0'/0'"
+    tx_datas['path'] = "m/44'/683'/0'/0'"
     with client.sign_transaction(tx_datas=tx_datas):
         scenario_navigator.review_approve_with_spinner("Calculating fees")
 
@@ -180,10 +180,10 @@ def test_sign_transaction_wrong_fee(backend: BackendInterface, scenario_navigato
     unpacked = unpack_sign_transaction_response(response)
     expected = {'structure_type': 42,
                 'version': 1,
-                'signature': {'pk_sig': '52635af7828f4ceadb4fb51ce14255a4fe2f8a29985d0ba4554f79da61f52007',
-                              'pr_sig': '0778a6061189b5c56da8b5a6881197e52ad01f45960dcb1cd769a0799e3cda09'},
-                'tvk': 'b535d8905fba7d5151378ab894b12e18778656b894f4eab8b35c7511098f9312',
-                'tpk': '6c33aa8071756445369c0f6cb3546e477af732bc1703b4aa2124a7c9e1b65207',
+                'signature': {'pk_sig': '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig': '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'tvk': '8609d03e8e81abcb979748b01c38a1425e50efaf6e55d4944c4e910c57094f12',
+                'tpk': '849385c14f1819e42afe5bff7ab752bb17ab3fc4b12fbe13fa3d1b789a257912',
                 'gammas_count': 0
     }
     assert check_response(unpacked, expected)
@@ -199,7 +199,7 @@ def test_sign_transaction_wrong_fee(backend: BackendInterface, scenario_navigato
 def test_sign_transaction_transfer_public(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
     tx_datas = forge_public_transfer(500, 100, "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe", 1000)
-    tx_datas['path'] = "m/44'/683'/0'/0'/0'"
+    tx_datas['path'] = "m/44'/683'/0'/0'"
     with client.sign_transaction(tx_datas=tx_datas):
         scenario_navigator.review_approve_with_spinner("Calculating fees")
 
@@ -207,10 +207,10 @@ def test_sign_transaction_transfer_public(backend: BackendInterface, scenario_na
     unpacked = unpack_sign_transaction_response(response)
     expected = {'structure_type': 42,
                 'version': 1,
-                'signature': {'pk_sig': '52635af7828f4ceadb4fb51ce14255a4fe2f8a29985d0ba4554f79da61f52007',
-                              'pr_sig': '0778a6061189b5c56da8b5a6881197e52ad01f45960dcb1cd769a0799e3cda09'},
-                'tvk': 'b535d8905fba7d5151378ab894b12e18778656b894f4eab8b35c7511098f9312',
-                'tpk': '6c33aa8071756445369c0f6cb3546e477af732bc1703b4aa2124a7c9e1b65207',
+                'signature': {'pk_sig': '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig': '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'tvk': 'c0068ab5ce6620d54f6242d78644ad536b8d9510bfc678a4b4e4d21b22af2d0f',
+                'tpk': 'ba30b8e89e6d71250fbcf43a736bf36187b6fb9a08a8663c6878b11842dde011',
                 'gammas_count': 0
     }
     assert check_response(unpacked, expected)
@@ -232,10 +232,10 @@ def test_sign_transaction_transfer_public(backend: BackendInterface, scenario_na
     unpacked = unpack_sign_transaction_response(response)
     expected = {'structure_type': 42,
                 'version': 1,
-                'signature': {'pk_sig': '52635af7828f4ceadb4fb51ce14255a4fe2f8a29985d0ba4554f79da61f52007',
-                              'pr_sig': '0778a6061189b5c56da8b5a6881197e52ad01f45960dcb1cd769a0799e3cda09'},
-                'tvk': 'aaab438b86c993c90d6bafdf80af63ca8ffe6aefe2cc6f7ef1876d19fe488512',
-                'tpk': '82ec6ee9302e9bc5731270438a9319c935eb695df74cbd18631f2e4e2a54740b',
+                'signature': {'pk_sig': '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig': '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'tvk': 'dd9287d9bb26482d8c0ea1ae225208ca57c30371703e747c1d4215db91184503',
+                'tpk': '92285f8a4380808008dede51fb2fa16a5f70020c0168158332fe0da82d1c7409',
                 'gammas_count': 0
     }
     assert check_response(unpacked, expected)
@@ -247,7 +247,7 @@ def test_sign_transaction_transfer_private(backend: BackendInterface, scenario_n
               "2426895214035216932245297778850989035038538961658726507442215877484415082794field",
               "0220642863446832956019507279394572297489712696240584424406852292692897199577field"]
     tx_datas = forge_private_transfer(500, 100, record, "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe", 1000)
-    tx_datas['path'] = "m/44'/683'/0'/0'/0'"
+    tx_datas['path'] = "m/44'/683'/0'/0'"
     with client.sign_transaction(tx_datas=tx_datas):
         scenario_navigator.review_approve_with_spinner("Calculating fees")
 
@@ -255,12 +255,12 @@ def test_sign_transaction_transfer_private(backend: BackendInterface, scenario_n
     unpacked = unpack_sign_transaction_response(response)
     expected = {'structure_type': 42,
                 'version': 1,
-                'signature': {'pk_sig' : '52635af7828f4ceadb4fb51ce14255a4fe2f8a29985d0ba4554f79da61f52007',
-                              'pr_sig' : '0778a6061189b5c56da8b5a6881197e52ad01f45960dcb1cd769a0799e3cda09'},
-                'tvk': 'a8d1529eb6df81004a28af86347cae9005ea04244f4c1a816688e165cc18680a',
-                'tpk': 'a24c8e1be3a48c5342784d5ddd92d470fc6db93ea680dd62ccc3e5c10fadf609',
+                'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'tvk': 'b8c19e867e2f277cdcb7a842f879808bbd3899da74c74038a1cf4762e8d37909',
+                'tpk': '4e27d760e657c658b1a6f0cca5d6aa94680732889148926d3dec90f5647bc107',
                 'gammas_count': 1,
-                'gammas': ['5da12afb13f3b9d1dd29a5cd0e0e180e6db92002dabf9a8bd5d83f8ce831fc03']
+                'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
     }
     assert check_response(unpacked, expected)
 
@@ -282,12 +282,12 @@ def test_sign_transaction_transfer_private(backend: BackendInterface, scenario_n
     unpacked = unpack_sign_transaction_response(response)
     expected = {'structure_type': 42,
                 'version': 1,
-                'signature': {'pk_sig' : '52635af7828f4ceadb4fb51ce14255a4fe2f8a29985d0ba4554f79da61f52007',
-                              'pr_sig' : '0778a6061189b5c56da8b5a6881197e52ad01f45960dcb1cd769a0799e3cda09'},
-                'tvk': 'e731d9987a156e31f5478109b10cadca099914263c7436efe1609e819c7b3105',
-                'tpk': '28d6d3fa69ffb808bc5b06043b64dddca07225fc1e4d285cf7766baa54f26c00',
+                'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'tvk': '816ee140fa1e9a4717cc77e4e741e68b57dfe7039cc4b93ef1f3a87e89fcf209',
+                'tpk': '98fc0345347c0f6bd8735de44dfbb25c4f0f95cc4ba7215d032f69702a6b8f05',
                 'gammas_count': 1,
-                'gammas': ['5da12afb13f3b9d1dd29a5cd0e0e180e6db92002dabf9a8bd5d83f8ce831fc03']
+                'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
     }
     assert check_response(unpacked, expected)
 
@@ -298,7 +298,7 @@ def test_sign_transaction_transfer_private_zero_fees(backend: BackendInterface, 
               "2426895214035216932245297778850989035038538961658726507442215877484415082794field",
               "0220642863446832956019507279394572297489712696240584424406852292692897199577field"]
     tx_datas = forge_private_transfer(0, 0, record, "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe", 1000)
-    tx_datas['path'] = "m/44'/683'/0'/0'/0'"
+    tx_datas['path'] = "m/44'/683'/0'/0'"
     with client.sign_transaction(tx_datas=tx_datas):
         scenario_navigator.review_approve()
 
@@ -306,11 +306,11 @@ def test_sign_transaction_transfer_private_zero_fees(backend: BackendInterface, 
     unpacked = unpack_sign_transaction_response(response)
     expected = {'structure_type': 42,
                 'version': 1,
-                'signature': {'pk_sig' : '52635af7828f4ceadb4fb51ce14255a4fe2f8a29985d0ba4554f79da61f52007',
-                              'pr_sig' : '0778a6061189b5c56da8b5a6881197e52ad01f45960dcb1cd769a0799e3cda09'},
-                'tvk': 'a8d1529eb6df81004a28af86347cae9005ea04244f4c1a816688e165cc18680a',
-                'tpk': 'a24c8e1be3a48c5342784d5ddd92d470fc6db93ea680dd62ccc3e5c10fadf609',
+                'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'tvk': 'b8c19e867e2f277cdcb7a842f879808bbd3899da74c74038a1cf4762e8d37909',
+                'tpk': '4e27d760e657c658b1a6f0cca5d6aa94680732889148926d3dec90f5647bc107',
                 'gammas_count': 1,
-                'gammas': ['5da12afb13f3b9d1dd29a5cd0e0e180e6db92002dabf9a8bd5d83f8ce831fc03']
+                'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
     }
     assert check_response(unpacked, expected)
