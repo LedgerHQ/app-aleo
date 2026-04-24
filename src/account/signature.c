@@ -360,7 +360,9 @@ static void display_progression(uint8_t step)
              text,
              current_step,
              total_step);
+#ifndef FUZZ
     nbgl_useCaseSpinner(&text_buffer[step % 2]);
+#endif  // FUZZ
 }
 
 int sign_prepared_request(account_t *account, prepared_request_t *request)

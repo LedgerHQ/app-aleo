@@ -55,7 +55,9 @@ static void display_progression(uint8_t step)
 {
     // %2 is an ugly hack to force spinner text update by changing the pointer value
     snprintf(&text_buffer[step % 2], sizeof(text_buffer) - (step % 2), "Loading transaction");
+#ifndef FUZZ
     nbgl_useCaseSpinner(&text_buffer[step % 2]);
+#endif  // FUZZ
 }
 
 static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
