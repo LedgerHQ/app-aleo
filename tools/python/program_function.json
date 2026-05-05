@@ -25,7 +25,7 @@
 			"tx_type" : "TX_UNKNOWN",
 			"input_count" : 2}
 	],
-	"ldgbatcher.aleo" : [
+	"ldgbatcher_p28.aleo" : [
 		{"function" : "transfer_private_2",
 			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE",
 			"input_count" : 4},
@@ -47,5 +47,72 @@
 		{"function" : "transfer_private_8",
 			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE",
 			"input_count" : 10}
+	],
+	"ldgbatcher_p910.aleo" : [
+		{"function" : "transfer_private_9",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE",
+			"input_count" : 11},
+		{"function" : "transfer_private_10",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE",
+			"input_count" : 12}
+	],
+	"ldgbatcher_p1114.aleo" : [
+		{"function" : "transfer_private_11",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE",
+			"input_count" : 13},
+		{"function" : "transfer_private_12",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE",
+			"input_count" : 14},
+		{"function" : "transfer_private_13",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE",
+			"input_count" : 15},
+		{"function" : "transfer_private_14",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE",
+			"input_count" : 16}
+	],
+	"ldgbatcher_ppub_28.aleo" : [
+		{"function" : "transfer_private_to_public_2",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
+			"input_count" : 3},
+		{"function" : "transfer_private_to_public_3",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
+			"input_count" : 4},
+		{"function" : "transfer_private_to_public_4",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
+			"input_count" : 5},
+		{"function" : "transfer_private_to_public_5",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
+			"input_count" : 6},
+		{"function" : "transfer_private_to_public_6",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
+			"input_count" : 7},
+		{"function" : "transfer_private_to_public_7",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
+			"input_count" : 8},
+		{"function" : "transfer_private_to_public_8",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
+			"input_count" : 9}
+	],
+	"ldgbatcher_ppub_910.aleo" : [
+		{"function" : "transfer_private_to_public_9",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
+			"input_count" : 10},
+		{"function" : "transfer_private_to_public_10",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
+			"input_count" : 11}
+	],
+	"ldgbatcher_ppub_1114.aleo" : [
+		{"function" : "transfer_private_to_public_11",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
+			"input_count" : 12},
+		{"function" : "transfer_private_to_public_12",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
+			"input_count" : 13},
+		{"function" : "transfer_private_to_public_13",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
+			"input_count" : 14},
+		{"function" : "transfer_private_to_public_14",
+			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
+			"input_count" : 15}
 	]
 }

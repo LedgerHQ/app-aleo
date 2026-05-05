@@ -234,7 +234,7 @@ int account_get_address_string(const uint32_t *path, uint8_t path_len, char addr
     bn_reverse(address_bn);
     bn_print(address_bn);
 
-    uint8_t data[64];
+    uint8_t data[ADDRESS_LEN + 1];
     size_t  datalen = 0;
     if ((status = bech32_convert_bits(data, &datalen, sizeof(data), 5, address_bn, 32, 8, 1)) < 0) {
         goto end;
@@ -300,7 +300,9 @@ end:
 
 int account_generate_keys(const uint32_t *path, uint8_t path_len, account_t *account)
 {
-    int status = 0;
+    int          status = 0;
+    bigint_256_t address_big_int;
+    uint8_t      address_bn[32];
 
     LEDGER_ASSERT(path != NULL, "NULL path");
     LEDGER_ASSERT(account != NULL, "NULL account");
@@ -329,6 +331,28 @@ int account_generate_keys(const uint32_t *path, uint8_t path_len, account_t *acc
     if ((status = graph_key_from_view_key(&account->view_key, &account->graph_key)) < 0) {
         goto error;
     }
+
+    field_to_big_int(&account->address.x, &address_big_int);
+    big_int_to_bn(&address_big_int, address_bn);
+
+    // Reverse bn
+    bn_reverse(address_bn);
+    bn_print(address_bn);
+
+    uint8_t data[ADDRESS_LEN + 1];
+    size_t  datalen = 0;
+    memset(account->address_str, 0, ADDRESS_LEN + 1);
+    if ((status = bech32_convert_bits(
+             data, &datalen, sizeof(data), 5, address_bn, sizeof(address_bn), 8, 1))
+        < 0) {
+        goto error;
+    }
+    if ((status = bech32_encode(
+             account->address_str, ADDRESS_PREFIX, data, datalen, BECH32_ENCODING_BECH32M))
+        < 0) {
+        goto error;
+    }
+
     return 0;
 
 error:

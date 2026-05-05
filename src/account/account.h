@@ -29,7 +29,7 @@ typedef struct {
     scalar_t      view_key;
     group_t       address;
     field_t       graph_key;
-
+    char          address_str[ADDRESS_LEN + 1];
 } account_t;
 
 typedef struct {

@@ -78,14 +78,17 @@ static int display_review_transaction(void)
     else if (G_context.tx.type == TX_ALEO_TRANSFER_PRIVATE) {
         review_subtitle = "Private transfer";
     }
-    else if (G_context.tx.type == TX_ALEO_TRANSFER_PUBLIC_TO_PRIVATE) {
-        review_subtitle = "Transfer from public to private address";
+    else if (G_context.tx.type == TX_ALEO_TRANSFER_BATCH_PRIVATE) {
+        review_subtitle = "Private batch transfer";
     }
     else if (G_context.tx.type == TX_ALEO_TRANSFER_PRIVATE_TO_PUBLIC) {
         review_subtitle = "Transfer from private to public address";
     }
-    else if (G_context.tx.type == TX_ALEO_TRANSFER_BATCH_PRIVATE) {
-        review_subtitle = "Private batch transfer";
+    else if (G_context.tx.type == TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC) {
+        review_subtitle = "Batch transfer from public to private address";
+    }
+    else if (G_context.tx.type == TX_ALEO_TRANSFER_PUBLIC_TO_PRIVATE) {
+        review_subtitle = "Transfer from public to private address";
     }
     else {
         return -1;
@@ -114,8 +117,13 @@ static int display_review_transaction(void)
     pair_index++;
 
     // To address
-    pairs[pair_index].item  = "To";
-    pairs[pair_index].value = G_context.tx.transfer.address_to;
+    pairs[pair_index].item = "To";
+    if (strlen(G_context.tx.transfer.address_to) > 0) {
+        pairs[pair_index].value = G_context.tx.transfer.address_to;
+    }
+    else {
+        pairs[pair_index].value = G_context.account.address_str;
+    }
     pair_index++;
 
     // Fees

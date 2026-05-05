@@ -51,6 +51,7 @@ static int parse_aleo_transfer_public(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_aleo_transfer_private(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_aleo_batch_transfer_private(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_aleo_transfer_public_to_private(sign_transaction_datas_t *data, tx_t *tx);
+static int parse_aleo_batch_transfer_public_to_private(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_aleo_transfer_private_to_public(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_fee_public(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx);
@@ -157,6 +158,16 @@ static int parse_aleo_transfer_public_to_private(sign_transaction_datas_t *data,
     return status;
 }
 
+static int parse_aleo_batch_transfer_public_to_private(sign_transaction_datas_t *data, tx_t *tx)
+{
+    uint8_t inputs_count = data->prepared_request.inputs_count;
+    int     status
+        = get_u64(&data->prepared_request.inputs[inputs_count - 1], false, &tx->transfer.amount);
+    memset(tx->transfer.address_to, 0, sizeof(tx->transfer.address_to));
+
+    return status;
+}
+
 static int parse_aleo_transfer_private_to_public(sign_transaction_datas_t *data, tx_t *tx)
 {
     int status = get_address(&data->prepared_request.inputs[1], false, tx->transfer.address_to);
@@ -259,6 +270,9 @@ int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
 
         case TX_ALEO_TRANSFER_PUBLIC_TO_PRIVATE:
             return parse_aleo_transfer_public_to_private(data, tx);
+
+        case TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC:
+            return parse_aleo_batch_transfer_public_to_private(data, tx);
 
         case TX_ALEO_TRANSFER_PRIVATE_TO_PUBLIC:
             return parse_aleo_transfer_private_to_public(data, tx);
