@@ -1,166 +1,98 @@
 # Technical Specification
 
-> **Warning**
-This documentation is a template and shall be updated with your own APDUs.
-
 ## About
 
-This documentation describes the APDU messages interface to communicate with the Boilerplate application.
+This documentation describes the APDU messages interface to communicate with the Aleo application.
 
 The application covers the following functionalities :
 
-- Get a public Boilerplate address given a BIP 32 path
-- Sign a basic Boilerplate transaction given a BIP 32 path and raw transaction
-- Retrieve the Boilerplate app version
-- Retrieve the Boilerplate app name
+- Retrieve the Aleo app version
+- Retrieve the Aleo app name
+- Get an Aleo address given a BIP 32 path
+- Get the view key given a BIP 32 path
+- Sign transactions given a BIP 32 path
 
 The application interface can be accessed over HID or BLE
 
 ## APDUs
 
-### GET BOILERPLATE PUBLIC ADDRESS
-
-#### Description
-
-This command returns the public key for the given BIP 32 path.
-
-The address can be optionally checked on the device before being returned.
-
-#### Coding
-
-##### `Command`
-
-| CLA | INS   | P1                                                 | P2    | Lc       | Le       |
-| --- | ---   | ---                                                | ---   | ---      | ---      |
-| E0  |  05   |  00 : return address                               | 00    | variable | variable |
-|     |       |  01 : display address and confirm before returning |       |          |          |
-
-##### `Input data`
-
-| Description                                                      | Length |
-| ---                                                              | ---    |
-| Number of BIP 32 derivations to perform (max 10)                 | 1      |
-| First derivation index (big endian)                              | 4      |
-| ...                                                              | 4      |
-| Last derivation index (big endian)                               | 4      |
-
-##### `Output data`
-
-| Description                                                      | Length |
-| ---                                                              | ---    |
-| Public Key length                                                | 1      |
-| Public Key                                                       | var    |
-| Chain code length                                                | 1      |
-| Chain code                                                       | var    |
-
-### SIGN BOILERPLATE TRANSACTION
-
-#### Description
-
-This command signs a Boilerplate transaction after having the user validate the transactions parameters.
-
-The input data is the RLP encoded transaction streamed to the device in 255 bytes maximum data chunks.
-
-#### Coding
-
-##### `Command`
-
-| CLA | INS  | P1                   | P2                               | Lc       | Le       |
-| --- | ---  | ---                  | ---                              | ---      | ---      |
-| E0  | 06   |  00-FF : chunk index | 00 : last transaction data block | variable | variable |
-|     |      |                      | 80 : subsequent transaction data block |    |          |
-
-##### `Input data (first transaction data block)`
-
-| Description                                          | Length   |
-| ---                                                  | ---      |
-| Number of BIP 32 derivations to perform (max 10)     | 1        |
-| First derivation index (big endian)                  | 4        |
-| ...                                                  | 4        |
-| Last derivation index (big endian)                   | 4        |
-
-##### `Input data (other transaction data block)`
-
-| Description                                          | Length   |
-| ---                                                  | ---      |
-| Transaction chunk                                    | variable |
-
-##### `Output data`
-
-| Description                                          | Length   |
-| ---                                                  | ---      |
-| Signature length                                     | 1        |
-| Signature                                            | variable |
-| v                                                    | 1        |
-
 ### GET APP VERSION
 
 #### Description
 
-This command returns boilerplate application version
+This command returns Aleo application version
 
 #### Coding
 
-##### `Command`
+#### Command
 
-| CLA | INS | P1  | P2  | Lc   | Le |
-| --- | --- | --- | --- | ---  | ---|
-| E0  | 03  | 00  | 00  | 00   | 04 |
+| _CLA_ | _INS_ | _P1_ | _P2_ |   _Lc_   | _CData_  |
+| ----- | :---: | ---: | ---- | :------: | -------: |
+| E0    | 03    | 00   | 00   |    00    |    --    |
 
-##### `Input data`
+##### Input data
 
 None
 
-##### `Output data`
+##### Output data
 
-| Description                       | Length |
-| ---                               | ---    |
-| Application major version         | 01 |
-| Application minor version         | 01 |
-| Application patch version         | 01 |
+| _Description_               | _Length_ | _Type_ |
+| -------------------------   | :------: |  ----: |
+| Application major version   |    1     |    u8  |
+| Application minor version   |    1     |    u8  |
+| Application patch version   |    1     |    u8  |
+
 
 ### GET APP NAME
 
 #### Description
 
-This command returns boilerplate application name
+This command returns Aleo application name
 
 #### Coding
 
-##### `Command`
+##### Command
 
-| CLA | INS | P1  | P2  | Lc   | Le |
-| --- | --- | --- | --- | ---  | ---|
-| E0  | 04  | 00  | 00  | 00   | 04 |
+| _CLA_ | _INS_ | _P1_ | _P2_ |   _Lc_   | _CData_  |
+| ----- | :---: | ---: | ---- | :------: | -------: |
+| E0    | 04    | 00   | 00   |    00    |    --    |
 
-##### `Input data`
+##### Input data
 
 None
 
-##### `Output data`
+##### Output data
 
-| Description           | Length   |
-| ---                   | ---      |
-| Application name      | variable |
+| _Description_               | _Length_ | _Type_ |
+| -------------------------   | :------: |  ----: |
+| Application name            | variable | char*  |
 
-## Status Words
+
+### GET ACCOUNT ADDRESS
+
+[Description](doc/ACCOUNT.md#get-account-address)
+
+### GET ACCOUNT VIEW KEY
+
+[Description](doc/ACCOUNT.md#get-account-view-key)
+
+### SIGN TRANSACTION
+
+[Description](doc/SIGN_TRANSACTION.md)
+
+## STATUS WORDS
 
 The following standard Status Words are returned for all APDUs.
 
-| SW       | SW name                     | Description                                           |
-| ---      | ---                         | ---                                                   |
-|   6985   | SW_DENY                     | Rejected by user                                      |
-|   6A86   | SW_WRONG_P1P2               | Either P1 or P2 is incorrect                          |
-|   6A87   | SW_WRONG_DATA_LENGTH        | Lc or minimum APDU length is incorrect                |
-|   6D00   | SW_INS_NOT_SUPPORTED        | No command exists with INS                            |
-|   6E00   | SW_CLA_NOT_SUPPORTED        | Bad CLA used for this application                     |
-|   B000   | SW_WRONG_RESPONSE_LENGTH    | Wrong response length (buffer size problem)           |
-|   B001   | SW_DISPLAY_BIP32_PATH_FAIL  | BIP32 path conversion to string failed                |
-|   B002   | SW_DISPLAY_ADDRESS_FAIL     | Address conversion to string failed                   |
-|   B003   | SW_DISPLAY_AMOUNT_FAIL      | Amount conversion to string failed                    |
-|   B004   | SW_WRONG_TX_LENGTH          | Wrong raw transaction length                          |
-|   B005   | SW_TX_PARSING_FAIL          | Failed to parse raw transaction                       |
-|   B006   | SW_TX_HASH_FAIL             | Failed to compute hash digest of raw transaction      |
-|   B007   | SW_BAD_STATE                | Security issue with bad state                         |
-|   B008   | SW_SIGNATURE_FAIL           | Signature of raw transaction failed                   |
-|   9000   | OK                          | Success                                               |
+| SW       | SW name                        | Description                                                |
+| ---      | ---                            | ---                                                        |
+|   0x6985   | SWO_CONDITIONS_NOT_SATISFIED | The app is not in the right state to execute the cmd       |
+|   0x69f0   | SWO_PERMISSION_DENIED        | Rejected by user                                           |
+|   0x6a80   | SWO_INCORRECT_DATA           | Given data is incorrect                                    |
+|   0x6a84   | SWO_INSUFFICIENT_MEMORY      | The cmd length is exceeding the internal buffer max length |
+|   0x6a86   | SWO_INCORRECT_P1_P2          | Either P1 or P2 is incorrect                               |
+|   0x6a87   | SWO_WRONG_DATA_LENGTH        | Lc or minimum APDU length is incorrect                     |
+|   0x6d00   | SWO_INVALID_INS              | No command exists with INS                                 |
+|   0x6e00   | SWO_INVALID_CLA              | Bad CLA used for this application                          |
+|   0x9000   | SWO_SUCCESS                  | Success                                                    |
+|   0xb001   | SW_DISPLAY_BIP32_PATH_FAIL   | BIP32 path conversion to string failed                     |

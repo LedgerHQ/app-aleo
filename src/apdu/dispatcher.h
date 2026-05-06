@@ -4,21 +4,38 @@
 #include "types.h"
 
 /**
- * Parameter 2 for last APDU to receive.
+ * Parameter 1 for APDU get without confirmation.
  */
-#define P2_LAST 0x00
+#define P1_GET_WITHOUT_CONFIRMATION 0x00
+
 /**
- * Parameter 2 for more APDU to receive.
+ * Parameter 1 for APDU get with confirmation.
  */
-#define P2_MORE 0x80
+#define P1_GET_WITH_CONFIRMATION 0x01
+
 /**
- * Parameter 1 for first APDU number.
+ * Parameter 1 for APDU sign mode root (intent).
  */
-#define P1_START 0x00
+#define P1_SIGN_MODE_ROOT SIGN_MODE_ROOT
+
 /**
- * Parameter 1 for maximum APDU number.
+ * Parameter 1 for APDU sign mode nester call (following a root).
  */
-#define P1_MAX 0x03
+#define P1_SIGN_MODE_NESTED_CALL SIGN_MODE_NESTED_CALL
+
+/**
+ * Parameter 1 for APDU sign mode fee.
+ */
+#define P1_SIGN_MODE_FEE SIGN_MODE_FEE
+
+/**
+ * Parameter 2 for APDU begin chunk.
+ */
+#define P2_BEGIN 0x00
+/**
+ * Parameter 2 for APDU next chunk.
+ */
+#define P2_CONTINUE 0x01
 
 /**
  * Dispatch APDU command received to the right handler.

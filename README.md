@@ -1,40 +1,72 @@
-[![Ensure compliance with Ledger guidelines](https://github.com/LedgerHQ/app-boilerplate/actions/workflows/guidelines_enforcer.yml/badge.svg)](https://github.com/LedgerHQ/app-boilerplate/actions/workflows/guidelines_enforcer.yml)
+<br />
+<div align="center">
+  <a href="https://github.com/LedgerHQ/app-aleo">
+    <img src="doc/primary-logo-dark.png" width=200"/>
+  </a>
+  <p></p>
+<p align="center">
+  Aleo wallet application for Ledger devices.
+</p>
+</div>
+<br/>
 
-[![Build and run functional tests using ragger through reusable workflow](https://github.com/LedgerHQ/app-boilerplate/actions/workflows/build_and_functional_tests.yml/badge.svg?branch=master)](https://github.com/LedgerHQ/app-boilerplate/actions/workflows/build_and_functional_tests.yml)
+<details>
+  <summary>Table of Contents</summary>
 
-# Ledger Boilerplate Application
+- [About the project](#about-the-project)
+- [Documentation](#documentation)
+- [Quick start guide](#quick-start-guide)
+  - [With VSCode](#with-vscode)
+  - [With a terminal](#with-a-terminal)
+    - [Linux (Ubuntu)](#linux-ubuntu)
+    - [macOS](#macos)
+    - [Windows (with PowerShell)](#windows-with-powershell)
+- [Compilation and load](#compilation-and-load)
+  - [Compilation](#compilation)
+  - [Loading on a physical device](#loading-on-a-physical-device)
+    - [Linux (Ubuntu)](#linux-ubuntu-1)
+    - [macOS / Windows (with PowerShell)](#macos--windows-with-powershell)
 
-This is a boilerplate application which can be forked to start a new project for the Ledger devices.
+</details>
+
+
+## About the project
+
+Aleo application for Ledger Nano S Plus, Ledger Nano X, Ledger Flex, Ledger Stax & Ledger Nano Gen5.
+
+## Documentation
+
+This app follows the specification available in the `doc/` folder.
 
 ## Quick start guide
 
 ### With VSCode
 
-You can quickly setup a convenient environment to build and test your application
-by using [Ledger's VSCode developer tools extension](https://marketplace.visualstudio.com/items?itemName=LedgerHQ.ledger-dev-tools)
+You can quickly setup a convenient environment to build and test your application by using
+[Ledger's VSCode developer tools extension](https://marketplace.visualstudio.com/items?itemName=LedgerHQ.ledger-dev-tools)
 which leverages the [ledger-app-dev-tools](https://github.com/LedgerHQ/ledger-app-builder/pkgs/container/ledger-app-builder%2Fledger-app-dev-tools)
 docker image.
 
-It will allow you, whether you are developing on macOS, Windows or Linux to quickly **build** your apps,
-**test** them on **Speculos** and **load** them on any supported device.
+It will allow you, whether you are developing on macOS, Windows or Linux,
+to quickly **build** your apps, **test** them on **Speculos** and **load** them on any supported device.
 
-* Install and run [Docker](https://www.docker.com/products/docker-desktop/).
-* Make sure you have an X11 server running :
-  * On Ubuntu Linux, it should be running by default.
-  * On macOS, install and launch [XQuartz](https://www.xquartz.org/)
+- Install and run [Docker](https://www.docker.com/products/docker-desktop/).
+- Make sure you have an X11 server running:
+  - On Ubuntu Linux, it should be running by default.
+  - On macOS, install and launch [XQuartz](https://www.xquartz.org/)
     (make sure to go to XQuartz > Preferences > Security and check "Allow client connections").
-  * On Windows, install and launch [VcXsrv](https://sourceforge.net/projects/vcxsrv/)
+  - On Windows, install and launch [VcXsrv](https://sourceforge.net/projects/vcxsrv/)
     (make sure to configure it to disable access control).
-* Install [VScode](https://code.visualstudio.com/download) and add [Ledger's extension](https://marketplace.visualstudio.com/items?itemName=LedgerHQ.ledger-dev-tools).
-* Open a terminal and clone `app-boilerplate` with `git clone git@github.com:LedgerHQ/app-boilerplate.git`.
-* Open the `app-boilerplate` folder with VSCode.
-* Use Ledger extension's sidebar menu or open the tasks menu with `ctrl + shift + b`
-  (`command + shift + b` on a Mac) to conveniently execute actions :
-  * Build the app for the device model of your choice with `Build`.
-  * Test your binary on [Speculos](https://github.com/LedgerHQ/speculos) with `Run with Speculos`.
-  * You can also run functional tests, load the app on a physical device, and more.
+- Install [VScode](https://code.visualstudio.com/download) and add [Ledger's extension](https://marketplace.visualstudio.com/items?itemName=LedgerHQ.ledger-dev-tools).
+- Open a terminal and clone `app-aleo` with `git clone git@github.com:LedgerHQ/app-aleo.git`.
+- Open the `app-aleo` folder with VSCode.
+- Use Ledger extension's sidebar menu or open the tasks menu with `ctrl + shift + b`
+  (`command + shift + b` on a Mac) to conveniently execute actions:
+  - Build the app for the device model of your choice with `Build`.
+  - Test your binary on [Speculos](https://github.com/LedgerHQ/speculos) with `Run with Speculos`.
+  - You can also run functional tests, load the app on a physical device, and more.
 
-:information_source: The terminal tab of VSCode will show you what commands the extension runs behind the scene.
+> The terminal tab of VSCode will show you what commands the extension runs behind the scene.
 
 ### With a terminal
 
@@ -156,7 +188,7 @@ python3 -m ledgerblue.runScript --scp --fileName bin/app.apdu --elfFile bin/app.
 
 ## Test
 
-The boilerplate app comes with functional tests implemented with Ledger's [Ragger](https://github.com/LedgerHQ/ragger)
+The Aleo app comes with functional tests implemented with Ledger's [Ragger](https://github.com/LedgerHQ/ragger)
 test framework.
 
 ### macOS / Windows
@@ -204,46 +236,25 @@ speculos --model nanosp build/nanos2/bin/app.elf
 
 Please refer to the tests `README.md` for information on this topic.
 
-## Documentation
+### Unit Tests
 
-High level documentation such as [application specification](APP_SPECIFICATION.md), [APDU](doc/APDU.md)
-and [transaction serialization](doc/TRANSACTION.md) are included in developer documentation
-which can be generated with [doxygen](https://www.doxygen.nl)
+Those tests are available in the directory `tests/unit`. Please see the corresponding [README](tests/unit/README.md)
+to compile and run them.
 
-```shell
-doxygen .doxygen/Doxyfile
-```
+## Contributing
 
-the process outputs HTML and LaTeX documentations in `doc/html` and `doc/latex` folders.
+Contributions are what makes the open source community such an amazing place to learn, inspire, and create.
+Any contributions you make are **greatly appreciated**.
 
-## Continuous Integration
+If you have a suggestion that would make this better, please fork the repo and create a pull request.
+You can also simply open an issue with the tag `enhancement`.
 
-The flow processed in [GitHub Actions](https://github.com/features/actions) is the following:
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/my-feature`)
+3. Commit your Changes (`git commit -m 'feat: my new feature`)
+4. Push to the Branch (`git push origin feature/my-feature`)
+5. Open a Pull Request
 
-* Ledger guidelines enforcer which verifies that an app is compliant with Ledger guidelines.
-  The successful completion of this reusable workflow is a mandatory step for an app
-  to be available on the Ledger application store. More information on the guidelines can be found
-  in the repository [ledger-app-workflow](https://github.com/LedgerHQ/ledger-app-workflows)
-* Code formatting with [clang-format](http://clang.llvm.org/docs/ClangFormat.html)
-* Compilation of the application for all Ledger hardware in [ledger-app-builder](https://github.com/LedgerHQ/ledger-app-builder)
-* Unit tests of C functions with [cmocka](https://cmocka.org/) (see [unit-tests/](unit-tests/))
-* End-to-end tests with [Speculos](https://github.com/LedgerHQ/speculos) emulator
-  and [ragger](https://github.com/LedgerHQ/ragger) (see [tests/](tests/))
-* Code coverage with [gcov](https://gcc.gnu.org/onlinedocs/gcc/Gcov.html)/[lcov](http://ltp.sourceforge.net/coverage/lcov.php)
-  and upload to [codecov.io](https://about.codecov.io)
-* Documentation generation with [doxygen](https://www.doxygen.nl)
+Please try to follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
-It outputs 3 artifacts:
 
-* `compiled_app_binaries` within binary files of the build process for each device
-* `code-coverage` within HTML details of code coverage
-* `documentation` within HTML auto-generated documentation
-
-## Are you developing an application for Ledger devices?
-
-If so, This boilerplate will help you get started.
-
-For a smooth and quick integration:
-
-* See the developers’ documentation on the [Developer Portal](https://developers.ledger.com/), and
-* [Go on Discord](https://developers.ledger.com/discord-pro/) to chat with developer support and the developer community.

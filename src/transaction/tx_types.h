@@ -1,28 +1,26 @@
 #pragma once
 
-#include <stddef.h>  // size_t
-#include <stdint.h>  // uint*_t
-
-#define MAX_TX_LEN   510
-#define ADDRESS_LEN  20
-#define MAX_MEMO_LEN 465  // 510 - ADDRESS_LEN - 2*SIZE(U64) - SIZE(MAX_VARINT)
+#include <stddef.h>   // size_t
+#include <stdbool.h>  // bool
+#include <stdint.h>   // uint*_t
 
 typedef enum {
-    PARSING_OK = 1,
-    NONCE_PARSING_ERROR = -1,
-    TO_PARSING_ERROR = -2,
-    VALUE_PARSING_ERROR = -3,
-    MEMO_LENGTH_ERROR = -4,
-    MEMO_PARSING_ERROR = -5,
-    MEMO_ENCODING_ERROR = -6,
-    WRONG_LENGTH_ERROR = -7
-} parser_status_e;
+    INPUT_ID_CONSTANT        = 0,
+    INPUT_ID_PUBLIC          = 1,
+    INPUT_ID_PRIVATE         = 2,
+    INPUT_ID_RECORD          = 3,
+    INPUT_ID_EXTERNAL_RECORD = 4,
+    INPUT_ID_FUTURE          = 5,
+} input_id_e;
 
-typedef struct {
-    uint64_t nonce;     /// nonce (8 bytes)
-    uint64_t value;     /// amount value (8 bytes)
-    uint64_t fee;       /// fee (8 bytes)
-    uint8_t *to;        /// pointer to address (20 bytes)
-    uint8_t *memo;      /// memo (variable length)
-    uint64_t memo_len;  /// length of memo (8 bytes)
-} transaction_t;
+typedef enum {
+    INPUT_VALUE_TYPE_PLAINTEXT = 0,
+    INPUT_VALUE_TYPE_RECORD    = 1,
+    INPUT_VALUE_TYPE_FUTURE    = 2,
+} input_value_type_e;
+
+typedef enum {
+    PLAINTEXT_TYPE_LITERAL_ADDRESS = 0,
+    PLAINTEXT_TYPE_LITERAL_FIELD   = 2,
+    PLAINTEXT_TYPE_LITERAL_U64     = 12,
+} plaintext_type_literal_e;

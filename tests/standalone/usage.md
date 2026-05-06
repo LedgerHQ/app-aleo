@@ -18,7 +18,7 @@ You can use for this the container `ghcr.io/ledgerhq/ledger-app-builder/ledger-a
 
 ```shell
 docker pull ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder-lite:latest
-cd <your app repository>                        # replace <appname> with the name of your app, (eg boilerplate)
+cd <your app repository>                        # replace <appname> with the name of your app, (eg aleo)
 docker run --user "$(id -u)":"$(id -g)" --rm -ti -v "$(realpath .):/app" --privileged -v "/dev/bus/usb:/dev/bus/usb" ledger-app-builder-lite:latest
 make clean && make BOLOS_SDK=$<device>_SDK      # replace <device> with one of [NANOX, NANOSP, STAX, FLEX, APEX]
 exit
@@ -41,7 +41,7 @@ You can use for this the container `ghcr.io/ledgerhq/ledger-app-builder/ledger-a
 
 ```shell
 docker pull ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder-lite:latest
-cd app-<appname>/                                   # replace <appname> with the name of your app, (eg boilerplate)
+cd app-<appname>/                                   # replace <appname> with the name of your app, (eg aleo)
 docker run --user "$(id -u)":"$(id -g)" --rm -ti -v "$(realpath .):/app" --privileged -v "/dev/bus/usb:/dev/bus/usb" ledger-app-builder-lite:latest
 make clean && make BOLOS_SDK=$<device>_SDK load     # replace <device> with one of [NANOX, NANOSP, STAX, FLEX, APEX]
 exit

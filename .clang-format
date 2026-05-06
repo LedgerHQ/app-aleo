@@ -1,18 +1,27 @@
 ---
-BasedOnStyle: Google
-IndentWidth: 4
-Language: Cpp
-ColumnLimit: 100
+Language:         Cpp
+BasedOnStyle:     Chromium
+IndentWidth:      4
+ColumnLimit:      100
+UseTab:           Never
+IndentCaseLabels: true
+# do not allow ifs or loops without braces
 PointerAlignment: Right
-AlignAfterOpenBracket: Align
-AlignConsecutiveMacros: true
-AllowAllParametersOfDeclarationOnNextLine: false
-SortIncludes: false
-SpaceAfterCStyleCast: true
-AllowShortCaseLabelsOnASingleLine: false
-AllowAllArgumentsOnNextLine: false
-AllowShortBlocksOnASingleLine: Never
-AllowShortFunctionsOnASingleLine: None
+
+BreakBeforeBraces: Stroustrup
+BreakBeforeBinaryOperators: true
+
 BinPackArguments: false
 BinPackParameters: false
----
+
+AlignConsecutiveMacros: true
+
+AlignConsecutiveDeclarations: true
+
+AlignConsecutiveAssignments: true
+
+AlignArrayOfStructures: Left
+SortIncludes: Never
+SpaceAfterCStyleCast: True
+AllowShortEnumsOnASingleLine: false
+...

@@ -1,5 +1,5 @@
 /*****************************************************************************
- *   Ledger App Boilerplate.
+ *   Ledger App Aleo.
  *   (c) 2020 Ledger SAS.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,6 @@
 
 #include "os.h"
 #include "glyphs.h"
-#include "os_io_seproxyhal.h"
 #include "nbgl_use_case.h"
 #include "io.h"
 #include "bip32.h"
@@ -30,106 +29,145 @@
 #include "constants.h"
 #include "globals.h"
 #include "sw.h"
-#include "address.h"
 #include "validate.h"
-#include "tx_types.h"
+#include "types.h"
 #include "menu.h"
+#include "tokens.h"
 
 // Buffer where the transaction amount string is written
 static char g_amount[30];
-// Buffer where the transaction address string is written
-static char g_address[43];
+static char g_amount_2[30];
 
-static nbgl_contentTagValue_t pairs[2];
+// The flow with the most pairs to display is the token signing flow with amount + dest + token
+static nbgl_contentTagValue_t     pairs[3];
 static nbgl_contentTagValueList_t pairList;
 
-// called when long press button on 3rd page is long-touched or when reject footer is touched
-static void review_choice(bool confirm) {
-    // Answer, display a status page and go back to main
+static void review_transaction(bool confirm)
+{
     validate_transaction(confirm);
     if (confirm) {
-        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
-    } else {
+        if (G_context.nested_call_count) {
+            G_context.signing_state = SIGNING_STATE_WAIT_NESTED_CALL;
+        }
+        else if ((G_context.sign_transaction_datas.max_base_fee != 0)
+                 || (G_context.sign_transaction_datas.max_priority_fee != 0)) {
+            G_context.fees_waiting_time_ms = 0;
+            G_context.signing_state        = SIGNING_STATE_WAIT_FEES;
+#ifndef FUZZ
+            nbgl_useCaseSpinner("Calculating fees");
+#endif  // FUZZ
+        }
+        else {
+            nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
+            G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
+        }
+    }
+    else {
         nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
     }
 }
 
-// Public function to start the transaction review
-// - Check if the app is in the right state for transaction review
-// - Format the amount and address strings in g_amount and g_address buffers
-// - Display the first screen of the transaction review
-// - Display a warning if the transaction is blind-signed
-int ui_display_transaction_bs_choice(bool is_blind_signed) {
-    if (G_context.req_type != CONFIRM_TRANSACTION || G_context.state != STATE_PARSED) {
-        G_context.state = STATE_NONE;
-        return io_send_sw(SW_BAD_STATE);
+static int display_review_transaction(void)
+{
+    uint8_t     pair_index                   = 0;
+    char        amount[50 + MAX_TICKER_SIZE] = {0};
+    const char *review_subtitle              = NULL;
+    if (G_context.tx.transfer.type == TX_TRANSFER_PUBLIC) {
+        review_subtitle = "Public transfer";
+    }
+    else if (G_context.tx.transfer.type == TX_TRANSFER_PRIVATE) {
+        review_subtitle = "Private transfer";
+    }
+    else if (G_context.tx.transfer.type == TX_TRANSFER_PUBLIC_TO_PRIVATE) {
+        review_subtitle = "Transfer from public to private address";
+    }
+    else if (G_context.tx.transfer.type == TX_TRANSFER_PRIVATE_TO_PUBLIC) {
+        review_subtitle = "Transfer from private to public address";
+    }
+    else {
+        return io_send_sw(SWO_INCORRECT_DATA);
     }
 
-    // Format amount and address to g_amount and g_address buffers
+    // Format amount
+    // 50 chars is comfortable for amount formatting
     explicit_bzero(g_amount, sizeof(g_amount));
-    char amount[30] = {0};
-    if (!format_fpu64(amount,
-                      sizeof(amount),
-                      G_context.tx_info.transaction.value,
-                      EXPONENT_SMALLEST_UNIT)) {
-        return io_send_sw(SW_DISPLAY_AMOUNT_FAIL);
+    if (!format_fpu64(
+            amount, sizeof(amount), G_context.tx.transfer.amount, EXPONENT_SMALLEST_UNIT)) {
+        return io_send_sw(SWO_INCORRECT_DATA);
     }
-    snprintf(g_amount, sizeof(g_amount), "%.*s BOL", (int) strlen(amount), amount);
-    explicit_bzero(g_address, sizeof(g_address));
+    snprintf(g_amount, sizeof(g_amount), "%.*s ALEO", (int) strlen(amount), amount);
 
-    if (format_hex(G_context.tx_info.transaction.to, ADDRESS_LEN, g_address, sizeof(g_address)) ==
-        -1) {
-        return io_send_sw(SW_DISPLAY_ADDRESS_FAIL);
+    uint64_t total_fees = G_context.sign_transaction_datas.max_base_fee
+                          + G_context.sign_transaction_datas.max_priority_fee;
+    explicit_bzero(g_amount_2, sizeof(g_amount_2));
+    if (!format_fpu64(amount, sizeof(amount), total_fees, EXPONENT_SMALLEST_UNIT)) {
+        return io_send_sw(SWO_INCORRECT_DATA);
     }
+    snprintf(g_amount_2, sizeof(g_amount_2), "%.*s ALEO", (int) strlen(amount), amount);
 
-    // Setup data to display
-    pairs[0].item = "Amount";
-    pairs[0].value = g_amount;
-    pairs[1].item = "Address";
-    pairs[1].value = g_address;
+    // Amount
+    pairs[pair_index].item  = "Amount";
+    pairs[pair_index].value = g_amount;
+    pair_index++;
+
+    // To address
+    pairs[pair_index].item  = "To";
+    pairs[pair_index].value = G_context.tx.transfer.address_to;
+    pair_index++;
+
+    // Fees
+    pairs[pair_index].item  = "Fees";
+    pairs[pair_index].value = g_amount_2;
+    pair_index++;
 
     // Setup list
     pairList.nbMaxLinesForValue = 0;
-    pairList.nbPairs = 2;
-    pairList.pairs = pairs;
+    pairList.nbPairs            = pair_index;
+    pairList.pairs              = pairs;
+    pairList.wrapping           = true;
 
-    if (is_blind_signed) {
-        // Start blind-signing review flow
-        nbgl_useCaseReviewBlindSigning(TYPE_TRANSACTION,
-                                       &pairList,
-                                       &ICON_APP_BOILERPLATE,
-                                       "Review transaction\nto send BOL",
-                                       NULL,
-#ifdef SCREEN_SIZE_WALLET
-                                       "Sign transaction\nto send BOL",
-#else
-                                       NULL,
-#endif
-                                       NULL,
-                                       review_choice);
-    } else {
-        // Start review flow
-        nbgl_useCaseReview(TYPE_TRANSACTION,
-                           &pairList,
-                           &ICON_APP_BOILERPLATE,
-                           "Review transaction\nto send BOL",
-                           NULL,
-#ifdef SCREEN_SIZE_WALLET
-                           "Sign transaction\nto send BOL",
-#else
-                           NULL,
-#endif
-                           review_choice);
-    }
+#ifdef HAVE_SE_TOUCH
+    nbgl_useCaseReview(TYPE_TRANSACTION,
+                       &pairList,
+                       &ICON_APP_ALEO,
+                       "Review transaction to send ALEO?",
+                       review_subtitle,
+                       "Sign transaction to send ALEO?",
+                       review_transaction);
+#else   // !HAVE_SE_TOUCH
+    nbgl_useCaseReview(TYPE_TRANSACTION,
+                       &pairList,
+                       &ICON_APP_ALEO,
+                       "Review transaction to send ALEO?",
+                       review_subtitle,
+                       "Sign transaction",
+                       review_transaction);
+#endif  // HAVE_SE_TOUCH
+
     return 0;
 }
 
-// Flow used to display a blind-signed transaction
-int ui_display_blind_signed_transaction(void) {
-    return ui_display_transaction_bs_choice(true);
-}
-
 // Flow used to display a clear-signed transaction
-int ui_display_transaction() {
-    return ui_display_transaction_bs_choice(false);
+int ui_display_transaction(void)
+{
+    if (memcmp(G_context.sign_transaction_datas.fee_program_id,
+               "credits.aleo",
+               G_context.sign_transaction_datas.fee_program_id_length)) {
+        // We currently don't support other token than ALEO
+        return -1;
+    }
+
+    if (G_context.tx.type == TX_TRANSFER) {
+        return display_review_transaction();
+    }
+    else if (G_context.tx.type == TX_FEE) {
+        validate_transaction(true);
+        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
+        G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
+    }
+    else {
+        return -1;
+    }
+
+    return 0;
 }

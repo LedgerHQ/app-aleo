@@ -1,48 +1,94 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 
-if(${CMAKE_VERSION} VERSION_LESS 3.10)
-    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
+if(${CMAKE_VERSION} VERSION_LESS 3.14)
+  cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
 endif()
 
 # project information
-project(FuzzTxParser
-        VERSION 1.0
-	      DESCRIPTION "Fuzzing of transaction parser"
-        LANGUAGES C)
+project(AleoAppFuzzer
+    VERSION 1.0
+    DESCRIPTION "App Aleo Fuzzer"
+    LANGUAGES C)
 
-# guard against bad build-type strings
-if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Debug")
+if(NOT DEFINED BOLOS_SDK)
+  message(FATAL_ERROR "BOLOS_SDK must be defined, CMake will exit.")
+  return()
 endif()
 
-if (NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
-    message(FATAL_ERROR "Fuzzer needs to be built with Clang")
-endif()
+add_subdirectory(${BOLOS_SDK}/fuzzing ${CMAKE_CURRENT_BINARY_DIR}/ledger-secure-sdk EXCLUDE_FROM_ALL)
 
-if (NOT DEFINED BOLOS_SDK)
-  message(FATAL_ERROR "BOLOS_SDK environment variable not found.")
-endif()
+set(DEFINES FUZZ)
 
-# guard against in-source builds
-if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-  message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. You may need to remove CMakeCache.txt. ")
-endif()
+set(APP_SRC ${CMAKE_SOURCE_DIR}/../src)
+set(MSGPACK_SRC ${CMAKE_SOURCE_DIR}/../src_msgpack)
 
-# compatible with ClusterFuzzLite
-if (NOT DEFINED ENV{LIB_FUZZING_ENGINE})
-	set(COMPILATION_FLAGS_ "-g -Wall -fsanitize=fuzzer,address,undefined")
+file(GLOB_RECURSE C_SOURCES
+  ${APP_SRC}/*.c
+  ${MSGPACK_SRC}/*.c
+  ${CMAKE_SOURCE_DIR}/mock/*.c
+)
+list(REMOVE_ITEM C_SOURCES
+  ${APP_SRC}/app_main.c
+)
+
+add_library(code_lib ${C_SOURCES})
+
+target_include_directories(
+  code_lib
+  PUBLIC ${CMAKE_SOURCE_DIR}/src
+         ${CMAKE_SOURCE_DIR}/mock
+         ${APP_SRC}
+         ${APP_SRC}/account
+         ${APP_SRC}/crypto
+         ${APP_SRC}/handler
+         ${APP_SRC}/helper
+         ${APP_SRC}/transaction
+         ${APP_SRC}/ui
+         ${APP_SRC}/ui/action
+         ${MSGPACK_SRC}
+)
+
+target_link_libraries(code_lib PUBLIC secure_sdk)
+target_compile_definitions(code_lib PUBLIC ${DEFINES} FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION=1)
+
+# Find and add libbsd
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBBSD REQUIRED libbsd)
+
+# Try to find the static libbsd library, because the final run image doesn't have dynamic library
+# Keep both options to fallback to dynamic if static is not found
+find_library(LIBBSD_STATIC_LIB lib${LIBBSD_STATIC_LIBRARIES}.a HINTS ${LIBBSD_LIBRARY_DIRS})
+
+if(LIBBSD_STATIC_LIB)
+    message(STATUS "Using static libbsd")
+    target_link_libraries(code_lib PUBLIC ${LIBBSD_STATIC_LIB})
 else()
-	set(COMPILATION_FLAGS_ "$ENV{LIB_FUZZING_ENGINE} $ENV{CXXFLAGS}")
+    message(STATUS "Using dynamic libbsd")
+    target_link_libraries(code_lib PUBLIC ${LIBBSD_LIBRARIES})
 endif()
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+target_include_directories(code_lib PUBLIC ${LIBBSD_INCLUDE_DIRS})
+target_compile_options(code_lib PUBLIC ${LIBBSD_CFLAGS_OTHER})
 
-string(REPLACE " " ";" COMPILATION_FLAGS ${COMPILATION_FLAGS_})
+# Create the different fuzzing targets automatically
+file(GLOB FUZZ_HARNESSES "${CMAKE_SOURCE_DIR}/harness/fuzz_*.c")
 
-include(extra/TxParser.cmake)
+target_link_options(secure_sdk INTERFACE
+    "$<$<LINK_LANGUAGE:C,CXX>:-fuse-ld=lld>"
+)
 
-add_executable(fuzz_tx_parser fuzz_tx_parser.c)
+foreach(HARNESS_FILE ${FUZZ_HARNESSES})
+    # Extract the base name of the file without extension
+    get_filename_component(HARNESS_NAME ${HARNESS_FILE} NAME_WE)
 
-target_compile_options(fuzz_tx_parser PUBLIC ${COMPILATION_FLAGS})
-target_link_options(fuzz_tx_parser PUBLIC ${COMPILATION_FLAGS})
-target_link_libraries(fuzz_tx_parser PUBLIC txparser)
+    # Create the executable target
+    add_executable(${HARNESS_NAME} ${HARNESS_FILE})
+
+    # Define the compilation options
+    target_compile_definitions(${HARNESS_NAME} PUBLIC macros FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION=1)
+
+    # Link against the secure_sdk and code_lib libraries
+    target_link_libraries(${HARNESS_NAME} PUBLIC secure_sdk code_lib)
+
+    message(STATUS "Creating fuzzer target: ${HARNESS_NAME}")
+endforeach()

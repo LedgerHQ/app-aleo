@@ -1,6 +1,6 @@
 /*****************************************************************************
- *   Ledger App Boilerplate.
- *   (c) 2020 Ledger SAS.
+ *   Ledger App Aleo.
+ *   (c) 2025 Ledger SAS.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -27,22 +27,33 @@
 #include "io.h"
 #include "sw.h"
 #include "menu.h"
+#include "nbgl_use_case.h"
 #include "dispatcher.h"
+#include "account.h"
+#include "sign_transaction.h"
 
 global_ctx_t G_context;
 
 const internal_storage_t N_storage_real;
 
+#ifdef TEST_PRIVATE_KEY
+static const char *test_private_key = {TEST_PRIVATE_KEY};
+#endif  // !TEST_PRIVATE_KEY
+
+static uint64_t time_ms = 0;
+
 /**
  * Handle APDU command received and send back APDU response using handlers.
  */
-void app_main() {
+void app_main()
+{
     // Length of APDU command received in G_io_apdu_buffer
     int input_len = 0;
     // Structured APDU command
     command_t cmd;
 
     io_init();
+    time_ms = 0;
 
 #ifdef HAVE_SWAP
     // When called in swap context as a library, we don't want to show the menu
@@ -55,12 +66,12 @@ void app_main() {
 
     // Reset context
     explicit_bzero(&G_context, sizeof(G_context));
+    sign_transaction_init();
 
     // Initialize the NVM data if required
     if (N_storage.initialized != 0x01) {
         internal_storage_t storage;
-        storage.dummy1_allowed = 0x00;
-        storage.dummy2_allowed = 0x00;
+        explicit_bzero(&storage, sizeof(storage));
         storage.initialized = 0x01;
         nvm_write((void *) &N_storage, &storage, sizeof(internal_storage_t));
     }
@@ -75,7 +86,7 @@ void app_main() {
         // Parse APDU command from G_io_apdu_buffer
         if (!apdu_parser(&cmd, G_io_apdu_buffer, input_len)) {
             PRINTF("=> /!\\ BAD LENGTH: %.*H\n", input_len, G_io_apdu_buffer);
-            io_send_sw(SW_WRONG_DATA_LENGTH);
+            io_send_sw(SWO_WRONG_DATA_LENGTH);
             continue;
         }
 
@@ -92,6 +103,18 @@ void app_main() {
         if (apdu_dispatcher(&cmd) < 0) {
             PRINTF("=> apdu_dispatcher failure\n");
             return;
+        }
+    }
+}
+
+void app_ticker_event_callback(void)
+{
+    time_ms += 100;
+    if (G_context.signing_state > SIGNING_STATE_INTENT) {
+        G_context.fees_waiting_time_ms += 100;
+        if (G_context.fees_waiting_time_ms > 15 * 1000) {
+            G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
+            nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
         }
     }
 }
