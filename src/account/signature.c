@@ -347,8 +347,8 @@ static void display_progression(uint8_t step)
         text = "Signing transaction";
     }
     else if (G_context.signing_state == SIGNING_STATE_NESTED_CALL) {
-        text = "Prepare Tx";
-        current_step += step + (G_context.nested_call_offset * 5);
+        text         = "Prepare Tx";
+        current_step = step + ((1 + G_context.nested_call_offset) * 5);
     }
     else {
         text = "Prepare Tx";
