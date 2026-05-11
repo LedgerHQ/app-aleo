@@ -300,6 +300,47 @@ static int hash_record_input(account_t *account, prepared_request_t *request, ui
     return add_field_to_message(&tag);
 }
 
+static int hash_external_record_input(prepared_request_t *request, uint8_t input_index)
+{
+    int          status           = 0;
+    size_t       hash_input_index = 8;
+    input_t     *input            = &request->inputs[input_index];
+    bigint_256_t s;
+    field_t      hash;
+
+    if ((input->value_length == 0) || (input->value_length % 32 != 0)) {
+        return -1;
+    }
+    uint8_t num_fields = input->value_length / 32;
+    if (num_fields
+        > (HASH_INPUT_MAX_LENGTH - 11)) { /* 11 = 8 capacity + function_id + tvk + index */
+        return -1;
+    }
+
+    _Static_assert(HASH_INPUT_MAX_LENGTH >= 14, "hash_input size won't fit for external record");
+    memset(hash_input, 0, sizeof(hash_input));
+
+    /* Preimage: [function_id || record_fields... || tvk || index] */
+    memcpy(&hash_input[hash_input_index++], &request->function_id, sizeof(field_t));
+
+    for (uint8_t i = 0; i < num_fields; i++) {
+        bn_reverse(&input->value[i * 32]);
+        bn_to_big_int(&input->value[i * 32], &s);
+        field_from_big_int(&hash_input[hash_input_index++], &s);
+    }
+
+    memcpy(&hash_input[hash_input_index++], &request->tvk, sizeof(field_t));
+    field_from_int(&hash_input[hash_input_index++], input_index);
+
+    if ((status = hash_psd8(hash_input, hash_input_index, &hash)) < 0) {
+        return status;
+    }
+    PRINTF("external_record_hash : ");
+    field_println(&hash);
+
+    return add_field_to_message(&hash);
+}
+
 static int prepare_inputs(account_t *account, prepared_request_t *request)
 {
     int     status      = 0;
@@ -323,6 +364,10 @@ static int prepare_inputs(account_t *account, prepared_request_t *request)
 
             case INPUT_ID_RECORD:
                 status = hash_record_input(account, request, input_index);
+                break;
+
+            case INPUT_ID_EXTERNAL_RECORD:
+                status = hash_external_record_input(request, input_index);
                 break;
 
             default:
