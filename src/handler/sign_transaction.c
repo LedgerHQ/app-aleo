@@ -39,7 +39,7 @@
 #include "signature.h"
 #include "tx.h"
 
-static uint8_t  rx_transaction_array[1024];
+static uint8_t  rx_transaction_array[2048];
 static buffer_t apdu_rx_buffer;
 
 static int sign_root_tx(buffer_t *cdata)
