@@ -127,6 +127,7 @@ Serialized TLV data:
 |                                 ||| 0x01 : [public](#public-type)  |
 |                                 ||| 0x02 : [private](#private-type)  |
 |                                 ||| 0x03 : [record](#record-type) |
+|                                 ||| 0x04 : [external_record](#external-record-type) |
 
 #### Constant type
 
@@ -156,6 +157,11 @@ Serialized TLV data:
 | `value type`     |     1    |      u8 | 0x03 |
 | `identifier`     | variable |   bytes | [identifier](#identifier) |
 
+#### External record type
+
+| _Name_           | _Length_ | _Type_  | _Description_ |
+| -----            |    :--:  | -:      | -             |
+| `value type`     |     1    |      u8 | 0x04 |
 
 #### Plaintext type
 | _Name_           | _Length_ | _Type_  | _Description_ |
@@ -216,6 +222,11 @@ Serialized TLV data:
 | `commitment`     |       32 |   field  | pre computed [commitment](https://github.com/ProvableHQ/snarkVM/blob/staging/console/program/src/request/sign.rs#L186) of the record |
 | `h.x`            |       32 |   field  | pre computed [H generator](https://github.com/ProvableHQ/snarkVM/blob/staging/console/program/src/request/sign.rs#L189) x coordinate |
 | `h.y`            |       32 |   field  | pre computed [H generator](https://github.com/ProvableHQ/snarkVM/blob/staging/console/program/src/request/sign.rs#L189) y coordinate |
+
+#### External record
+| _Name_           | _Length_ | _Type_   | _Description_ |
+| -----            |    :--:  | -:       | -             |
+| `record_fields`  |   N × 32 |  field[] | `record.to_fields()` — N little-endian 256-bit field elements pre-computed by the host from the record plaintext ([snarkVM ref](https://github.com/ProvableHQ/snarkVM/blob/staging/console/program/src/request/sign.rs#L156)). N must satisfy N × 32 ≤ 128 (`INPUT_VALUE_MAX_LEN`). |
 
 ### Input example
 
