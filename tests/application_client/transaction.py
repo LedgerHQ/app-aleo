@@ -154,27 +154,10 @@ class Transaction():
 
         return val
 
-
     @staticmethod
-    def generate_request(request: dict, is_root: bool) -> str:
+    def generate_input(inputs: dict):
         val = ''
-        # Structure type
-        val += Transaction.forge_tlv(Transaction.TlvTypes.STRUCTURE_TYPE, '29')
-        # Version
-        val += Transaction.forge_tlv(Transaction.TlvTypes.VERSION, '01')
-        # Network_id
-        if request['network_id'] == 'mainnet':
-            val += Transaction.forge_tlv(Transaction.TlvTypes.NETWORK_ID, '0000')
-        else:
-            val += Transaction.forge_tlv(Transaction.TlvTypes.NETWORK_ID, '0001')
-        # Program id
-        val += Transaction.forge_tlv(Transaction.TlvTypes.PROGRAM_ID, f"{request['program_id'].encode().hex()}")
-        # Function name
-        val += Transaction.forge_tlv(Transaction.TlvTypes.FUNCTION_NAME, f"{request['function_name'].encode().hex()}")
-        # Input count
-        val += Transaction.forge_tlv(Transaction.TlvTypes.INPUT_COUNT, f"{len(request['inputs']):02x}")
-        # Input values & types
-        for input_item in request['inputs']:
+        for input_item in inputs:
             val += Transaction.forge_tlv(Transaction.TlvTypes.INPUT_TYPES, Transaction.get_input_type_from_string(input_item['type']))
             input_val = ''
             if 'address' in input_item['type']:
@@ -201,6 +184,28 @@ class Transaction():
             else:
                 input_val += input_item['value']
             val += Transaction.forge_tlv(Transaction.TlvTypes.INPUT_VALUES, input_val)
+        return val
+
+    @staticmethod
+    def generate_request(request: dict, is_root: bool) -> str:
+        val = ''
+        # Structure type
+        val += Transaction.forge_tlv(Transaction.TlvTypes.STRUCTURE_TYPE, '29')
+        # Version
+        val += Transaction.forge_tlv(Transaction.TlvTypes.VERSION, '01')
+        # Network_id
+        if request['network_id'] == 'mainnet':
+            val += Transaction.forge_tlv(Transaction.TlvTypes.NETWORK_ID, '0000')
+        else:
+            val += Transaction.forge_tlv(Transaction.TlvTypes.NETWORK_ID, '0001')
+        # Program id
+        val += Transaction.forge_tlv(Transaction.TlvTypes.PROGRAM_ID, f"{request['program_id'].encode().hex()}")
+        # Function name
+        val += Transaction.forge_tlv(Transaction.TlvTypes.FUNCTION_NAME, f"{request['function_name'].encode().hex()}")
+        # Input count
+        val += Transaction.forge_tlv(Transaction.TlvTypes.INPUT_COUNT, f"{len(request['inputs']):02x}")
+        # Input values & types
+        val += Transaction.generate_input(request['inputs'])
         # Nested call count
         if is_root:
             val += Transaction.forge_tlv(Transaction.TlvTypes.NESTED_CALL_COUNT, f"{request['nested_call_count']:02x}")
