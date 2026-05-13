@@ -21,6 +21,7 @@ class Transaction():
         NETWORK_ID               = 0xc3
         PROGRAM_ID               = 0xb5
         PROGRAM_CHECKSUM         = 0xc4
+        R_HINT                   = 0xc5
         FUNCTION_NAME            = 0xb6
         NESTED_CALL_COUNT        = 0xba
         INPUT_COUNT              = 0xb7
@@ -148,6 +149,8 @@ class Transaction():
             val += '02' + Transaction.get_plaintext_type_from_string(sp_input_type[0])
         elif sp_input_type[-1] == 'record':
             val += f"03{len(sp_input_type[0]):02x}{sp_input_type[0].encode('ascii').hex()}"
+        elif sp_input_type[-1] == 'external_record':
+            val += '04'
 
         return val
 
@@ -186,6 +189,8 @@ class Transaction():
                 value = int(input_item['value'].split('field')[0])
                 big = BigInteger256(int(value))
                 input_val += big.to_int().to_bytes(32, 'little').hex()
+            elif 'external_record' in input_item['type']:
+                input_val = input_item['value']
             elif 'record' in input_item['type']:
                 for in_val in input_item['value']:
                     value = int(in_val.split('field')[0])
@@ -200,8 +205,10 @@ class Transaction():
         if is_root:
             val += Transaction.forge_tlv(Transaction.TlvTypes.NESTED_CALL_COUNT, f"{request['nested_call_count']:02x}")
 
-        if len(request['program_checksum']):
+        if 'program_checksum' in request and len(request['program_checksum']):
             val += Transaction.forge_tlv(Transaction.TlvTypes.PROGRAM_CHECKSUM, request['program_checksum'])
+        if 'r_hint' in request and len(request['r_hint']):
+            val += Transaction.forge_tlv(Transaction.TlvTypes.R_HINT, request['r_hint'])
 
         return val
 

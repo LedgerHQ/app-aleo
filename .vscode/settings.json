@@ -26,6 +26,10 @@
 			"test_sign_transaction_transfer_public",
 			"test_sign_transaction_transfer_private",
 			"test_sign_transaction_transfer_private_zero_fees",
+			"test_sign_transaction_transfer_batch_private",
+			"test_sign_transaction_transfer_batch_private_zero_fees",
+			"test_sign_transaction_transfer_batch_private_timeout",
+			"test_sign_transaction_transfer_batch_private_wrong_nc",
 			"test_version"
 		],
 		"selectedTests": []

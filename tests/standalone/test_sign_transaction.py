@@ -13,6 +13,8 @@ def check_response(received: dict, expected: dict) -> bool:
     for key in expected.keys():
         if key not in received.keys():
             return False
+        if type(received[key]) != type(expected[key]):
+            return False
         if isinstance(received[key], list):
             index = 0
             for item in received[key]:
@@ -20,8 +22,10 @@ def check_response(received: dict, expected: dict) -> bool:
                     return False
                 index += 1
         elif isinstance(received[key], dict):
-            return check_response(received[key], expected[key])
+            if check_response(received[key], expected[key]) == False:
+                return False
         elif received[key] != expected[key]:
+            print("Error " + str(received[key]) + " != " + str(expected[key]))
             return False
     return True
 
@@ -53,6 +57,47 @@ def forge_private_transfer(max_base_fee: int, max_priority_fee: int, record: lis
                                  {'type' : 'u64.private',     'value' : amount}]
     data['request']['nested_call_count'] = 0
     data['request']['program_checksum']  = program_checksum
+
+    return data
+
+
+def forge_batch_private_transfer(max_base_fee: int, max_priority_fee: int, external_record: list[str], address_to: str,
+                                 amount: int, program_checksum: str = '') -> dict:
+    data = {'type' : 'intent',
+            'max_base_fee' : max_base_fee, 'max_priority_fee' : max_priority_fee,
+            'fee_program_id' : 'credits.aleo', 'fee_function_name' : 'fee_private'}
+    data['request'] = {'network_id' : 'mainnet', 'program_id' : 'ldgbatcher_p28.aleo', 'function_name' : 'transfer_private_2'}
+    data['request']['inputs'] = [{'type' : 'external_record',  'value' : external_record[0]},
+                                 {'type' : 'external_record',  'value' : external_record[1]},
+                                 {'type' : 'address.private', 'value' : address_to},
+                                 {'type' : 'u64.private',     'value' : amount}]
+    data['request']['nested_call_count'] = 2
+    data['request']['program_checksum']  = program_checksum
+
+    return data
+
+
+def forge_nested_call_join(r0: list[str], r1: list[str], program_checksum: str = '', r_hint: str = ''):
+    data = {'type' : 'nested_call'}
+    data['request'] = {'network_id' : 'mainnet', 'program_id' : 'credits.aleo', 'function_name' : 'join'}
+    data['request']['inputs'] = [{'type' : 'credits.record',  'value' : r0},
+                                 {'type' : 'credits.record',  'value' : r1}]
+    data['request']['nested_call_count'] = 0
+    data['request']['program_checksum']  = program_checksum
+    data['request']['r_hint']            = r_hint
+
+    return data
+
+
+def forge_nested_call_private_transfer(record: list[str], address_to: str, amount: int, program_checksum: str = '', r_hint: str = ''):
+    data = {'type' : 'nested_call'}
+    data['request'] = {'network_id' : 'mainnet', 'program_id' : 'credits.aleo', 'function_name' : 'transfer_private'}
+    data['request']['inputs'] = [{'type' : 'credits.record',  'value' : record},
+                                 {'type' : 'address.private', 'value' : address_to},
+                                 {'type' : 'u64.private',     'value' : amount}]
+    data['request']['nested_call_count'] = 0
+    data['request']['program_checksum']  = program_checksum
+    data['request']['r_hint']            = r_hint
 
     return data
 
@@ -152,8 +197,6 @@ def test_sign_transaction_fee_timeout(backend: BackendInterface, scenario_naviga
                 'version': 1,
                 'signature': {'pk_sig': '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
                               'pr_sig': '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
-                'tvk': '8609d03e8e81abcb979748b01c38a1425e50efaf6e55d4944c4e910c57094f12',
-                'tpk': '849385c14f1819e42afe5bff7ab752bb17ab3fc4b12fbe13fa3d1b789a257912',
                 'gammas_count': 0
     }
     assert check_response(unpacked, expected)
@@ -182,8 +225,6 @@ def test_sign_transaction_wrong_fee(backend: BackendInterface, scenario_navigato
                 'version': 1,
                 'signature': {'pk_sig': '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
                               'pr_sig': '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
-                'tvk': '8609d03e8e81abcb979748b01c38a1425e50efaf6e55d4944c4e910c57094f12',
-                'tpk': '849385c14f1819e42afe5bff7ab752bb17ab3fc4b12fbe13fa3d1b789a257912',
                 'gammas_count': 0
     }
     assert check_response(unpacked, expected)
@@ -209,8 +250,6 @@ def test_sign_transaction_transfer_public(backend: BackendInterface, scenario_na
                 'version': 1,
                 'signature': {'pk_sig': '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
                               'pr_sig': '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
-                'tvk': 'c0068ab5ce6620d54f6242d78644ad536b8d9510bfc678a4b4e4d21b22af2d0f',
-                'tpk': 'ba30b8e89e6d71250fbcf43a736bf36187b6fb9a08a8663c6878b11842dde011',
                 'gammas_count': 0
     }
     assert check_response(unpacked, expected)
@@ -234,8 +273,6 @@ def test_sign_transaction_transfer_public(backend: BackendInterface, scenario_na
                 'version': 1,
                 'signature': {'pk_sig': '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
                               'pr_sig': '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
-                'tvk': 'dd9287d9bb26482d8c0ea1ae225208ca57c30371703e747c1d4215db91184503',
-                'tpk': '92285f8a4380808008dede51fb2fa16a5f70020c0168158332fe0da82d1c7409',
                 'gammas_count': 0
     }
     assert check_response(unpacked, expected)
@@ -257,8 +294,6 @@ def test_sign_transaction_transfer_private(backend: BackendInterface, scenario_n
                 'version': 1,
                 'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
                               'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
-                'tvk': 'b8c19e867e2f277cdcb7a842f879808bbd3899da74c74038a1cf4762e8d37909',
-                'tpk': '4e27d760e657c658b1a6f0cca5d6aa94680732889148926d3dec90f5647bc107',
                 'gammas_count': 1,
                 'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
     }
@@ -284,8 +319,6 @@ def test_sign_transaction_transfer_private(backend: BackendInterface, scenario_n
                 'version': 1,
                 'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
                               'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
-                'tvk': '816ee140fa1e9a4717cc77e4e741e68b57dfe7039cc4b93ef1f3a87e89fcf209',
-                'tpk': '98fc0345347c0f6bd8735de44dfbb25c4f0f95cc4ba7215d032f69702a6b8f05',
                 'gammas_count': 1,
                 'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
     }
@@ -308,9 +341,319 @@ def test_sign_transaction_transfer_private_zero_fees(backend: BackendInterface, 
                 'version': 1,
                 'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
                               'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
-                'tvk': 'b8c19e867e2f277cdcb7a842f879808bbd3899da74c74038a1cf4762e8d37909',
-                'tpk': '4e27d760e657c658b1a6f0cca5d6aa94680732889148926d3dec90f5647bc107',
                 'gammas_count': 1,
                 'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
     }
     assert check_response(unpacked, expected)
+
+def test_sign_transaction_transfer_batch_private(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
+    client = CommandSender(backend)
+    external_record = ["d5f4b9312020d52c6752cb927e00771b300e8742e7cbe2cffe79a2a9f1641e03f1020000b6a58dc9bd8dc99591a5d1cd0503100019000000000000806381fe03232753113751635f57729543c73e2ab3641901f57fec18b1e560b28b80000000",
+                       "d5f4b9312020d52c6752cb927e00771b300e8742e7cbe2cffe79a2a9f1641e03f1020000b6a58dc9bd8dc99591a5d1cd0503100019000000000000c0eed4b40239bab0f49f52a8a88613dc6ea6aec32d2d23df9a005edf7d940ecfb980000000"
+    ]
+    tx_datas = forge_batch_private_transfer(500, 100, external_record, "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe", 1000, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107")
+    tx_datas['path'] = "m/44'/683'/0'/0'"
+    with client.sign_transaction(tx_datas=tx_datas):
+        scenario_navigator.review_approve_with_spinner("Prepare Tx 5/15")
+
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {'structure_type': 42,
+                'version': 1,
+                'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'gammas_count': 0
+    }
+    assert check_response(unpacked, expected)
+
+    record = ["3614797564276936744957924747041031196891698846785520060979425601577054464500field",
+              "2426895214035216932245297778850989035038538961658726507442215877484415082794field",
+              "0220642863446832956019507279394572297489712696240584424406852292692897199577field"]
+    tx_datas = forge_nested_call_join(record, record, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
+                                      "f0dcd773212728850c04a3ce0c0789953529afb1d6215774b42de4c8b21f5401")
+    with client.sign_transaction(tx_datas=tx_datas):
+        if scenario_navigator.device.is_nano:
+            instruction = NavInsID.BOTH_CLICK
+        else:
+            instruction = NavInsID.USE_CASE_REVIEW_TAP
+        scenario_navigator.navigator.navigate_until_text(navigate_instruction=instruction,
+                                                         validation_instructions=None,
+                                                         text="Prepare Tx 10/15",
+                                                         timeout=3,
+                                                         screen_change_before_first_instruction=False,
+                                                         screen_change_after_last_instruction=True)
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {'structure_type': 42,
+                'version': 1,
+                'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'tvk': '1b4396764964b349f1d629bbec9107f07a2cd63f59abf9c5123c435363f87a0b',
+                'tpk': 'c2415293a239d85aa0f73c0619b841ce29630c35110b12fbf6e7216124638e07',
+                'gammas_count': 2,
+                'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003', 'b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
+    }
+    assert check_response(unpacked, expected)
+
+    tx_datas = forge_nested_call_private_transfer(record, "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe", 1000,
+                                                  "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107", "f0dcd773212728850c04a3ce0c0789953529afb1d6215774b42de4c8b21f5401")
+    with client.sign_transaction(tx_datas=tx_datas):
+        if scenario_navigator.device.is_nano:
+            instruction = NavInsID.BOTH_CLICK
+        else:
+            instruction = NavInsID.USE_CASE_REVIEW_TAP
+        scenario_navigator.navigator.navigate_until_text(navigate_instruction=instruction,
+                                                         validation_instructions=None,
+                                                         text="Calculating fees",
+                                                         timeout=3,
+                                                         screen_change_before_first_instruction=False,
+                                                         screen_change_after_last_instruction=True)
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {'structure_type': 42,
+                'version': 1,
+                'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'tvk': '1b4396764964b349f1d629bbec9107f07a2cd63f59abf9c5123c435363f87a0b',
+                'tpk': 'c2415293a239d85aa0f73c0619b841ce29630c35110b12fbf6e7216124638e07',
+                'gammas_count': 1,
+                'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
+    }
+    assert check_response(unpacked, expected)
+
+    tx_datas = forge_private_fee(500, 100, record,
+                                 "7266375125414209082394925781071362722506946030314916664133746682226945366259field")
+    with client.sign_transaction(tx_datas=tx_datas):
+        if scenario_navigator.device.is_nano:
+            instruction = NavInsID.BOTH_CLICK
+        else:
+            instruction = NavInsID.USE_CASE_REVIEW_TAP
+        scenario_navigator.navigator.navigate_until_text(navigate_instruction=instruction,
+                                                         validation_instructions=None,
+                                                         text="Transaction signed",
+                                                         timeout=3,
+                                                         screen_change_before_first_instruction=False,
+                                                         screen_change_after_last_instruction=True)
+
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {'structure_type': 42,
+                'version': 1,
+                'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'gammas_count': 1,
+                'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
+    }
+    assert check_response(unpacked, expected)
+
+
+def test_sign_transaction_transfer_batch_private_zero_fees(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
+    client = CommandSender(backend)
+    external_record = ["d5f4b9312020d52c6752cb927e00771b300e8742e7cbe2cffe79a2a9f1641e03f1020000b6a58dc9bd8dc99591a5d1cd0503100019000000000000806381fe03232753113751635f57729543c73e2ab3641901f57fec18b1e560b28b80000000",
+                       "d5f4b9312020d52c6752cb927e00771b300e8742e7cbe2cffe79a2a9f1641e03f1020000b6a58dc9bd8dc99591a5d1cd0503100019000000000000c0eed4b40239bab0f49f52a8a88613dc6ea6aec32d2d23df9a005edf7d940ecfb980000000"
+    ]
+    tx_datas = forge_batch_private_transfer(0, 0, external_record, "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe", 1000, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107")
+    tx_datas['path'] = "m/44'/683'/0'/0'"
+    with client.sign_transaction(tx_datas=tx_datas):
+        scenario_navigator.review_approve_with_spinner("Prepare Tx 5/15")
+
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {'structure_type': 42,
+                'version': 1,
+                'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'gammas_count': 0
+    }
+    assert check_response(unpacked, expected)
+
+    record = ["3614797564276936744957924747041031196891698846785520060979425601577054464500field",
+              "2426895214035216932245297778850989035038538961658726507442215877484415082794field",
+              "0220642863446832956019507279394572297489712696240584424406852292692897199577field"]
+    tx_datas = forge_nested_call_join(record, record, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
+                                      "f0dcd773212728850c04a3ce0c0789953529afb1d6215774b42de4c8b21f5401")
+    with client.sign_transaction(tx_datas=tx_datas):
+        if scenario_navigator.device.is_nano:
+            instruction = NavInsID.BOTH_CLICK
+        else:
+            instruction = NavInsID.USE_CASE_REVIEW_TAP
+        scenario_navigator.navigator.navigate_until_text(navigate_instruction=instruction,
+                                                         validation_instructions=None,
+                                                         text="Prepare Tx 10/15",
+                                                         timeout=3,
+                                                         screen_change_before_first_instruction=False,
+                                                         screen_change_after_last_instruction=True)
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {'structure_type': 42,
+                'version': 1,
+                'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'tvk': '1b4396764964b349f1d629bbec9107f07a2cd63f59abf9c5123c435363f87a0b',
+                'tpk': 'c2415293a239d85aa0f73c0619b841ce29630c35110b12fbf6e7216124638e07',
+                'gammas_count': 2,
+                'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003', 'b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
+    }
+    assert check_response(unpacked, expected)
+
+    tx_datas = forge_nested_call_private_transfer(record, "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe", 1000,
+                                                  "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107", "f0dcd773212728850c04a3ce0c0789953529afb1d6215774b42de4c8b21f5401")
+    with client.sign_transaction(tx_datas=tx_datas):
+        if scenario_navigator.device.is_nano:
+            instruction = NavInsID.BOTH_CLICK
+        else:
+            instruction = NavInsID.USE_CASE_REVIEW_TAP
+        scenario_navigator.navigator.navigate_until_text(navigate_instruction=instruction,
+                                                         validation_instructions=None,
+                                                         text="Transaction signed",
+                                                         timeout=3,
+                                                         screen_change_before_first_instruction=False,
+                                                         screen_change_after_last_instruction=True)
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {'structure_type': 42,
+                'version': 1,
+                'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'tvk': '1b4396764964b349f1d629bbec9107f07a2cd63f59abf9c5123c435363f87a0b',
+                'tpk': 'c2415293a239d85aa0f73c0619b841ce29630c35110b12fbf6e7216124638e07',
+                'gammas_count': 1,
+                'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
+    }
+    assert check_response(unpacked, expected)
+
+
+def test_sign_transaction_transfer_batch_private_timeout(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
+    client = CommandSender(backend)
+    external_record = ["d5f4b9312020d52c6752cb927e00771b300e8742e7cbe2cffe79a2a9f1641e03f1020000b6a58dc9bd8dc99591a5d1cd0503100019000000000000806381fe03232753113751635f57729543c73e2ab3641901f57fec18b1e560b28b80000000",
+                       "d5f4b9312020d52c6752cb927e00771b300e8742e7cbe2cffe79a2a9f1641e03f1020000b6a58dc9bd8dc99591a5d1cd0503100019000000000000c0eed4b40239bab0f49f52a8a88613dc6ea6aec32d2d23df9a005edf7d940ecfb980000000"
+    ]
+    tx_datas = forge_batch_private_transfer(500, 100, external_record, "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe", 1000, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107")
+    tx_datas['path'] = "m/44'/683'/0'/0'"
+    with client.sign_transaction(tx_datas=tx_datas):
+        scenario_navigator.review_approve_with_spinner("Prepare Tx 5/15")
+
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {'structure_type': 42,
+                'version': 1,
+                'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'gammas_count': 0
+    }
+    assert check_response(unpacked, expected)
+
+    record = ["3614797564276936744957924747041031196891698846785520060979425601577054464500field",
+              "2426895214035216932245297778850989035038538961658726507442215877484415082794field",
+              "0220642863446832956019507279394572297489712696240584424406852292692897199577field"]
+    tx_datas = forge_nested_call_join(record, record, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
+                                      "f0dcd773212728850c04a3ce0c0789953529afb1d6215774b42de4c8b21f5401")
+    with client.sign_transaction(tx_datas=tx_datas):
+        if scenario_navigator.device.is_nano:
+            instruction = NavInsID.BOTH_CLICK
+        else:
+            instruction = NavInsID.USE_CASE_REVIEW_TAP
+        scenario_navigator.navigator.navigate_until_text(navigate_instruction=instruction,
+                                                         validation_instructions=None,
+                                                         text="Transaction rejected",
+                                                         timeout=20,
+                                                         screen_change_before_first_instruction=False,
+                                                         screen_change_after_last_instruction=True)
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {'structure_type': 42,
+                'version': 1,
+                'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'tvk': '1b4396764964b349f1d629bbec9107f07a2cd63f59abf9c5123c435363f87a0b',
+                'tpk': 'c2415293a239d85aa0f73c0619b841ce29630c35110b12fbf6e7216124638e07',
+                'gammas_count': 2,
+                'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003', 'b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
+    }
+    assert check_response(unpacked, expected)
+
+def test_sign_transaction_transfer_batch_private_wrong_nc(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
+    client = CommandSender(backend)
+    external_record = ["d5f4b9312020d52c6752cb927e00771b300e8742e7cbe2cffe79a2a9f1641e03f1020000b6a58dc9bd8dc99591a5d1cd0503100019000000000000806381fe03232753113751635f57729543c73e2ab3641901f57fec18b1e560b28b80000000",
+                       "d5f4b9312020d52c6752cb927e00771b300e8742e7cbe2cffe79a2a9f1641e03f1020000b6a58dc9bd8dc99591a5d1cd0503100019000000000000c0eed4b40239bab0f49f52a8a88613dc6ea6aec32d2d23df9a005edf7d940ecfb980000000"
+    ]
+    tx_datas = forge_batch_private_transfer(500, 100, external_record, "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe", 1000, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107")
+    tx_datas['path'] = "m/44'/683'/0'/0'"
+    with client.sign_transaction(tx_datas=tx_datas):
+        scenario_navigator.review_approve_with_spinner("Prepare Tx 5/15")
+
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {'structure_type': 42,
+                'version': 1,
+                'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'gammas_count': 0
+    }
+    assert check_response(unpacked, expected)
+
+    record = ["3614797564276936744957924747041031196891698846785520060979425601577054464500field",
+              "2426895214035216932245297778850989035038538961658726507442215877484415082794field",
+              "0220642863446832956019507279394572297489712696240584424406852292692897199577field"]
+    tx_datas = forge_nested_call_join(record, record, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
+                                      "f0dcd773212728850c04a3ce0c0789953529afb1d6215774b42de4c8b21f5401")
+    with client.sign_transaction(tx_datas=tx_datas):
+        if scenario_navigator.device.is_nano:
+            instruction = NavInsID.BOTH_CLICK
+        else:
+            instruction = NavInsID.USE_CASE_REVIEW_TAP
+        scenario_navigator.navigator.navigate_until_text(navigate_instruction=instruction,
+                                                         validation_instructions=None,
+                                                         text="Prepare Tx 10/15",
+                                                         timeout=3,
+                                                         screen_change_before_first_instruction=False,
+                                                         screen_change_after_last_instruction=True)
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {'structure_type': 42,
+                'version': 1,
+                'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'tvk': '1b4396764964b349f1d629bbec9107f07a2cd63f59abf9c5123c435363f87a0b',
+                'tpk': 'c2415293a239d85aa0f73c0619b841ce29630c35110b12fbf6e7216124638e07',
+                'gammas_count': 2,
+                'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003', 'b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
+    }
+    assert check_response(unpacked, expected)
+
+    record = ["3614797564276936744957924747041031196891698846785520060979425601577054464500field",
+              "2426895214035216932245297778850989035038538961658726507442215877484415082794field",
+              "0220642863446832956019507279394572297489712696240584424406852292692897199577field"]
+    tx_datas = forge_nested_call_join(record, record, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
+                                      "f0dcd773212728850c04a3ce0c0789953529afb1d6215774b42de4c8b21f5401")
+    with client.sign_transaction(tx_datas=tx_datas):
+        if scenario_navigator.device.is_nano:
+            instruction = NavInsID.BOTH_CLICK
+        else:
+            instruction = NavInsID.USE_CASE_REVIEW_TAP
+        scenario_navigator.navigator.navigate_until_text(navigate_instruction=instruction,
+                                                         validation_instructions=None,
+                                                         text="Calculating fees",
+                                                         timeout=3,
+                                                         screen_change_before_first_instruction=False,
+                                                         screen_change_after_last_instruction=True)
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {'structure_type': 42,
+                'version': 1,
+                'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
+                              'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
+                'tvk': '1b4396764964b349f1d629bbec9107f07a2cd63f59abf9c5123c435363f87a0b',
+                'tpk': 'c2415293a239d85aa0f73c0619b841ce29630c35110b12fbf6e7216124638e07',
+                'gammas_count': 2,
+                'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003', 'b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
+    }
+    assert check_response(unpacked, expected)
+
+    tx_datas = forge_nested_call_private_transfer(record, "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe", 1000,
+                                                  "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107", "f0dcd773212728850c04a3ce0c0789953529afb1d6215774b42de4c8b21f5401")
+
+    with pytest.raises(ExceptionRAPDU) as e:
+        with client.sign_transaction(tx_datas=tx_datas):
+            pass
+    assert e.value.status == StatusWords.SWO_CONDITIONS_NOT_SATISFIED
