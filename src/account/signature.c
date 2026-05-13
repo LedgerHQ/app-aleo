@@ -33,7 +33,7 @@
 #include "signature.h"
 
 #define HASH_INPUT_MAX_LENGTH     (16)
-#define MESSAGE_MAX_LENGTH        (32)
+#define MESSAGE_MAX_LENGTH        (64)
 #define PLAINTEXT_FIELDS_MAX_SIZE (4)
 #define BIT_BUFFER_MAX_LENGTH     (128)
 
