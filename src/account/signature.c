@@ -428,7 +428,7 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
 
     display_progression(1);
 
-    if (request->r_hint) {
+    if (!(request->is_root) && (request->r_hint)) {
         // Use preprocessed 'r' from the request
         bigint_256_t s;
         bn_reverse(request->r_hint);
