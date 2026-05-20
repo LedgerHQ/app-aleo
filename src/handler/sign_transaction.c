@@ -164,8 +164,10 @@ static int sign_nested_call_tx(buffer_t *cdata)
 #endif  // FUZZ
         }
         else {
+#ifndef FUZZ
             nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
             G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
+#endif  // FUZZ
         }
     }
 
@@ -213,6 +215,32 @@ static int sign_fee_tx(buffer_t *cdata)
     // Check fees limit
     if ((G_context.tx.fee.base_fee > G_context.sign_transaction_datas.max_base_fee)
         || (G_context.tx.fee.priority_fee > G_context.sign_transaction_datas.max_priority_fee)) {
+        status = -1;
+        goto end;
+    }
+
+    // Check fees program id
+    if (G_context.sign_transaction_datas.fee_program_id_length
+        != G_context.sign_transaction_datas.prepared_request.program_id_length) {
+        status = -1;
+        goto end;
+    }
+    if (memcmp(G_context.sign_transaction_datas.fee_program_id,
+               G_context.sign_transaction_datas.prepared_request.program_id,
+               G_context.sign_transaction_datas.fee_program_id_length)) {
+        status = -1;
+        goto end;
+    }
+
+    // Check fees function name
+    if (G_context.sign_transaction_datas.fee_function_name_length
+        != G_context.sign_transaction_datas.prepared_request.function_name_length) {
+        status = -1;
+        goto end;
+    }
+    if (memcmp(G_context.sign_transaction_datas.fee_function_name,
+               G_context.sign_transaction_datas.prepared_request.function_name,
+               G_context.sign_transaction_datas.fee_function_name_length)) {
         status = -1;
         goto end;
     }
