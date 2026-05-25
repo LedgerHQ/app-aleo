@@ -66,7 +66,7 @@ static int add_field_to_message(field_t *field)
 static int hash_public_input(prepared_request_t *request, uint8_t input_index)
 {
     _Static_assert(HASH_INPUT_MAX_LENGTH >= 13, "hash_input size won't fit");
-    int      status           = 0;
+    int      status           = -1;
     uint8_t  hash_input_index = 8;
     input_t *input            = &request->inputs[input_index];
     field_t  hash;
@@ -132,7 +132,7 @@ static int hash_public_input(prepared_request_t *request, uint8_t input_index)
 
 static int hash_private_input(prepared_request_t *request, uint8_t input_index)
 {
-    int      status           = 0;
+    int      status           = -1;
     size_t   hash_input_index = 0;
     input_t *input            = &request->inputs[input_index];
     uint8_t  num_randomizers  = 0;
@@ -234,7 +234,7 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
 
 static int hash_record_input(account_t *account, prepared_request_t *request, uint8_t input_index)
 {
-    int          status = 0;
+    int          status = -1;
     bigint_256_t s;
     input_t     *input = &request->inputs[input_index];
     field_t      commitment;
@@ -302,7 +302,7 @@ static int hash_record_input(account_t *account, prepared_request_t *request, ui
 
 static int hash_external_record_input(prepared_request_t *request, uint8_t input_index)
 {
-    int          status           = 0;
+    int          status           = -1;
     size_t       hash_input_index = 8;
     input_t     *input            = &request->inputs[input_index];
     bigint_256_t s;
@@ -343,7 +343,7 @@ static int hash_external_record_input(prepared_request_t *request, uint8_t input
 
 static int prepare_inputs(account_t *account, prepared_request_t *request)
 {
-    int     status      = 0;
+    int     status      = -1;
     uint8_t input_index = 0;
 
     for (input_index = 0; input_index < request->inputs_count; input_index++) {
@@ -412,7 +412,7 @@ static void display_progression(uint8_t step)
 
 int sign_prepared_request(account_t *account, prepared_request_t *request)
 {
-    int      status = 0;
+    int      status = -1;
     field_t *is_root;
     group_t  g_temp;
     field_t  nonce;

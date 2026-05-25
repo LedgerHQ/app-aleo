@@ -58,8 +58,6 @@ static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx);
 
 static int get_u64(input_t *input, bool is_private, uint64_t *value)
 {
-    int status = 0;
-
     if ((input->type_length != U64_TYPE_LENGTH) || (input->value_length != U64_VALUE_LENGTH)) {
         return -1;
     }
@@ -79,12 +77,12 @@ static int get_u64(input_t *input, bool is_private, uint64_t *value)
         *value += input->value[U64_VALUE_LENGTH - 1 - i];
     }
 
-    return status;
+    return 0;
 }
 
 static int get_address(input_t *input, bool is_private, char address[ADDRESS_LEN + 1])
 {
-    int status = 0;
+    int status = -1;
 
     if ((input->type_length != ADDRESS_TYPE_LENGTH)
         || (input->value_length != ADDRESS_VALUE_LENGTH)) {

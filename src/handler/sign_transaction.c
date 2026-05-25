@@ -44,7 +44,7 @@ static buffer_t apdu_rx_buffer;
 
 static int sign_root_tx(buffer_t *cdata)
 {
-    int status = 0;
+    int status = -1;
 
     explicit_bzero(&G_context, sizeof(G_context));
 
@@ -107,7 +107,7 @@ end:
 
 static int sign_nested_call_tx(buffer_t *cdata)
 {
-    int status = 0;
+    int status = -1;
 
     if (G_context.signing_state == SIGNING_STATE_WAIT_NESTED_CALL) {
         G_context.nested_call_offset = 0;
@@ -177,7 +177,7 @@ end:
 
 static int sign_fee_tx(buffer_t *cdata)
 {
-    int status = 0;
+    int status = -1;
 
     if (G_context.signing_state != SIGNING_STATE_WAIT_FEES) {
         PRINTF("sign_fee_tx wrong state : %d\n", G_context.signing_state);
@@ -254,7 +254,7 @@ end:
 
 int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool next_chunk)
 {
-    int status = 0;
+    int status = -1;
 
     LEDGER_ASSERT(cdata != NULL, "NULL cdata");
 
