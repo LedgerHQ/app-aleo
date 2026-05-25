@@ -62,14 +62,14 @@ static void display_progression(uint8_t step)
 
 static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
 {
-    uint8_t      seed_bn[32];
+    uint8_t      seed_bn[BN_LENGTH];
     bigint_256_t seed_big_int;
     bolos_err_t  error = sys_hdkey_derive(HDKEY_DERIVE_MODE_BLS12377_ALEO,
                                          CX_CURVE_BLS12_377_G1,
                                          path,
                                          path_len,
                                          seed_bn,
-                                         32,
+                                         BN_LENGTH,
                                          NULL,
                                          0,
                                          NULL,
@@ -198,7 +198,7 @@ int account_get_address_string(const uint32_t *path, uint8_t path_len, char addr
 {
     account_t    account;
     bigint_256_t address_big_int;
-    uint8_t      address_bn[32];
+    uint8_t      address_bn[BN_LENGTH];
     int          status = 0;
 
     LEDGER_ASSERT(path != NULL, "NULL path");
@@ -236,7 +236,9 @@ int account_get_address_string(const uint32_t *path, uint8_t path_len, char addr
 
     uint8_t data[ADDRESS_LEN + 1];
     size_t  datalen = 0;
-    if ((status = bech32_convert_bits(data, &datalen, sizeof(data), 5, address_bn, 32, 8, 1)) < 0) {
+    if ((status = bech32_convert_bits(
+             data, &datalen, sizeof(data), 5, address_bn, sizeof(address_bn), 8, 1))
+        < 0) {
         goto end;
     }
     status = bech32_encode(address, ADDRESS_PREFIX, data, datalen, BECH32_ENCODING_BECH32M);
@@ -253,7 +255,7 @@ int account_get_view_key_string(const uint32_t *path, uint8_t path_len, char vie
 {
     account_t    account;
     bigint_256_t view_key_big_int;
-    uint8_t      view_key_bn[32];
+    uint8_t      view_key_bn[BN_LENGTH];
     uint8_t      base_58_input[MAX_ENC_INPUT_SIZE];
     int          status = 0;
 
@@ -302,7 +304,7 @@ int account_generate_keys(const uint32_t *path, uint8_t path_len, account_t *acc
 {
     int          status = 0;
     bigint_256_t address_big_int;
-    uint8_t      address_bn[32];
+    uint8_t      address_bn[BN_LENGTH];
 
     LEDGER_ASSERT(path != NULL, "NULL path");
     LEDGER_ASSERT(account != NULL, "NULL account");

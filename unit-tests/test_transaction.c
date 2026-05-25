@@ -436,25 +436,23 @@ static void test_tx_parse(void **state)
         .fee_function_name        = "fee_private",
         .fee_program_id_length    = 12,
         .fee_program_id           = "credits.aleo",
-        .prepared_request
-        = {.program_id_length    = 23,
-           .program_id           = "ldgbatcher_ppub_28.aleo",
-           .function_name_length = 28,
-           .function_name        = "transfer_private_to_public_2",
-           .inputs_count         = 3,
-           .inputs
-           = {{.value_length = 96,
-               .value        = hash_record,
-               .type_length  = 1,
-               .type         = (uint8_t *) "\x04"},
-              {.value_length = 96,
-               .value        = hash_record,
-               .type_length  = 1,
-               .type         = (uint8_t *) "\x04"},
-              {.value_length = 8,
-               .value        = (uint8_t *) "\xe8\x03\x00\x00\x00\x00\x00\x00",
-               .type_length  = 3,
-               .type         = (uint8_t *) "\x01\x00\x0c"}}}
+        .prepared_request         = {.program_id_length    = 23,
+                                     .program_id           = "ldgbatcher_ppub_28.aleo",
+                                     .function_name_length = 28,
+                                     .function_name        = "transfer_private_to_public_2",
+                                     .inputs_count         = 3,
+                                     .inputs               = {{.value_length = 96,
+                                                               .value        = hash_record,
+                                                               .type_length  = 1,
+                                                               .type         = (uint8_t *) "\x04"},
+                                                              {.value_length = 96,
+                                                               .value        = hash_record,
+                                                               .type_length  = 1,
+                                                               .type         = (uint8_t *) "\x04"},
+                                                              {.value_length = 8,
+                                                               .value = (uint8_t *) "\xe8\x03\x00\x00\x00\x00\x00\x00",
+                                                               .type_length = 3,
+                                                               .type        = (uint8_t *) "\x01\x00\x0c"}}}
     };
 
     assert_int_equal(tx_parse(&datas_batch_private_to_public, &tx), 0);

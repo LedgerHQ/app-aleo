@@ -41,7 +41,7 @@ static void test_bigint_256(void **state)
     (void) state;
 
     bigint_256_t a, b;
-    uint8_t      bn[32];
+    uint8_t      bn[BN_LENGTH];
 
     // big_int_from_u64
     big_int_from_u64(&b, 0x12345678);

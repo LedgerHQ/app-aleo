@@ -250,13 +250,13 @@ static int hash_record_input(account_t *account, prepared_request_t *request, ui
     field_println(&commitment);
 
     // Extract 'h' x coordinate
-    bn_reverse(&input->value[32]);
-    bn_to_big_int(&input->value[32], &s);
+    bn_reverse(&input->value[sizeof(field_t)]);
+    bn_to_big_int(&input->value[sizeof(field_t)], &s);
     field_from_big_int(&h.x, &s);
 
     // Extract 'h' y coordinate
-    bn_reverse(&input->value[64]);
-    bn_to_big_int(&input->value[64], &s);
+    bn_reverse(&input->value[2 * sizeof(field_t)]);
+    bn_to_big_int(&input->value[2 * sizeof(field_t)], &s);
     field_from_big_int(&h.y, &s);
     if ((status = add_field_to_message(&h.x)) < 0) {
         return status;
@@ -324,8 +324,8 @@ static int hash_external_record_input(prepared_request_t *request, uint8_t input
     memcpy(&hash_input[hash_input_index++], &request->function_id, sizeof(field_t));
 
     for (uint8_t i = 0; i < num_fields; i++) {
-        bn_reverse(&input->value[i * 32]);
-        bn_to_big_int(&input->value[i * 32], &s);
+        bn_reverse(&input->value[i * sizeof(field_t)]);
+        bn_to_big_int(&input->value[i * sizeof(field_t)], &s);
         field_from_big_int(&hash_input[hash_input_index++], &s);
     }
 

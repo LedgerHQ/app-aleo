@@ -84,3 +84,8 @@
  * Maximum length of input type.
  */
 #define INPUT_TYPE_MAX_LEN (128)
+
+/**
+ * OS big number length.
+ */
+#define BN_LENGTH (32)

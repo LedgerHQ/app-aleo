@@ -101,7 +101,7 @@ uint8_t field_from_bits(const uint8_t *input_bits,
                         uint8_t        max_field_count)
 {
     bigint_256_t s;
-    uint8_t      bn[32];
+    uint8_t      bn[BN_LENGTH];
     uint8_t      field_count       = 0;
     uint16_t     input_bits_offset = 0;
 
