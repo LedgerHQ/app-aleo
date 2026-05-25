@@ -94,9 +94,9 @@ typedef struct {
     uint32_t max_base_fee;
     uint32_t max_priority_fee;
     uint8_t  fee_function_name_length;
-    char     fee_function_name[32];
+    char     fee_function_name[FUNCTION_NAME_MAX_LEN];
     uint8_t  fee_program_id_length;
-    char     fee_program_id[64];
+    char     fee_program_id[PROGRAM_ID_NAME_MAX_LEN];
 
     prepared_request_t prepared_request;
 
