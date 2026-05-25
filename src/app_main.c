@@ -45,7 +45,7 @@ static uint64_t time_ms = 0;
 /**
  * Handle APDU command received and send back APDU response using handlers.
  */
-void app_main()
+void app_main(void)
 {
     // Length of APDU command received in G_io_apdu_buffer
     int input_len = 0;
