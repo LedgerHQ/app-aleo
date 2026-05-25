@@ -39,6 +39,8 @@ if __name__ == "__main__":
 
 	h_file = open('db_program_function.h', 'w')
 
+	print('#pragma once', file=h_file)
+	print('', file=h_file)
 	print('#include <stddef.h>  // size_t', file=h_file)
 	print('', file=h_file)
 	print('#include "types.h"', file=h_file)
