@@ -77,19 +77,18 @@ def forge_batch_private_transfer(max_base_fee: int, max_priority_fee: int, exter
     return data
 
 
-def forge_nested_call_join(r0: list[str], r1: list[str], program_checksum: str = '', r_hint: str = ''):
+def forge_nested_call_join(r0: list[str], r1: list[str], program_checksum: str = ''):
     data = {'type' : 'nested_call'}
     data['request'] = {'network_id' : 'mainnet', 'program_id' : 'credits.aleo', 'function_name' : 'join'}
     data['request']['inputs'] = [{'type' : 'credits.record',  'value' : r0},
                                  {'type' : 'credits.record',  'value' : r1}]
     data['request']['nested_call_count'] = 0
     data['request']['program_checksum']  = program_checksum
-    data['request']['r_hint']            = r_hint
 
     return data
 
 
-def forge_nested_call_private_transfer(record: list[str], address_to: str, amount: int, program_checksum: str = '', r_hint: str = ''):
+def forge_nested_call_private_transfer(record: list[str], address_to: str, amount: int, program_checksum: str = ''):
     data = {'type' : 'nested_call'}
     data['request'] = {'network_id' : 'mainnet', 'program_id' : 'credits.aleo', 'function_name' : 'transfer_private'}
     data['request']['inputs'] = [{'type' : 'credits.record',  'value' : record},
@@ -97,7 +96,6 @@ def forge_nested_call_private_transfer(record: list[str], address_to: str, amoun
                                  {'type' : 'u64.private',     'value' : amount}]
     data['request']['nested_call_count'] = 0
     data['request']['program_checksum']  = program_checksum
-    data['request']['r_hint']            = r_hint
 
     return data
 
@@ -369,8 +367,7 @@ def test_sign_transaction_transfer_batch_private(backend: BackendInterface, scen
     record = ["3614797564276936744957924747041031196891698846785520060979425601577054464500field",
               "2426895214035216932245297778850989035038538961658726507442215877484415082794field",
               "0220642863446832956019507279394572297489712696240584424406852292692897199577field"]
-    tx_datas = forge_nested_call_join(record, record, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
-                                      "f0dcd773212728850c04a3ce0c0789953529afb1d6215774b42de4c8b21f5401")
+    tx_datas = forge_nested_call_join(record, record, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107")
     with client.sign_transaction(tx_datas=tx_datas):
         if scenario_navigator.device.is_nano:
             instruction = NavInsID.BOTH_CLICK
@@ -388,15 +385,13 @@ def test_sign_transaction_transfer_batch_private(backend: BackendInterface, scen
                 'version': 1,
                 'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
                               'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
-                'tvk': '1b4396764964b349f1d629bbec9107f07a2cd63f59abf9c5123c435363f87a0b',
-                'tpk': 'c2415293a239d85aa0f73c0619b841ce29630c35110b12fbf6e7216124638e07',
                 'gammas_count': 2,
                 'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003', 'b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
     }
     assert check_response(unpacked, expected)
 
     tx_datas = forge_nested_call_private_transfer(record, "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe", 1000,
-                                                  "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107", "f0dcd773212728850c04a3ce0c0789953529afb1d6215774b42de4c8b21f5401")
+                                                  "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107")
     with client.sign_transaction(tx_datas=tx_datas):
         if scenario_navigator.device.is_nano:
             instruction = NavInsID.BOTH_CLICK
@@ -414,8 +409,6 @@ def test_sign_transaction_transfer_batch_private(backend: BackendInterface, scen
                 'version': 1,
                 'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
                               'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
-                'tvk': '1b4396764964b349f1d629bbec9107f07a2cd63f59abf9c5123c435363f87a0b',
-                'tpk': 'c2415293a239d85aa0f73c0619b841ce29630c35110b12fbf6e7216124638e07',
                 'gammas_count': 1,
                 'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
     }
@@ -470,8 +463,7 @@ def test_sign_transaction_transfer_batch_private_zero_fees(backend: BackendInter
     record = ["3614797564276936744957924747041031196891698846785520060979425601577054464500field",
               "2426895214035216932245297778850989035038538961658726507442215877484415082794field",
               "0220642863446832956019507279394572297489712696240584424406852292692897199577field"]
-    tx_datas = forge_nested_call_join(record, record, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
-                                      "f0dcd773212728850c04a3ce0c0789953529afb1d6215774b42de4c8b21f5401")
+    tx_datas = forge_nested_call_join(record, record, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107")
     with client.sign_transaction(tx_datas=tx_datas):
         if scenario_navigator.device.is_nano:
             instruction = NavInsID.BOTH_CLICK
@@ -489,15 +481,13 @@ def test_sign_transaction_transfer_batch_private_zero_fees(backend: BackendInter
                 'version': 1,
                 'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
                               'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
-                'tvk': '1b4396764964b349f1d629bbec9107f07a2cd63f59abf9c5123c435363f87a0b',
-                'tpk': 'c2415293a239d85aa0f73c0619b841ce29630c35110b12fbf6e7216124638e07',
                 'gammas_count': 2,
                 'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003', 'b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
     }
     assert check_response(unpacked, expected)
 
     tx_datas = forge_nested_call_private_transfer(record, "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe", 1000,
-                                                  "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107", "f0dcd773212728850c04a3ce0c0789953529afb1d6215774b42de4c8b21f5401")
+                                                  "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107")
     with client.sign_transaction(tx_datas=tx_datas):
         if scenario_navigator.device.is_nano:
             instruction = NavInsID.BOTH_CLICK
@@ -515,8 +505,6 @@ def test_sign_transaction_transfer_batch_private_zero_fees(backend: BackendInter
                 'version': 1,
                 'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
                               'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
-                'tvk': '1b4396764964b349f1d629bbec9107f07a2cd63f59abf9c5123c435363f87a0b',
-                'tpk': 'c2415293a239d85aa0f73c0619b841ce29630c35110b12fbf6e7216124638e07',
                 'gammas_count': 1,
                 'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
     }
@@ -546,8 +534,7 @@ def test_sign_transaction_transfer_batch_private_timeout(backend: BackendInterfa
     record = ["3614797564276936744957924747041031196891698846785520060979425601577054464500field",
               "2426895214035216932245297778850989035038538961658726507442215877484415082794field",
               "0220642863446832956019507279394572297489712696240584424406852292692897199577field"]
-    tx_datas = forge_nested_call_join(record, record, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
-                                      "f0dcd773212728850c04a3ce0c0789953529afb1d6215774b42de4c8b21f5401")
+    tx_datas = forge_nested_call_join(record, record, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107")
     with client.sign_transaction(tx_datas=tx_datas):
         if scenario_navigator.device.is_nano:
             instruction = NavInsID.BOTH_CLICK
@@ -565,8 +552,6 @@ def test_sign_transaction_transfer_batch_private_timeout(backend: BackendInterfa
                 'version': 1,
                 'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
                               'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
-                'tvk': '1b4396764964b349f1d629bbec9107f07a2cd63f59abf9c5123c435363f87a0b',
-                'tpk': 'c2415293a239d85aa0f73c0619b841ce29630c35110b12fbf6e7216124638e07',
                 'gammas_count': 2,
                 'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003', 'b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
     }
@@ -595,8 +580,7 @@ def test_sign_transaction_transfer_batch_private_wrong_nc(backend: BackendInterf
     record = ["3614797564276936744957924747041031196891698846785520060979425601577054464500field",
               "2426895214035216932245297778850989035038538961658726507442215877484415082794field",
               "0220642863446832956019507279394572297489712696240584424406852292692897199577field"]
-    tx_datas = forge_nested_call_join(record, record, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
-                                      "f0dcd773212728850c04a3ce0c0789953529afb1d6215774b42de4c8b21f5401")
+    tx_datas = forge_nested_call_join(record, record, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107")
     with client.sign_transaction(tx_datas=tx_datas):
         if scenario_navigator.device.is_nano:
             instruction = NavInsID.BOTH_CLICK
@@ -614,8 +598,6 @@ def test_sign_transaction_transfer_batch_private_wrong_nc(backend: BackendInterf
                 'version': 1,
                 'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
                               'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
-                'tvk': '1b4396764964b349f1d629bbec9107f07a2cd63f59abf9c5123c435363f87a0b',
-                'tpk': 'c2415293a239d85aa0f73c0619b841ce29630c35110b12fbf6e7216124638e07',
                 'gammas_count': 2,
                 'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003', 'b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
     }
@@ -624,8 +606,7 @@ def test_sign_transaction_transfer_batch_private_wrong_nc(backend: BackendInterf
     record = ["3614797564276936744957924747041031196891698846785520060979425601577054464500field",
               "2426895214035216932245297778850989035038538961658726507442215877484415082794field",
               "0220642863446832956019507279394572297489712696240584424406852292692897199577field"]
-    tx_datas = forge_nested_call_join(record, record, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
-                                      "f0dcd773212728850c04a3ce0c0789953529afb1d6215774b42de4c8b21f5401")
+    tx_datas = forge_nested_call_join(record, record, "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107")
     with client.sign_transaction(tx_datas=tx_datas):
         if scenario_navigator.device.is_nano:
             instruction = NavInsID.BOTH_CLICK
@@ -643,15 +624,13 @@ def test_sign_transaction_transfer_batch_private_wrong_nc(backend: BackendInterf
                 'version': 1,
                 'signature': {'pk_sig' : '1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e',
                               'pr_sig' : '3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310'},
-                'tvk': '1b4396764964b349f1d629bbec9107f07a2cd63f59abf9c5123c435363f87a0b',
-                'tpk': 'c2415293a239d85aa0f73c0619b841ce29630c35110b12fbf6e7216124638e07',
                 'gammas_count': 2,
                 'gammas': ['b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003', 'b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003']
     }
     assert check_response(unpacked, expected)
 
     tx_datas = forge_nested_call_private_transfer(record, "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe", 1000,
-                                                  "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107", "f0dcd773212728850c04a3ce0c0789953529afb1d6215774b42de4c8b21f5401")
+                                                  "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107")
 
     with pytest.raises(ExceptionRAPDU) as e:
         with client.sign_transaction(tx_datas=tx_datas):

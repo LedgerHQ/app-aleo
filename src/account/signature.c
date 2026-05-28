@@ -428,29 +428,18 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
 
     display_progression(1);
 
-    if (!(request->is_root) && (request->r_hint)) {
-        // Use preprocessed 'r' from the request
-        bigint_256_t s;
-        bn_reverse(request->r_hint);
-        bn_to_big_int(request->r_hint, &s);
-        scalar_from_big_int(&request->r, &s);
-        PRINTF("r_hint : ");
-        scalar_println(&request->r);
+    // Compute a `r` as `HashToScalar(sk_sig || nonce)`. Note: This is the transition secret key
+    // `tsk`.
+    _Static_assert(HASH_INPUT_MAX_LENGTH >= 7, "hash_input size won't fit");
+    memset(hash_input, 0, sizeof(hash_input));
+    memcpy(&hash_input[4], &SERIAL_NUMBER_DOMAIN, sizeof(field_t));
+    scalar_to_field(&account->private_key.sk_sig, &hash_input[5]);
+    memcpy(&hash_input[6], &nonce, sizeof(field_t));
+    if ((status = hash_to_scalar_psd4(hash_input, 4 + 3, &request->r)) < 0) {
+        goto end;
     }
-    else {
-        // Compute a `r` as `HashToScalar(sk_sig || nonce)`. Note: This is the transition secret key
-        // `tsk`.
-        _Static_assert(HASH_INPUT_MAX_LENGTH >= 7, "hash_input size won't fit");
-        memset(hash_input, 0, sizeof(hash_input));
-        memcpy(&hash_input[4], &SERIAL_NUMBER_DOMAIN, sizeof(field_t));
-        scalar_to_field(&account->private_key.sk_sig, &hash_input[5]);
-        memcpy(&hash_input[6], &nonce, sizeof(field_t));
-        if ((status = hash_to_scalar_psd4(hash_input, 4 + 3, &request->r)) < 0) {
-            goto end;
-        }
-        PRINTF("r : ");
-        scalar_println(&request->r);
-    }
+    PRINTF("r : ");
+    scalar_println(&request->r);
     display_progression(2);
 
     // Compute `g_r` as `r * G`. Note: This is the transition public key `tpk`.

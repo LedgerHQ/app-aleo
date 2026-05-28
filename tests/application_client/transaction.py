@@ -21,7 +21,6 @@ class Transaction():
         NETWORK_ID               = 0xc3
         PROGRAM_ID               = 0xb5
         PROGRAM_CHECKSUM         = 0xc4
-        R_HINT                   = 0xc5
         FUNCTION_NAME            = 0xb6
         NESTED_CALL_COUNT        = 0xba
         INPUT_COUNT              = 0xb7
@@ -212,8 +211,6 @@ class Transaction():
 
         if 'program_checksum' in request and len(request['program_checksum']):
             val += Transaction.forge_tlv(Transaction.TlvTypes.PROGRAM_CHECKSUM, request['program_checksum'])
-        if 'r_hint' in request and len(request['r_hint']):
-            val += Transaction.forge_tlv(Transaction.TlvTypes.R_HINT, request['r_hint'])
 
         return val
 

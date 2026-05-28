@@ -113,7 +113,6 @@ Serialized TLV data:
 | `network_id`         |  0xc3 |      2   |    u16 | Network ID (big endian) (0 : mainnet, 1 : testnet) |
 | `program_id`         |  0xb5 | variable |  bytes | Program ID to use |
 | `program_checksum`   |  0xc4 |     32   |  field | Program checksum (OPTIONAL) |
-| `r_hint          `   |  0xc5 |     32   | scalar | r hint (OPTIONAL) |
 | `function_name`      |  0xb6 | variable |  bytes | Function name to call |
 | `nested_calls_count` |  0xba |      1   |     u8 | The number of nested calls (INTENT ONLY) |
 | `input_count`        |  0xb7 |      1   |     u8 | The number of inputs |

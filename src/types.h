@@ -70,7 +70,6 @@ typedef struct {
     uint8_t  inputs_count;
     input_t  inputs[MAX_NB_OF_INPUTS];
     uint8_t *program_checksum;
-    uint8_t *r_hint;
     uint8_t  nested_call_count;
 
     // internal (for parsing)
