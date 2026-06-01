@@ -103,8 +103,9 @@ static int display_review_transaction(void)
     }
     snprintf(g_amount, sizeof(g_amount), "%.*s ALEO", (int) strlen(amount), amount);
 
-    uint64_t total_fees = G_context.sign_transaction_datas.max_base_fee
-                          + G_context.sign_transaction_datas.max_priority_fee;
+    uint64_t max_base_fee     = (uint64_t) G_context.sign_transaction_datas.max_base_fee;
+    uint64_t max_priority_fee = (uint64_t) G_context.sign_transaction_datas.max_priority_fee;
+    uint64_t total_fees       = max_base_fee + max_priority_fee;
     explicit_bzero(g_amount_2, sizeof(g_amount_2));
     if (!format_fpu64(amount, sizeof(amount), total_fees, EXPONENT_SMALLEST_UNIT)) {
         return -1;
