@@ -42,6 +42,7 @@
 
 static uint8_t  rx_transaction_array[1024 * 8];
 static buffer_t apdu_rx_buffer;
+static uint8_t  rx_mode;
 
 static int prepare_tlv_buffer(const buffer_t *rx_buffer, buffer_t *tlv_buffer)
 {
@@ -322,6 +323,7 @@ int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool next_chunk)
             apdu_rx_buffer.size = 0;
             return io_send_sw(SWO_INSUFFICIENT_MEMORY);
         }
+        rx_mode               = mode;
         apdu_rx_buffer.ptr    = rx_transaction_array;
         apdu_rx_buffer.offset = 0;
         apdu_rx_buffer.size   = length_offset + 2 + declared_len;
@@ -329,6 +331,9 @@ int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool next_chunk)
     else if (!apdu_rx_buffer.size) {
         // Before a next we do need a begin
         return io_send_sw(SWO_CONDITIONS_NOT_SATISFIED);
+    }
+    else if (rx_mode != mode) {
+        return io_send_sw(SWO_INCORRECT_P1_P2);
     }
 
     if (apdu_rx_buffer.offset + cdata->size > apdu_rx_buffer.size) {
@@ -344,7 +349,7 @@ int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool next_chunk)
     }
 
     apdu_rx_buffer.offset = 0;
-    switch (mode) {
+    switch (rx_mode) {
         case SIGN_MODE_ROOT:
             status = sign_root_tx(&apdu_rx_buffer);
             break;
