@@ -86,7 +86,7 @@ int ui_display_transaction(void)
         review_subtitle = "Transfer from private to public address";
     }
     else if (G_context.tx.type == TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC) {
-        review_subtitle = "Batch transfer from public to private address";
+        review_subtitle = "Batch transfer from private to public address";
     }
     else if (G_context.tx.type == TX_ALEO_TRANSFER_PUBLIC_TO_PRIVATE) {
         review_subtitle = "Transfer from public to private address";
