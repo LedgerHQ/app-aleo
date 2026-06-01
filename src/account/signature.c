@@ -245,6 +245,9 @@ static int hash_record_input(account_t *account, prepared_request_t *request, ui
     if (request->gammas_count >= MAX_NB_OF_RECORDS) {
         return -1;
     }
+    if (input->value_length < (3 * sizeof(field_t))) {
+        return -1;
+    }
 
     // Extract 'commitment'
     bn_reverse(input->value);
