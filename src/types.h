@@ -103,6 +103,8 @@ typedef struct {
 
 typedef enum {
     TX_UNKNOWN,
+    TX_SPLIT,
+    TX_JOIN,
     TX_TRANSFER_START,
     TX_ALEO_TRANSFER_PUBLIC = TX_TRANSFER_START,
     TX_ALEO_TRANSFER_PRIVATE,

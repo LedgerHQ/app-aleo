@@ -28,6 +28,7 @@
 #include "io.h"
 #include "buffer.h"
 #include "crypto_helpers.h"
+#include "validate.h"
 
 #include "globals.h"
 #include "types.h"
@@ -106,6 +107,15 @@ static int sign_root_tx(buffer_t *cdata)
         goto end;
     }
 
+    if ((G_context.tx.type < TX_TRANSFER_START) || (G_context.tx.type > TX_ALEO_TRANSFER_END)) {
+        status = -1;
+        explicit_bzero(&G_context.account, sizeof(G_context.account));
+#ifndef FUZZ
+        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
+#endif  // FUZZ
+        goto end;
+    }
+
     G_context.signing_state = SIGNING_STATE_INTENT;
 
     // Display & sign transaction
@@ -156,6 +166,11 @@ static int sign_nested_call_tx(buffer_t *cdata)
     G_context.sign_transaction_datas.prepared_request.is_root = false;
 
     if (G_context.sign_transaction_datas.prepared_request.nested_call_count) {
+        status = -1;
+        goto end;
+    }
+
+    if ((G_context.tx.type >= TX_FEE_START) && (G_context.tx.type <= TX_FEE_END)) {
         status = -1;
         goto end;
     }
@@ -233,6 +248,11 @@ static int sign_fee_tx(buffer_t *cdata)
         goto end;
     }
 
+    if ((G_context.tx.type < TX_FEE_START) || (G_context.tx.type > TX_FEE_END)) {
+        status = -1;
+        goto end;
+    }
+
     // Check fees limit
     if ((G_context.tx.fee.base_fee > G_context.sign_transaction_datas.max_base_fee)
         || (G_context.tx.fee.priority_fee > G_context.sign_transaction_datas.max_priority_fee)) {
@@ -266,8 +286,11 @@ static int sign_fee_tx(buffer_t *cdata)
         goto end;
     }
 
-    // Display & sign fees
-    status = ui_display_transaction();
+    // Sign fees
+    validate_transaction(true);
+    nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
+    G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
+
 end:
     return status;
 }

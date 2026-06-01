@@ -67,7 +67,8 @@ static void review_transaction(bool confirm)
     }
 }
 
-static int display_review_transaction(void)
+// Flow used to display a clear-signed transaction
+int ui_display_transaction(void)
 {
     uint8_t     pair_index                   = 0;
     char        amount[50 + MAX_TICKER_SIZE] = {0};
@@ -155,24 +156,6 @@ static int display_review_transaction(void)
                        "Sign transaction",
                        review_transaction);
 #endif  // HAVE_SE_TOUCH
-
-    return 0;
-}
-
-// Flow used to display a clear-signed transaction
-int ui_display_transaction(void)
-{
-    if ((G_context.tx.type >= TX_TRANSFER_START) && (G_context.tx.type <= TX_ALEO_TRANSFER_END)) {
-        return display_review_transaction();
-    }
-    else if ((G_context.tx.type >= TX_FEE_START) && (G_context.tx.type <= TX_FEE_PRIVATE)) {
-        validate_transaction(true);
-        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
-        G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
-    }
-    else {
-        return -1;
-    }
 
     return 0;
 }

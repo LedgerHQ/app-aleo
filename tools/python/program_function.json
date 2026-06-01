@@ -19,10 +19,10 @@
 			"tx_type" : "TX_FEE_PRIVATE",
 			"input_count" : 4},
 		{"function" : "split",
-			"tx_type" : "TX_UNKNOWN",
+			"tx_type" : "TX_SPLIT",
 			"input_count" : 2},
 		{"function" : "join",
-			"tx_type" : "TX_UNKNOWN",
+			"tx_type" : "TX_JOIN",
 			"input_count" : 2}
 	],
 	"ldgbatcher_p28.aleo" : [

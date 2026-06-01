@@ -68,7 +68,7 @@ const function_parameters_t credits_aleo[NB_OF_CREDITS_ALEO_FUNCTIONS] = {
         {.big.u64
          = {0xc3c204d98b5e12b2, 0x318d93a9b12ba7c9, 0x9d42d8fb1c715281, 0x01505646987444fa}}}},
     {.string      = "split",
-     .tx_type     = TX_UNKNOWN,
+     .tx_type     = TX_SPLIT,
      .input_count = 2,
      .bhp_1024_hashes
      = {{.big.u64
@@ -76,7 +76,7 @@ const function_parameters_t credits_aleo[NB_OF_CREDITS_ALEO_FUNCTIONS] = {
         {.big.u64
          = {0x0bb53e032f965178, 0x6cd697d8b5df7efc, 0x12e2736c492f2495, 0x0529c62123003bca}}}},
     {.string      = "join",
-     .tx_type     = TX_UNKNOWN,
+     .tx_type     = TX_JOIN,
      .input_count = 2,
      .bhp_1024_hashes
      = {{.big.u64
