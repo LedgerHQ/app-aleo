@@ -71,9 +71,15 @@ static int hash_public_input(prepared_request_t *request, uint8_t input_index)
     input_t *input            = &request->inputs[input_index];
     field_t  hash;
 
+    if (input->type_length < 2) {
+        return -1;
+    }
     memset(hash_input, 0, sizeof(hash_input));
     memcpy(&hash_input[hash_input_index++], &request->function_id, sizeof(field_t));
     if (input->type[1] == INPUT_VALUE_TYPE_PLAINTEXT) {
+        if (input->type_length < 3) {
+            return -1;
+        }
         if ((input->type[2] == PLAINTEXT_TYPE_LITERAL_ADDRESS)
             || (input->type[2] == PLAINTEXT_TYPE_LITERAL_FIELD)) {
             PRINTF("PLAINTEXT_TYPE_LITERAL_ADDRESS/FIELD\n");
@@ -151,7 +157,14 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
     PRINTF("input_view_key : ");
     field_println(&input_view_key);
 
+    if (input->type_length < 2) {
+        return -1;
+    }
+
     if (input->type[1] == INPUT_VALUE_TYPE_PLAINTEXT) {
+        if (input->type_length < 3) {
+            return -1;
+        }
         if ((input->type[2] == PLAINTEXT_TYPE_LITERAL_ADDRESS)
             || (input->type[2] == PLAINTEXT_TYPE_LITERAL_FIELD)) {
             PRINTF("PLAINTEXT_TYPE_LITERAL_ADDRESS/FIELD\n");
