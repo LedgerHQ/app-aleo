@@ -42,6 +42,18 @@
 static uint8_t  rx_transaction_array[1024 * 8];
 static buffer_t apdu_rx_buffer;
 
+static int prepare_tlv_buffer(const buffer_t *rx_buffer, buffer_t *tlv_buffer)
+{
+    if (rx_buffer->offset > rx_buffer->size) {
+        return -1;
+    }
+    tlv_buffer->ptr    = rx_buffer->ptr + rx_buffer->offset;
+    tlv_buffer->offset = 0;
+    tlv_buffer->size   = rx_buffer->size - rx_buffer->offset;
+
+    return 0;
+}
+
 static int sign_root_tx(buffer_t *cdata)
 {
     int status = -1;
@@ -66,12 +78,15 @@ static int sign_root_tx(buffer_t *cdata)
 
     // Bypass intent length
     cdata->offset += 2;
-    cdata->ptr += cdata->offset;
-    cdata->size -= cdata->offset;
-    cdata->offset = 0;
+
+    // Prepare buffer for TLV parser (need offset to 0)
+    buffer_t tlv_buffer;
+    if (prepare_tlv_buffer(cdata, &tlv_buffer) < 0) {
+        return io_send_sw(SWO_WRONG_DATA_LENGTH);
+    }
 
     // Extract intent
-    if ((status = tx_extract_intent(cdata)) < 0) {
+    if ((status = tx_extract_intent(&tlv_buffer)) < 0) {
         explicit_bzero(&G_context.account, sizeof(G_context.account));
 #ifndef FUZZ
         nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
@@ -123,15 +138,18 @@ static int sign_nested_call_tx(buffer_t *cdata)
     explicit_bzero(&G_context.sign_transaction_datas.prepared_request, sizeof(prepared_request_t));
     G_context.sign_transaction_datas.prepared_request.is_root = false;
 
-    // Bypass prepared request length
+    // Bypass intent length
     cdata->offset += 2;
-    cdata->ptr += cdata->offset;
-    cdata->size -= cdata->offset;
-    cdata->offset = 0;
+
+    // Prepare buffer for TLV parser (need offset to 0)
+    buffer_t tlv_buffer;
+    if (prepare_tlv_buffer(cdata, &tlv_buffer) < 0) {
+        return io_send_sw(SWO_WRONG_DATA_LENGTH);
+    }
 
     // Extract prepared request
-    if ((status
-         = tx_extract_prepared_request(cdata, &G_context.sign_transaction_datas.prepared_request))
+    if ((status = tx_extract_prepared_request(&tlv_buffer,
+                                              &G_context.sign_transaction_datas.prepared_request))
         < 0) {
         goto end;
     }
@@ -186,15 +204,18 @@ static int sign_fee_tx(buffer_t *cdata)
     }
     explicit_bzero(&G_context.sign_transaction_datas.prepared_request, sizeof(prepared_request_t));
 
-    // Bypass prepared request length
+    // Bypass intent length
     cdata->offset += 2;
-    cdata->ptr += cdata->offset;
-    cdata->size -= cdata->offset;
-    cdata->offset = 0;
+
+    // Prepare buffer for TLV parser (need offset to 0)
+    buffer_t tlv_buffer;
+    if (prepare_tlv_buffer(cdata, &tlv_buffer) < 0) {
+        return io_send_sw(SWO_WRONG_DATA_LENGTH);
+    }
 
     // Extract prepared request
-    if ((status
-         = tx_extract_prepared_request(cdata, &G_context.sign_transaction_datas.prepared_request))
+    if ((status = tx_extract_prepared_request(&tlv_buffer,
+                                              &G_context.sign_transaction_datas.prepared_request))
         < 0) {
         goto end;
     }
@@ -247,7 +268,6 @@ static int sign_fee_tx(buffer_t *cdata)
 
     // Display & sign fees
     status = ui_display_transaction();
-
 end:
     return status;
 }
@@ -266,6 +286,7 @@ int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool next_chunk)
     // Handle fragmentation
     if (!next_chunk) {
         size_t length_offset = 0;
+
         if (mode == SIGN_MODE_ROOT) {
             length_offset = 1 + cdata->ptr[0] * 4;
         }
@@ -278,6 +299,7 @@ int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool next_chunk)
             apdu_rx_buffer.size = 0;
             return io_send_sw(SWO_INSUFFICIENT_MEMORY);
         }
+        apdu_rx_buffer.ptr    = rx_transaction_array;
         apdu_rx_buffer.offset = 0;
         apdu_rx_buffer.size   = length_offset + 2 + declared_len;
     }
