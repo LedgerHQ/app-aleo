@@ -141,8 +141,8 @@ typedef struct {
 typedef struct {
     state_e state;  /// state of the context
     union {
-        char address[ADDRESS_LEN];
-        char view_key[VIEW_KEY_LEN];
+        char address[ADDRESS_LEN + 1];
+        char view_key[VIEW_KEY_LEN + 1];
     };
     request_type_e req_type;                    /// user request
     uint32_t       bip32_path[MAX_BIP32_PATH];  /// BIP32 path

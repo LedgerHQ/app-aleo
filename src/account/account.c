@@ -194,7 +194,9 @@ static int graph_key_from_view_key(const scalar_t *view_key, field_t *graph_key)
     return status;
 }
 
-int account_get_address_string(const uint32_t *path, uint8_t path_len, char address[ADDRESS_LEN])
+int account_get_address_string(const uint32_t *path,
+                               uint8_t         path_len,
+                               char            address[ADDRESS_LEN + 1])
 {
     account_t    account;
     bigint_256_t address_big_int;
@@ -236,9 +238,15 @@ int account_get_address_string(const uint32_t *path, uint8_t path_len, char addr
 
     uint8_t data[ADDRESS_LEN + 1];
     size_t  datalen = 0;
+    memset(address, 0, ADDRESS_LEN + 1);
     if ((status = bech32_convert_bits(
              data, &datalen, sizeof(data), 5, address_bn, sizeof(address_bn), 8, 1))
         < 0) {
+        goto end;
+    }
+    // bech32_encode writes 63 chars + NUL for Aleo addresses.
+    if ((4 + 1 + datalen + 6 + 1) > (ADDRESS_LEN + 1)) {
+        status = -1;
         goto end;
     }
     status = bech32_encode(address, ADDRESS_PREFIX, data, datalen, BECH32_ENCODING_BECH32M);
@@ -251,7 +259,9 @@ end:
     return status;
 }
 
-int account_get_view_key_string(const uint32_t *path, uint8_t path_len, char viewkey[VIEW_KEY_LEN])
+int account_get_view_key_string(const uint32_t *path,
+                                uint8_t         path_len,
+                                char            viewkey[VIEW_KEY_LEN + 1])
 {
     account_t    account;
     bigint_256_t view_key_big_int;
@@ -287,9 +297,12 @@ int account_get_view_key_string(const uint32_t *path, uint8_t path_len, char vie
     for (size_t i = 0; i < sizeof(view_key_bn); i++) {
         base_58_input[sizeof(VIEW_KEY_PREFIX) + i] = view_key_bn[sizeof(view_key_bn) - 1 - i];
     }
-    if (base58_encode(base_58_input, sizeof(VIEW_KEY_PREFIX) + sizeof(view_key_bn), viewkey, 64)
-        < 0) {
+    memset(viewkey, 0, VIEW_KEY_LEN + 1);
+    int out_len = base58_encode(
+        base_58_input, sizeof(VIEW_KEY_PREFIX) + sizeof(view_key_bn), viewkey, VIEW_KEY_LEN + 1);
+    if (out_len < 0 || out_len > VIEW_KEY_LEN) {
         status = -1;
+        goto end;
     }
     PRINTF("%s\n", viewkey);
 
