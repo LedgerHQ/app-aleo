@@ -82,6 +82,9 @@ static int hash_public_input(prepared_request_t *request, uint8_t input_index)
         }
         if ((input->type[2] == PLAINTEXT_TYPE_LITERAL_ADDRESS)
             || (input->type[2] == PLAINTEXT_TYPE_LITERAL_FIELD)) {
+            if ((input->value_length * 8) < FIELD_MODULUS_BITS) {
+                return -1;
+            }
             PRINTF("PLAINTEXT_TYPE_LITERAL_ADDRESS/FIELD\n");
             int bit_length = bits_from_plaintext(input->value,
                                                  &input->type[1],
@@ -102,6 +105,9 @@ static int hash_public_input(prepared_request_t *request, uint8_t input_index)
         }
         else if (input->type[2] == PLAINTEXT_TYPE_LITERAL_U64) {
             PRINTF("PLAINTEXT_TYPE_LITERAL_U64\n");
+            if ((input->value_length * 8) < 64) {
+                return -1;
+            }
             int bit_length = bits_from_plaintext(
                 input->value, &input->type[1], 64, bit_buffer, BIT_BUFFER_MAX_LENGTH * 8);
             if (bit_length < 0) {
@@ -168,6 +174,9 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
         if ((input->type[2] == PLAINTEXT_TYPE_LITERAL_ADDRESS)
             || (input->type[2] == PLAINTEXT_TYPE_LITERAL_FIELD)) {
             PRINTF("PLAINTEXT_TYPE_LITERAL_ADDRESS/FIELD\n");
+            if ((input->value_length * 8) < FIELD_MODULUS_BITS) {
+                return -1;
+            }
             int bit_length = bits_from_plaintext(input->value,
                                                  &input->type[1],
                                                  FIELD_MODULUS_BITS,
@@ -186,6 +195,9 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
         }
         else if (input->type[2] == PLAINTEXT_TYPE_LITERAL_U64) {
             PRINTF("PLAINTEXT_TYPE_LITERAL_U64\n");
+            if ((input->value_length * 8) < 64) {
+                return -1;
+            }
             int bit_length = bits_from_plaintext(
                 input->value, &input->type[1], 64, bit_buffer, BIT_BUFFER_MAX_LENGTH * 8);
             if (bit_length < 0) {
