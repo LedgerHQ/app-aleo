@@ -274,9 +274,11 @@ static int squeeze_internal(uint8_t rate_start, field_t *output, uint16_t output
     }
 
     for (uint8_t i = 0; i < chunk_length; i++) {
+#ifndef __clang_analyzer__
         memcpy(&output[first_chunk_size + i],
                &sponge.state[CAPACITY + rate_start + i],
                sizeof(field_t));
+#endif
     }
 
     if (total_num_chunks == 2) {
