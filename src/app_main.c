@@ -114,6 +114,7 @@ void app_ticker_event_callback(void)
         G_context.fees_waiting_time_ms += 100;
         if (G_context.fees_waiting_time_ms > 15 * 1000) {
             G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
+            account_erase(&G_context.account);
 #ifndef FUZZ
             nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
 #endif  // FUZZ

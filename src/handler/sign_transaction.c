@@ -60,7 +60,7 @@ static int sign_root_tx(buffer_t *cdata)
 {
     int status = -1;
 
-    explicit_bzero(&G_context, sizeof(G_context));
+    G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
 
     // Extract bip32 path
     if (!buffer_read_u8(cdata, &G_context.bip32_path_len)
@@ -71,7 +71,7 @@ static int sign_root_tx(buffer_t *cdata)
     status
         = account_generate_keys(G_context.bip32_path, G_context.bip32_path_len, &G_context.account);
     if (status < 0) {
-        explicit_bzero(&G_context.account, sizeof(G_context.account));
+        account_erase(&G_context.account);
 #ifndef FUZZ
         nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
 #endif  // FUZZ
@@ -89,7 +89,7 @@ static int sign_root_tx(buffer_t *cdata)
 
     // Extract intent
     if ((status = tx_extract_intent(&tlv_buffer)) < 0) {
-        explicit_bzero(&G_context.account, sizeof(G_context.account));
+        account_erase(&G_context.account);
 #ifndef FUZZ
         nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
 #endif  // FUZZ
@@ -101,7 +101,7 @@ static int sign_root_tx(buffer_t *cdata)
 
     // Parse intent
     if ((status = tx_parse(&G_context.sign_transaction_datas, &G_context.tx)) < 0) {
-        explicit_bzero(&G_context.account, sizeof(G_context.account));
+        account_erase(&G_context.account);
 #ifndef FUZZ
         nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
 #endif  // FUZZ
@@ -121,7 +121,7 @@ static int sign_root_tx(buffer_t *cdata)
 
     // Display & sign transaction
     if ((status = ui_display_transaction()) < 0) {
-        explicit_bzero(&G_context.account, sizeof(G_context.account));
+        account_erase(&G_context.account);
 #ifndef FUZZ
         nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
 #endif  // FUZZ
@@ -199,6 +199,7 @@ static int sign_nested_call_tx(buffer_t *cdata)
         }
         else {
 #ifndef FUZZ
+            account_erase(&G_context.account);
             nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
             G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
 #endif  // FUZZ
@@ -218,7 +219,6 @@ static int sign_fee_tx(buffer_t *cdata)
         explicit_bzero(&G_context.account, sizeof(G_context.account));
         return io_send_sw(SWO_CONDITIONS_NOT_SATISFIED);
     }
-    explicit_bzero(&G_context.sign_transaction_datas.prepared_request, sizeof(prepared_request_t));
 
     // Bypass intent length
     cdata->offset += 2;

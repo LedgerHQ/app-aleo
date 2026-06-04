@@ -177,7 +177,7 @@ target_link_libraries(test_bhp_1024 PUBLIC bhp_1024 field fp256 bigint_256 bits 
 add_test(test_bhp_1024 test_bhp_1024)
 
 add_executable(test_account test_account.c)
-target_link_libraries(test_account PUBLIC account stubs_os_hdkey stubs_nbgl bech32 poseidon base58 bip32 group scalar field fp256 bigint_256 bits stubs_ox ${COMMON_LIBS})
+target_link_libraries(test_account PUBLIC account bhp_1024 signature stubs_os_hdkey stubs_nbgl bech32 poseidon base58 bip32 group scalar field fp256 bigint_256 bits stubs_ox ${COMMON_LIBS})
 add_test(test_account test_account)
 
 add_executable(test_signature test_signature.c)

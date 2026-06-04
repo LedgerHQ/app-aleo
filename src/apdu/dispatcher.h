@@ -6,12 +6,12 @@
 /**
  * Parameter 1 for APDU get without confirmation.
  */
-#define P1_GET_WITHOUT_CONFIRMATION 0x00
+#define P1_GET_WITHOUT_CONFIRMATION (0x00)
 
 /**
  * Parameter 1 for APDU get with confirmation.
  */
-#define P1_GET_WITH_CONFIRMATION 0x01
+#define P1_GET_WITH_CONFIRMATION (0x01)
 
 /**
  * Parameter 1 for APDU sign mode root (intent).
@@ -31,11 +31,11 @@
 /**
  * Parameter 2 for APDU begin chunk.
  */
-#define P2_BEGIN 0x00
+#define P2_BEGIN (0x00)
 /**
  * Parameter 2 for APDU next chunk.
  */
-#define P2_CONTINUE 0x01
+#define P2_CONTINUE (0x01)
 
 /**
  * Dispatch APDU command received to the right handler.

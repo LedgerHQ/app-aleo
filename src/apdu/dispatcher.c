@@ -72,6 +72,7 @@ int apdu_dispatcher(const command_t *cmd)
             buf.ptr    = cmd->data;
             buf.size   = cmd->lc;
             buf.offset = 0;
+
             return handler_get_address(&buf, (bool) cmd->p1);
 
         case CMD_GET_VIEW_KEY:
@@ -86,6 +87,7 @@ int apdu_dispatcher(const command_t *cmd)
             buf.ptr    = cmd->data;
             buf.size   = cmd->lc;
             buf.offset = 0;
+
             return handler_get_view_key(&buf);
 
         case CMD_SIGN_TRANSACTION:

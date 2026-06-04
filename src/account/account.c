@@ -375,3 +375,8 @@ error:
     explicit_bzero(account, sizeof(account_t));
     return status;
 }
+
+void account_erase(account_t *account)
+{
+    explicit_bzero(account, sizeof(account_t));
+}

@@ -58,11 +58,13 @@ static void review_transaction(bool confirm)
 #endif  // FUZZ
         }
         else {
+            account_erase(&G_context.account);
             nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
             G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
         }
     }
     else {
+        account_erase(&G_context.account);
         nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
     }
 }

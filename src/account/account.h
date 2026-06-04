@@ -13,14 +13,12 @@ typedef struct {
     group_t  pk_sig;
     group_t  pr_sig;
     scalar_t sk_prf;
-
 } compute_key_t;
 
 typedef struct {
     field_t  seed;
     scalar_t sk_sig;
     scalar_t r_sig;
-
 } private_key_t;
 
 typedef struct {
@@ -36,7 +34,6 @@ typedef struct {
     scalar_t      challenge;
     scalar_t      response;
     compute_key_t compute_key;
-
 } account_signature_t;
 
 extern const char ADDRESS_PREFIX[5];
@@ -49,3 +46,5 @@ int account_get_view_key_string(const uint32_t *path,
                                 char            viewkey[VIEW_KEY_LEN + 1]);
 
 int account_generate_keys(const uint32_t *path, uint8_t path_len, account_t *account);
+
+void account_erase(account_t *account);

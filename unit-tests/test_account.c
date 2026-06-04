@@ -9,7 +9,10 @@
 
 #include "os.h"
 #include "cx.h"
+#include "types.h"
 #include "account.h"
+
+global_ctx_t G_context;
 
 static void check_field(field_t *a, field_t *b)
 {
@@ -80,64 +83,68 @@ static void test_account(void **state)
     assert_int_equal(account_get_view_key_string(path, 4, address), -1);
 
     // account_generate_keys
-    account_t account;
     will_return(sys_hdkey_derive, bn_seed);
     will_return(sys_hdkey_derive, SWO_OK);
-    assert_int_equal(account_generate_keys(path, 4, &account), 0);
+    assert_int_equal(account_generate_keys(path, 4, &G_context.account), 0);
     field_t seed = {
         .big.u64 = {0x326dab4d918236e0, 0xec37e9452f68725, 0x7099819b51333787, 0x46977186edbf965}
     };
-    check_field(&account.private_key.seed, &seed);
+    check_field(&G_context.account.private_key.seed, &seed);
     scalar_t sk_sig = {
         .big.u64
         = {0x07eabdc6534c858f, 0x44f1027b4d903652, 0xe8496250b2b42c9a, 0x044f53f538456ce2}
     };
-    check_scalar(&account.private_key.sk_sig, &sk_sig);
+    check_scalar(&G_context.account.private_key.sk_sig, &sk_sig);
     scalar_t r_sig = {
         .big.u64
         = {0xe05c5bfcd63c0709, 0x928969617eb6172e, 0xa1bef1a9817696c4, 0x02cab0981b27e5e5}
     };
-    check_scalar(&account.private_key.r_sig, &r_sig);
+    check_scalar(&G_context.account.private_key.r_sig, &r_sig);
     group_t pk_sig = {
         .x.big.u64
         = {0xde8cc5ec217ad253, 0xea6bd6b4a4d0cf4b, 0x9556a907cd59336b, 0x0a3d18918155940e},
         .y.big.u64
         = {0xe456322861acf6ac, 0x68b72f3d5529218e, 0x3cbe762b292509f8, 0x0c03f4d9376b27cd}
     };
-    check_group(&account.compute_key.pk_sig, &pk_sig);
+    check_group(&G_context.account.compute_key.pk_sig, &pk_sig);
     group_t pr_sig = {
         .x.big.u64
         = {0x773d1f206139cff5, 0xef1122c53bf34151, 0x58c4735db29ca6a7, 0x11d1c7a9b23a52f5},
         .y.big.u64
         = {0x799be5fcf4f15c35, 0x674847c970493e9b, 0xe1cb4589e5b4c7f3, 0x01c2c9083e4798e1}
     };
-    check_group(&account.compute_key.pr_sig, &pr_sig);
+    check_group(&G_context.account.compute_key.pr_sig, &pr_sig);
     scalar_t sk_prf = {
         .big.u64
         = {0xa99e4b1f9b8435cb, 0x973b73acef28d87e, 0x84efb6bac52969ca, 0x0401510674801756}
     };
-    check_scalar(&account.compute_key.sk_prf, &sk_prf);
+    check_scalar(&G_context.account.compute_key.sk_prf, &sk_prf);
     scalar_t view_key = {
         .big.u64
         = {0x1f2f87ad3e8d0e65, 0xc98e982a32f61002, 0xde9de425cb385528, 0x01c5a2e47ad71773}
     };
-    check_scalar(&account.view_key, &view_key);
+    check_scalar(&G_context.account.view_key, &view_key);
     group_t addr = {
         .x.big.u64
         = {0xce0f78517f7376e6, 0xf4ea033ea47d149e, 0x287213cc619348f0, 0x06687fceca169ebd},
         .y.big.u64
         = {0x013ace29509f45c6, 0x37979a102f766dd3, 0xcf78a3e195b59666, 0x0893f1ae42d7df25}
     };
-    check_group(&account.address, &addr);
+    check_group(&G_context.account.address, &addr);
     field_t graph_key = {
         .big.u64
         = {0x837f9d098b4fd96a, 0x8e3724af86c9b19d, 0x19dbeeebcba9e6f8, 0x0caf51a7e4157238}
     };
-    check_field(&account.graph_key, &graph_key);
+    check_field(&G_context.account.graph_key, &graph_key);
 
     will_return(sys_hdkey_derive, bn_seed);
     will_return(sys_hdkey_derive, 0x0001);
-    assert_int_equal(account_generate_keys(path, 4, &account), -1);
+    assert_int_equal(account_generate_keys(path, 4, &G_context.account), -1);
+
+    // account_erase()
+    account_t empty_account = {0};
+    account_erase(&G_context.account);
+    assert_memory_equal(&G_context.account, &empty_account, sizeof(account_t));
 }
 
 int main()
