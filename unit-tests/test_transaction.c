@@ -93,9 +93,11 @@ static void test_tx_extract(void **state)
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         -1);
 
-    uint8_t input_values[36]
+    uint8_t input_values[78]
         = "\x81\xb8\x01\x01\x81\xb8\x01\x02\x81\xb8\x01\x03\x81\xb8\x01\x04\x81\xb8\x01\x05\x81\xb8"
-          "\x01\x06\x81\xb8\x01\x07\x81\xb8\x01\x08\x81\xb8\x01\x09";
+          "\x01\x06\x81\xb8\x01\x07\x81\xb8\x01\x08\x81\xb8\x01\x09\x81\xb8\x01\x0a\x81\xb8\x01\x0b"
+          "\x81\xb8\x01\x0c\x81\xb8\x01\x0d\x81\xb8\x01\x0e\x81\xb8\x01\x0f\x81\xb8\x01\x10\x81\xb8"
+          "\x01\x11";
     buffer.ptr    = input_values;
     buffer.size   = sizeof(input_values);
     buffer.offset = 0;
@@ -118,9 +120,11 @@ static void test_tx_extract(void **state)
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         -1);
 
-    uint8_t input_types[36]
+    uint8_t input_types[78]
         = "\x81\xb9\x01\x01\x81\xb9\x01\x02\x81\xb9\x01\x03\x81\xb9\x01\x04\x81\xb9\x01\x05\x81\xb9"
-          "\x01\x06\x81\xb9\x01\x07\x81\xb9\x01\x08\x81\xb9\x01\x09";
+          "\x01\x06\x81\xb9\x01\x07\x81\xb9\x01\x08\x81\xb9\x01\x09\x81\xb9\x01\x0a\x81\xb9\x01\x0b"
+          "\x81\xb9\x01\x0c\x81\xb9\x01\x0d\x81\xb9\x01\x0e\x81\xb9\x01\x0f\x81\xb9\x01\x10\x81\xb9"
+          "\x01\x11";
     buffer.ptr    = input_types;
     buffer.size   = sizeof(input_types);
     buffer.offset = 0;
@@ -365,6 +369,76 @@ static void test_tx_parse(void **state)
     };
 
     assert_int_equal(tx_parse(&datas_private_3, &tx), 0);
+
+    sign_transaction_datas_t datas_batch_private = {
+        .max_base_fee             = 100,
+        .max_priority_fee         = 500,
+        .fee_function_name_length = 11,
+        .fee_function_name        = "fee_private",
+        .fee_program_id_length    = 12,
+        .fee_program_id           = "credits.aleo",
+        .prepared_request
+        = {.program_id_length    = 19,
+           .program_id           = "ldgbatcher_p28.aleo",
+           .function_name_length = 18,
+           .function_name        = "transfer_private_2",
+           .inputs_count         = 4,
+           .inputs
+           = {{.value_length = 96,
+               .value        = hash_record,
+               .type_length  = 9,
+               .type         = (uint8_t *) "\x03\x07\x63\x72\x65\x64\x69\x74\x73"},
+              {.value_length = 96,
+               .value        = hash_record,
+               .type_length  = 9,
+               .type         = (uint8_t *) "\x03\x07\x63\x72\x65\x64\x69\x74\x73"},
+              {.value_length = 32,
+               .value
+               = (uint8_t *) "\x82\x48\xd5\xe8\x5a\xc4\xc1\x23\x46\xf8\x45\x8b\xd9\x39\xf1\xce"
+                             "\x25\xae\x03\xe9\xc6\xcb\xc8\x86\x28\x6d\xf1\x61\x63\x0a\x75\x0c",
+               .type_length = 3,
+               .type        = (uint8_t *) "\x02\x00\x00"},
+              {.value_length = 8,
+               .value        = (uint8_t *) "\xe8\x03\x00\x00\x00\x00\x00\x00",
+               .type_length  = 3,
+               .type         = (uint8_t *) "\x02\x00\x0c"}}}
+    };
+
+    assert_int_equal(tx_parse(&datas_batch_private, &tx), 0);
+
+    datas_batch_private.prepared_request.inputs[2].type = type_1;
+    assert_int_equal(tx_parse(&datas_batch_private, &tx), -1);
+
+    sign_transaction_datas_t datas_batch_private_to_public = {
+        .max_base_fee             = 100,
+        .max_priority_fee         = 500,
+        .fee_function_name_length = 11,
+        .fee_function_name        = "fee_private",
+        .fee_program_id_length    = 12,
+        .fee_program_id           = "credits.aleo",
+        .prepared_request         = {.program_id_length    = 23,
+                                     .program_id           = "ldgbatcher_ppub_28.aleo",
+                                     .function_name_length = 28,
+                                     .function_name        = "transfer_private_to_public_2",
+                                     .inputs_count         = 3,
+                                     .inputs               = {{.value_length = 96,
+                                                               .value        = hash_record,
+                                                               .type_length  = 1,
+                                                               .type         = (uint8_t *) "\x04"},
+                                                              {.value_length = 96,
+                                                               .value        = hash_record,
+                                                               .type_length  = 1,
+                                                               .type         = (uint8_t *) "\x04"},
+                                                              {.value_length = 8,
+                                                               .value = (uint8_t *) "\xe8\x03\x00\x00\x00\x00\x00\x00",
+                                                               .type_length = 3,
+                                                               .type        = (uint8_t *) "\x01\x00\x0c"}}}
+    };
+
+    assert_int_equal(tx_parse(&datas_batch_private_to_public, &tx), 0);
+
+    datas_batch_private_to_public.prepared_request.inputs[2].type = type_2;
+    assert_int_equal(tx_parse(&datas_batch_private_to_public, &tx), -1);
 }
 
 int main()

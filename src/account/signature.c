@@ -33,7 +33,7 @@
 #include "signature.h"
 
 #define HASH_INPUT_MAX_LENGTH     (16)
-#define MESSAGE_MAX_LENGTH        (32)
+#define MESSAGE_MAX_LENGTH        (64)
 #define PLAINTEXT_FIELDS_MAX_SIZE (4)
 #define BIT_BUFFER_MAX_LENGTH     (128)
 
@@ -66,16 +66,25 @@ static int add_field_to_message(field_t *field)
 static int hash_public_input(prepared_request_t *request, uint8_t input_index)
 {
     _Static_assert(HASH_INPUT_MAX_LENGTH >= 13, "hash_input size won't fit");
-    int      status           = 0;
+    int      status           = -1;
     uint8_t  hash_input_index = 8;
     input_t *input            = &request->inputs[input_index];
     field_t  hash;
 
+    if (input->type_length < 2) {
+        return -1;
+    }
     memset(hash_input, 0, sizeof(hash_input));
     memcpy(&hash_input[hash_input_index++], &request->function_id, sizeof(field_t));
     if (input->type[1] == INPUT_VALUE_TYPE_PLAINTEXT) {
+        if (input->type_length < 3) {
+            return -1;
+        }
         if ((input->type[2] == PLAINTEXT_TYPE_LITERAL_ADDRESS)
             || (input->type[2] == PLAINTEXT_TYPE_LITERAL_FIELD)) {
+            if ((input->value_length * 8) < FIELD_MODULUS_BITS) {
+                return -1;
+            }
             PRINTF("PLAINTEXT_TYPE_LITERAL_ADDRESS/FIELD\n");
             int bit_length = bits_from_plaintext(input->value,
                                                  &input->type[1],
@@ -96,6 +105,9 @@ static int hash_public_input(prepared_request_t *request, uint8_t input_index)
         }
         else if (input->type[2] == PLAINTEXT_TYPE_LITERAL_U64) {
             PRINTF("PLAINTEXT_TYPE_LITERAL_U64\n");
+            if ((input->value_length * 8) < 64) {
+                return -1;
+            }
             int bit_length = bits_from_plaintext(
                 input->value, &input->type[1], 64, bit_buffer, BIT_BUFFER_MAX_LENGTH * 8);
             if (bit_length < 0) {
@@ -132,7 +144,7 @@ static int hash_public_input(prepared_request_t *request, uint8_t input_index)
 
 static int hash_private_input(prepared_request_t *request, uint8_t input_index)
 {
-    int      status           = 0;
+    int      status           = -1;
     size_t   hash_input_index = 0;
     input_t *input            = &request->inputs[input_index];
     uint8_t  num_randomizers  = 0;
@@ -151,10 +163,20 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
     PRINTF("input_view_key : ");
     field_println(&input_view_key);
 
+    if (input->type_length < 2) {
+        return -1;
+    }
+
     if (input->type[1] == INPUT_VALUE_TYPE_PLAINTEXT) {
+        if (input->type_length < 3) {
+            return -1;
+        }
         if ((input->type[2] == PLAINTEXT_TYPE_LITERAL_ADDRESS)
             || (input->type[2] == PLAINTEXT_TYPE_LITERAL_FIELD)) {
             PRINTF("PLAINTEXT_TYPE_LITERAL_ADDRESS/FIELD\n");
+            if ((input->value_length * 8) < FIELD_MODULUS_BITS) {
+                return -1;
+            }
             int bit_length = bits_from_plaintext(input->value,
                                                  &input->type[1],
                                                  FIELD_MODULUS_BITS,
@@ -173,6 +195,9 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
         }
         else if (input->type[2] == PLAINTEXT_TYPE_LITERAL_U64) {
             PRINTF("PLAINTEXT_TYPE_LITERAL_U64\n");
+            if ((input->value_length * 8) < 64) {
+                return -1;
+            }
             int bit_length = bits_from_plaintext(
                 input->value, &input->type[1], 64, bit_buffer, BIT_BUFFER_MAX_LENGTH * 8);
             if (bit_length < 0) {
@@ -234,13 +259,20 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
 
 static int hash_record_input(account_t *account, prepared_request_t *request, uint8_t input_index)
 {
-    int          status = 0;
+    int          status = -1;
     bigint_256_t s;
     input_t     *input = &request->inputs[input_index];
     field_t      commitment;
     group_t      h;
     group_t      h_r;
     field_t      tag;
+
+    if (request->gammas_count >= MAX_NB_OF_RECORDS) {
+        return -1;
+    }
+    if (input->value_length < (3 * sizeof(field_t))) {
+        return -1;
+    }
 
     // Extract 'commitment'
     bn_reverse(input->value);
@@ -250,13 +282,13 @@ static int hash_record_input(account_t *account, prepared_request_t *request, ui
     field_println(&commitment);
 
     // Extract 'h' x coordinate
-    bn_reverse(&input->value[32]);
-    bn_to_big_int(&input->value[32], &s);
+    bn_reverse(&input->value[sizeof(field_t)]);
+    bn_to_big_int(&input->value[sizeof(field_t)], &s);
     field_from_big_int(&h.x, &s);
 
     // Extract 'h' y coordinate
-    bn_reverse(&input->value[64]);
-    bn_to_big_int(&input->value[64], &s);
+    bn_reverse(&input->value[2 * sizeof(field_t)]);
+    bn_to_big_int(&input->value[2 * sizeof(field_t)], &s);
     field_from_big_int(&h.y, &s);
     if ((status = add_field_to_message(&h.x)) < 0) {
         return status;
@@ -300,9 +332,50 @@ static int hash_record_input(account_t *account, prepared_request_t *request, ui
     return add_field_to_message(&tag);
 }
 
+static int hash_external_record_input(prepared_request_t *request, uint8_t input_index)
+{
+    int          status           = -1;
+    size_t       hash_input_index = 8;
+    input_t     *input            = &request->inputs[input_index];
+    bigint_256_t s;
+    field_t      hash;
+
+    if ((input->value_length == 0) || (input->value_length % 32 != 0)) {
+        return -1;
+    }
+    uint8_t num_fields = input->value_length / 32;
+    if (num_fields
+        > (HASH_INPUT_MAX_LENGTH - 11)) { /* 11 = 8 capacity + function_id + tvk + index */
+        return -1;
+    }
+
+    _Static_assert(HASH_INPUT_MAX_LENGTH >= 14, "hash_input size won't fit for external record");
+    memset(hash_input, 0, sizeof(hash_input));
+
+    /* Preimage: [function_id || record_fields... || tvk || index] */
+    memcpy(&hash_input[hash_input_index++], &request->function_id, sizeof(field_t));
+
+    for (uint8_t i = 0; i < num_fields; i++) {
+        bn_reverse(&input->value[i * sizeof(field_t)]);
+        bn_to_big_int(&input->value[i * sizeof(field_t)], &s);
+        field_from_big_int(&hash_input[hash_input_index++], &s);
+    }
+
+    memcpy(&hash_input[hash_input_index++], &request->tvk, sizeof(field_t));
+    field_from_int(&hash_input[hash_input_index++], input_index);
+
+    if ((status = hash_psd8(hash_input, hash_input_index, &hash)) < 0) {
+        return status;
+    }
+    PRINTF("external_record_hash : ");
+    field_println(&hash);
+
+    return add_field_to_message(&hash);
+}
+
 static int prepare_inputs(account_t *account, prepared_request_t *request)
 {
-    int     status      = 0;
+    int     status      = -1;
     uint8_t input_index = 0;
 
     for (input_index = 0; input_index < request->inputs_count; input_index++) {
@@ -323,6 +396,10 @@ static int prepare_inputs(account_t *account, prepared_request_t *request)
 
             case INPUT_ID_RECORD:
                 status = hash_record_input(account, request, input_index);
+                break;
+
+            case INPUT_ID_EXTERNAL_RECORD:
+                status = hash_external_record_input(request, input_index);
                 break;
 
             default:
@@ -347,8 +424,8 @@ static void display_progression(uint8_t step)
         text = "Signing transaction";
     }
     else if (G_context.signing_state == SIGNING_STATE_NESTED_CALL) {
-        text = "Prepare Tx";
-        current_step += step + ((1 + G_context.nested_call_offset) * 5);
+        text         = "Prepare Tx";
+        current_step = step + ((1 + G_context.nested_call_offset) * 5);
     }
     else {
         text = "Prepare Tx";
@@ -367,7 +444,7 @@ static void display_progression(uint8_t step)
 
 int sign_prepared_request(account_t *account, prepared_request_t *request)
 {
-    int      status = 0;
+    int      status = -1;
     field_t *is_root;
     group_t  g_temp;
     field_t  nonce;
@@ -431,40 +508,7 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     }
 
     // Compute the function ID.
-    function_id_datas_t function_id_datas;
-    memset(&function_id_datas, 0, sizeof(function_id_datas));
-    function_id_datas.network_id = request->network_id;
-    uint8_t is_name              = 1;
-    uint8_t offset               = 0;
-    for (size_t i = 0; i < request->program_id_length; i++) {
-        if (request->program_id[i] != '.') {
-            if (is_name) {
-                if (offset >= sizeof(function_id_datas.program_id_name)) {
-                    status = -1;
-                    goto end;
-                }
-                function_id_datas.program_id_name[offset++] = request->program_id[i];
-            }
-            else {
-                if (offset >= sizeof(function_id_datas.program_id_network)) {
-                    status = -1;
-                    goto end;
-                }
-                function_id_datas.program_id_network[offset++] = request->program_id[i];
-            }
-        }
-        else {
-            is_name = 0;
-            offset  = 0;
-        }
-    }
-    if (request->function_name_length >= sizeof(function_id_datas.function_name)) {
-        status = -1;
-        goto end;
-    }
-    memcpy(function_id_datas.function_name, request->function_name, request->function_name_length);
-
-    if ((status = bhp_1024_hash_function_id(&function_id_datas, &request->function_id)) < 0) {
+    if ((status = bhp_1024_hash_function_id(request)) < 0) {
         goto end;
     }
     PRINTF("function_id : ");

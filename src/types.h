@@ -93,9 +93,9 @@ typedef struct {
     uint32_t max_base_fee;
     uint32_t max_priority_fee;
     uint8_t  fee_function_name_length;
-    char     fee_function_name[32];
+    char     fee_function_name[FUNCTION_NAME_MAX_LEN];
     uint8_t  fee_program_id_length;
-    char     fee_program_id[64];
+    char     fee_program_id[PROGRAM_ID_NAME_MAX_LEN];
 
     prepared_request_t prepared_request;
 
@@ -103,32 +103,30 @@ typedef struct {
 
 typedef enum {
     TX_UNKNOWN,
-    TX_TRANSFER,
-    TX_FEE,
+    TX_SPLIT,
+    TX_JOIN,
+    TX_TRANSFER_START,
+    TX_ALEO_TRANSFER_PUBLIC = TX_TRANSFER_START,
+    TX_ALEO_TRANSFER_PRIVATE,
+    TX_ALEO_TRANSFER_BATCH_PRIVATE,
+    TX_ALEO_TRANSFER_PRIVATE_TO_PUBLIC,
+    TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
+    TX_ALEO_TRANSFER_PUBLIC_TO_PRIVATE,
+    TX_ALEO_TRANSFER_END = TX_ALEO_TRANSFER_PUBLIC_TO_PRIVATE,
+    TX_FEE_START,
+    TX_FEE_PUBLIC = TX_FEE_START,
+    TX_FEE_PRIVATE,
+    TX_FEE_END = TX_FEE_PRIVATE,
 } tx_type_e;
 
-typedef enum {
-    TX_TRANSFER_PUBLIC,
-    TX_TRANSFER_PRIVATE,
-    TX_TRANSFER_PUBLIC_TO_PRIVATE,
-    TX_TRANSFER_PRIVATE_TO_PUBLIC,
-} tx_transfer_type_e;
-
-typedef enum {
-    TX_FEE_PUBLIC,
-    TX_FEE_PRIVATE,
-} tx_fee_type_e;
-
 typedef struct {
-    tx_transfer_type_e type;
-    char               address_to[ADDRESS_LEN + 1];
-    uint64_t           amount;
+    char     address_to[ADDRESS_LEN + 1];
+    uint64_t amount;
 } tx_transfer_t;
 
 typedef struct {
-    tx_fee_type_e type;
-    uint64_t      base_fee;
-    uint64_t      priority_fee;
+    uint64_t base_fee;
+    uint64_t priority_fee;
 } tx_fee_t;
 
 typedef struct {
@@ -143,8 +141,8 @@ typedef struct {
 typedef struct {
     state_e state;  /// state of the context
     union {
-        char address[ADDRESS_LEN];
-        char view_key[VIEW_KEY_LEN];
+        char address[ADDRESS_LEN + 1];
+        char view_key[VIEW_KEY_LEN + 1];
     };
     request_type_e req_type;                    /// user request
     uint32_t       bip32_path[MAX_BIP32_PATH];  /// BIP32 path

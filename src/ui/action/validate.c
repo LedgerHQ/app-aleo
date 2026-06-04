@@ -54,8 +54,9 @@ void validate_transaction(bool choice)
             < 0) {
             io_send_sw(SWO_INCORRECT_DATA);
         }
-
-        helper_send_response_sign_transaction();
+        else {
+            helper_send_response_sign_transaction();
+        }
     }
     else {
         io_send_sw(SWO_PERMISSION_DENIED);

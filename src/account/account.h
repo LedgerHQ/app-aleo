@@ -29,7 +29,7 @@ typedef struct {
     scalar_t      view_key;
     group_t       address;
     field_t       graph_key;
-
+    char          address_str[ADDRESS_LEN + 1];
 } account_t;
 
 typedef struct {
@@ -41,7 +41,11 @@ typedef struct {
 
 extern const char ADDRESS_PREFIX[5];
 
-int account_get_address_string(const uint32_t *path, uint8_t path_len, char address[ADDRESS_LEN]);
-int account_get_view_key_string(const uint32_t *path, uint8_t path_len, char viewkey[VIEW_KEY_LEN]);
+int account_get_address_string(const uint32_t *path,
+                               uint8_t         path_len,
+                               char            address[ADDRESS_LEN + 1]);
+int account_get_view_key_string(const uint32_t *path,
+                                uint8_t         path_len,
+                                char            viewkey[VIEW_KEY_LEN + 1]);
 
 int account_generate_keys(const uint32_t *path, uint8_t path_len, account_t *account);

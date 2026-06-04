@@ -43,8 +43,8 @@ static void test_account(void **state)
 {
     (void) state;
 
-    uint32_t path[4]              = {0x8000002c, 0x800002ab, 0x80000000, 0x80000000};
-    char     address[ADDRESS_LEN] = {0};
+    uint32_t path[4]                  = {0x8000002c, 0x800002ab, 0x80000000, 0x80000000};
+    char     address[ADDRESS_LEN + 1] = {0};
 
     will_return_always(cx_bn_lock, CX_OK);
     will_return_always(cx_ecpoint_alloc, CX_OK);

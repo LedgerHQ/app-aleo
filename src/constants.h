@@ -53,7 +53,7 @@
 /**
  * Maximum number of inputs for a single signature.
  */
-#define MAX_NB_OF_INPUTS (8)
+#define MAX_NB_OF_INPUTS (16)
 
 /**
  * Maximum number of records for a single signature.
@@ -84,3 +84,8 @@
  * Maximum length of input type.
  */
 #define INPUT_TYPE_MAX_LEN (128)
+
+/**
+ * OS big number length.
+ */
+#define BN_LENGTH (32)

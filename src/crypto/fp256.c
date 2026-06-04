@@ -24,6 +24,7 @@
 #include "cx.h"
 #include "ledger_assert.h"
 
+#include "constants.h"
 #include "bigint_256.h"
 #include "fp256.h"
 

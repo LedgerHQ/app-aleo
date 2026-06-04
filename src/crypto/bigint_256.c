@@ -235,7 +235,7 @@ void big_int_to_bn(const bigint_256_t *a, uint8_t *bn)
     LEDGER_ASSERT(a != NULL, "NULL a");
     LEDGER_ASSERT(bn != NULL, "NULL bn");
 
-    memset(bn, 0, 32);
+    memset(bn, 0, BN_LENGTH);
     for (size_t i = 0; i < 4; i++) {
         uint64_t val = a->u64[i];
         for (size_t j = 0; j < 8; j++) {
@@ -251,8 +251,8 @@ void bn_to_big_int(const uint8_t *bn, bigint_256_t *a)
     LEDGER_ASSERT(bn != NULL, "NULL bn");
 
     memset(a, 0, sizeof(bigint_256_t));
-    for (size_t i = 0; i < 32; i++) {
-        uint64_t val = bn[31 - i];
+    for (size_t i = 0; i < BN_LENGTH; i++) {
+        uint64_t val = bn[BN_LENGTH - 1 - i];
         val <<= 8 * (i % 8);
         a->u64[i / 8] += val;
     }
@@ -262,10 +262,10 @@ void bn_reverse(uint8_t *bn)
 {
     LEDGER_ASSERT(bn != NULL, "NULL bn");
 
-    for (size_t i = 0; i < (32 + 1) / 2; i++) {
-        uint8_t inter  = bn[i];
-        bn[i]          = bn[32 - 1 - i];
-        bn[32 - 1 - i] = inter;
+    for (size_t i = 0; i < (BN_LENGTH + 1) / 2; i++) {
+        uint8_t inter         = bn[i];
+        bn[i]                 = bn[BN_LENGTH - 1 - i];
+        bn[BN_LENGTH - 1 - i] = inter;
     }
 }
 
@@ -274,14 +274,14 @@ int big_int_random(bigint_256_t *a, const bigint_256_t *modulus)
     cx_err_t error;
     cx_bn_t  cx_bn_modulus;
     cx_bn_t  cx_bn_r;
-    uint8_t  bn[32];
+    uint8_t  bn[BN_LENGTH];
 
     LEDGER_ASSERT(a != NULL, "NULL a");
     LEDGER_ASSERT(modulus != NULL, "NULL modulus");
 
     big_int_to_bn(modulus, bn);
 
-    if (cx_bn_lock(32, 0) != CX_OK) {
+    if (cx_bn_lock(BN_LENGTH, 0) != CX_OK) {
         return -1;
     }
     if ((error = cx_bn_alloc_init(&cx_bn_modulus, sizeof(bn), bn, sizeof(bn))) != CX_OK) {

@@ -45,7 +45,7 @@ static uint64_t time_ms = 0;
 /**
  * Handle APDU command received and send back APDU response using handlers.
  */
-void app_main()
+void app_main(void)
 {
     // Length of APDU command received in G_io_apdu_buffer
     int input_len = 0;
@@ -114,7 +114,9 @@ void app_ticker_event_callback(void)
         G_context.fees_waiting_time_ms += 100;
         if (G_context.fees_waiting_time_ms > 15 * 1000) {
             G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
+#ifndef FUZZ
             nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
+#endif  // FUZZ
         }
     }
 }

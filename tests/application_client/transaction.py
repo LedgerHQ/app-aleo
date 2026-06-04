@@ -62,7 +62,7 @@ class Transaction():
         elif t.value <= 255:
             val += f"81{t.value:02x}"
         else:
-            val += f"82{t.value:02x}"
+            val += f"82{t.value:04x}"
 
         # length
         length = len(v)//2
@@ -71,7 +71,7 @@ class Transaction():
         elif length <= 255:
             val += f"81{length:02x}"
         else:
-            val += f"82{length:02x}"
+            val += f"82{length:04x}"
 
         # value
         val += v
@@ -148,9 +148,42 @@ class Transaction():
             val += '02' + Transaction.get_plaintext_type_from_string(sp_input_type[0])
         elif sp_input_type[-1] == 'record':
             val += f"03{len(sp_input_type[0]):02x}{sp_input_type[0].encode('ascii').hex()}"
+        elif sp_input_type[-1] == 'external_record':
+            val += '04'
 
         return val
 
+    @staticmethod
+    def generate_input(inputs: dict):
+        val = ''
+        for input_item in inputs:
+            val += Transaction.forge_tlv(Transaction.TlvTypes.INPUT_TYPES, Transaction.get_input_type_from_string(input_item['type']))
+            input_val = ''
+            if 'address' in input_item['type']:
+                hrp : list[int] = []
+                data : list[int] = []
+                BECH32M.decode(hrp, data, [ord(n) for n in input_item['value']])
+                res : list[int] = []
+                BECH32M.convert_bits(res, 8, data, 5, False)
+                for item in res:
+                    input_val += f"{item:02x}"
+            elif 'field' in input_item['type']:
+                value = int(input_item['value'].split('field')[0])
+                big = BigInteger256(int(value))
+                input_val += big.to_int().to_bytes(32, 'little').hex()
+            elif 'external_record' in input_item['type']:
+                input_val = input_item['value']
+            elif 'record' in input_item['type']:
+                for in_val in input_item['value']:
+                    value = int(in_val.split('field')[0])
+                    big = BigInteger256(int(value))
+                    input_val += big.to_int().to_bytes(32, 'little').hex()
+            elif 'u64' in input_item['type']:
+                input_val += input_item['value'].to_bytes(8, 'little').hex()
+            else:
+                input_val += input_item['value']
+            val += Transaction.forge_tlv(Transaction.TlvTypes.INPUT_VALUES, input_val)
+        return val
 
     @staticmethod
     def generate_request(request: dict, is_root: bool) -> str:
@@ -171,36 +204,12 @@ class Transaction():
         # Input count
         val += Transaction.forge_tlv(Transaction.TlvTypes.INPUT_COUNT, f"{len(request['inputs']):02x}")
         # Input values & types
-        for input_item in request['inputs']:
-            val += Transaction.forge_tlv(Transaction.TlvTypes.INPUT_TYPES, Transaction.get_input_type_from_string(input_item['type']))
-            input_val = ''
-            if 'address' in input_item['type']:
-                hrp : list[int] = []
-                data : list[int] = []
-                BECH32M.decode(hrp, data, [ord(n) for n in input_item['value']])
-                res : list[int] = []
-                BECH32M.convert_bits(res, 8, data, 5, False)
-                for item in res:
-                    input_val += f"{item:02x}"
-            elif 'field' in input_item['type']:
-                value = int(input_item['value'].split('field')[0])
-                big = BigInteger256(int(value))
-                input_val += big.to_int().to_bytes(32, 'little').hex()
-            elif 'record' in input_item['type']:
-                for in_val in input_item['value']:
-                    value = int(in_val.split('field')[0])
-                    big = BigInteger256(int(value))
-                    input_val += big.to_int().to_bytes(32, 'little').hex()
-            elif 'u64' in input_item['type']:
-                input_val += input_item['value'].to_bytes(8, 'little').hex()
-            else:
-                input_val += input_item['value']
-            val += Transaction.forge_tlv(Transaction.TlvTypes.INPUT_VALUES, input_val)
+        val += Transaction.generate_input(request['inputs'])
         # Nested call count
         if is_root:
             val += Transaction.forge_tlv(Transaction.TlvTypes.NESTED_CALL_COUNT, f"{request['nested_call_count']:02x}")
 
-        if len(request['program_checksum']):
+        if 'program_checksum' in request and len(request['program_checksum']):
             val += Transaction.forge_tlv(Transaction.TlvTypes.PROGRAM_CHECKSUM, request['program_checksum'])
 
         return val
