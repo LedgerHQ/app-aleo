@@ -89,3 +89,13 @@
  * OS big number length.
  */
 #define BN_LENGTH (32)
+
+/**
+ * Maximum length of the R list used to compute TVK.
+ */
+#define R_LIST_MAX_LENGTH (32)
+
+/**
+ * R_list keep maximum time validity in ms.
+ */
+#define R_LIST_MAX_VALIDITY_TIME_MS (5 * 1000)

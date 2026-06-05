@@ -156,4 +156,7 @@ typedef struct {
     uint8_t                  nested_call_offset;
     sign_transaction_datas_t sign_transaction_datas;
     tx_t                     tx;
+    uint32_t                 r_list_alive_remaining_time_ms;
+    r_list_t                 r_list;
+
 } global_ctx_t;
