@@ -452,24 +452,39 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     LEDGER_ASSERT(account != NULL, "NULL account");
     LEDGER_ASSERT(request != NULL, "NULL request");
 
-    if ((status = field_random(&nonce)) < 0) {
-        goto end;
-    }
-    PRINTF("nonce : ");
-    field_println(&nonce);
-
     display_progression(1);
-
-    // Compute a `r` as `HashToScalar(sk_sig || nonce)`. Note: This is the transition secret key
-    // `tsk`.
-    _Static_assert(HASH_INPUT_MAX_LENGTH >= 7, "hash_input size won't fit");
-    memset(hash_input, 0, sizeof(hash_input));
-    memcpy(&hash_input[4], &SERIAL_NUMBER_DOMAIN, sizeof(field_t));
-    scalar_to_field(&account->private_key.sk_sig, &hash_input[5]);
-    memcpy(&hash_input[6], &nonce, sizeof(field_t));
-    if ((status = hash_to_scalar_psd4(hash_input, 4 + 3, &request->r)) < 0) {
-        goto end;
+    if ((G_context.r_list.count) && (G_context.signing_state != SIGNING_STATE_FEES)) {
+        // r is picked up from a pre-computed list (only for intent & nested calls)
+        if ((request->is_root == true) && (G_context.r_list.index != 0)) {
+            // R_0 must be used for root intent
+            status = -1;
+            goto end;
+        }
+        if ((status = r_list_get(G_context.r_list.index, &request->r)) < 0) {
+            goto end;
+        }
+        G_context.r_list.index++;
     }
+    else {
+        // r is computed on the fly from a random nonce
+        if ((status = field_random(&nonce)) < 0) {
+            goto end;
+        }
+        PRINTF("nonce : ");
+        field_println(&nonce);
+
+        // Compute a `r` as `HashToScalar(sk_sig || nonce)`. Note: This is the transition
+        // secret key `tsk`.
+        _Static_assert(HASH_INPUT_MAX_LENGTH >= 7, "hash_input size won't fit");
+        memset(hash_input, 0, sizeof(hash_input));
+        memcpy(&hash_input[4], &SERIAL_NUMBER_DOMAIN, sizeof(field_t));
+        scalar_to_field(&account->private_key.sk_sig, &hash_input[5]);
+        memcpy(&hash_input[6], &nonce, sizeof(field_t));
+        if ((status = hash_to_scalar_psd4(hash_input, 4 + 3, &request->r)) < 0) {
+            goto end;
+        }
+    }
+
     PRINTF("r : ");
     scalar_println(&request->r);
     display_progression(2);
@@ -583,6 +598,8 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     display_progression(5);
 
 end:
+    explicit_bzero(&g_temp, sizeof(g_temp));
+    explicit_bzero(&nonce, sizeof(nonce));
     explicit_bzero(hash_input, sizeof(hash_input));
     explicit_bzero(message, sizeof(message));
 

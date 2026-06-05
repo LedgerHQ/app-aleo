@@ -67,11 +67,10 @@ static void test_signature(void **state)
 {
     (void) state;
 
-    account_t account;
-    uint32_t  path[4]          = {0x8000002c, 0x800002ab, 0x80000000, 0x80000000};
-    uint8_t bn_seed[BN_LENGTH] = {0xff, 0xc3, 0xde, 0x3c, 0x85, 0x23, 0x3e, 0x2c, 0xca, 0x13, 0x90,
-                                  0xdb, 0xdd, 0x6b, 0x6f, 0x04, 0x5b, 0x6a, 0x74, 0xfa, 0xde, 0x6e,
-                                  0x58, 0x07, 0xd2, 0xe3, 0x15, 0x27, 0x05, 0xea, 0x65, 0x7e};
+    uint32_t path[4]            = {0x8000002c, 0x800002ab, 0x80000000, 0x80000000};
+    uint8_t  bn_seed[BN_LENGTH] = {0xff, 0xc3, 0xde, 0x3c, 0x85, 0x23, 0x3e, 0x2c, 0xca, 0x13, 0x90,
+                                   0xdb, 0xdd, 0x6b, 0x6f, 0x04, 0x5b, 0x6a, 0x74, 0xfa, 0xde, 0x6e,
+                                   0x58, 0x07, 0xd2, 0xe3, 0x15, 0x27, 0x05, 0xea, 0x65, 0x7e};
 
     will_return(sys_hdkey_derive, bn_seed);
     will_return(sys_hdkey_derive, SWO_OK);
@@ -82,7 +81,7 @@ static void test_signature(void **state)
     will_return_count(cx_ecpoint_export, CX_OK, 3);
     will_return_count(cx_ecpoint_destroy, CX_OK, 3);
     will_return_count(cx_bn_unlock, CX_OK, 3);
-    assert_int_equal(account_generate_keys(path, 4, &account), 0);
+    assert_int_equal(account_generate_keys(path, 4, &G_context.account), 0);
 
     uint8_t random_bn[BN_LENGTH]
         = {0x93, 0x83, 0xb2, 0x70, 0x2a, 0x29, 0x2d, 0x0f, 0x5a, 0x3c, 0x2c,
@@ -116,27 +115,27 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&account, &request), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request), -1);
     request.program_id_length = 12;
 
     request.function_name_length = 80;
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&account, &request), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request), -1);
     request.function_name_length = 15;
 
     will_return(cx_bn_lock, -1);
-    assert_int_equal(sign_prepared_request(&account, &request), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request), -1);
 
     prepare_random_ok(random_bn);
     will_return(cx_bn_lock, -1);
-    assert_int_equal(sign_prepared_request(&account, &request), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request), -1);
 
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     will_return(cx_bn_lock, -1);
-    assert_int_equal(sign_prepared_request(&account, &request), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request), -1);
 
     request.program_id
         = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz.aleo";
@@ -144,7 +143,7 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&account, &request), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request), -1);
     request.program_id        = "credits.aleo";
     request.program_id_length = 12;
 
@@ -154,7 +153,7 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&account, &request), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request), -1);
     request.program_id        = "credits.aleo";
     request.program_id_length = 12;
 
@@ -162,28 +161,28 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&account, &request), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request), -1);
     request.inputs[0].type = (uint8_t *) "\x01\x00\x00";
 
     request.inputs[0].type = (uint8_t *) "\x00\x00\x00";
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&account, &request), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request), -1);
     request.inputs[0].type = (uint8_t *) "\x01\x00\x00";
 
     request.inputs[0].type = (uint8_t *) "\x01\x01\x00";
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&account, &request), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request), -1);
     request.inputs[0].type = (uint8_t *) "\x01\x00\x00";
 
     request.inputs[0].type = (uint8_t *) "\x01\x00\x09";
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&account, &request), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request), -1);
     request.inputs[0].type = (uint8_t *) "\x01\x00\x00";
 
     scalar_t r_1 = {
@@ -211,7 +210,7 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&account, &request), 0);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request), 0);
     assert_int_equal(request.gammas_count, 0);
     check_scalar(&request.r, &r_1);
     check_field(&request.tvk, &tvk_1);
@@ -223,7 +222,7 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&account, &request), 0);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request), 0);
     assert_int_equal(request.gammas_count, 0);
     check_scalar(&request.r, &r_1);
     check_field(&request.tvk, &tvk_1);
@@ -242,7 +241,7 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&account, &request), 0);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request), 0);
     assert_int_equal(request.gammas_count, 0);
     check_scalar(&request.r, &r_1);
     check_field(&request.tvk, &tvk_1);
@@ -268,7 +267,7 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&account, &request), 0);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request), 0);
     assert_int_equal(request.gammas_count, 0);
     check_scalar(&request.r, &r_1);
     check_field(&request.tvk, &tvk_1);
@@ -316,14 +315,14 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     will_return(cx_bn_lock, -1);
-    assert_int_equal(sign_prepared_request(&account, &request_private), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_private), -1);
 
     memcpy(hash_record, hash_record_c, 96);
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
     will_return(cx_bn_lock, -1);
-    assert_int_equal(sign_prepared_request(&account, &request_private), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_private), -1);
 
     memcpy(hash_record, hash_record_c, 96);
     prepare_random_ok(random_bn);
@@ -331,14 +330,14 @@ static void test_signature(void **state)
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
     will_return(cx_bn_lock, -1);
-    assert_int_equal(sign_prepared_request(&account, &request_private), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_private), -1);
 
     memcpy(hash_record, hash_record_c, 96);
     request.inputs[1].type = (uint8_t *) "\x02\x01\x00";
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&account, &request), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request), -1);
     request.inputs[1].type = (uint8_t *) "\x02\x00\x00";
 
     memcpy(hash_record, hash_record_c, 96);
@@ -346,7 +345,7 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&account, &request), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request), -1);
     request.inputs[1].type = (uint8_t *) "\x02\x00\x00";
 
     scalar_t r_10 = {
@@ -384,7 +383,7 @@ static void test_signature(void **state)
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&account, &request_private), 0);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_private), 0);
     assert_int_equal(request_private.gammas_count, 1);
     check_scalar(&request_private.r, &r_10);
     check_field(&request_private.tvk, &tvk_10);
@@ -402,7 +401,7 @@ static void test_signature(void **state)
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&account, &request_private), 0);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_private), 0);
     assert_int_equal(request_private.gammas_count, 1);
     check_scalar(&request_private.r, &r_10);
     check_field(&request_private.tvk, &tvk_10);
@@ -420,7 +419,7 @@ static void test_signature(void **state)
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&account, &request_private), 0);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_private), 0);
     assert_int_equal(request_private.gammas_count, 1);
     check_scalar(&request_private.r, &r_10);
     check_field(&request_private.tvk, &tvk_10);
@@ -453,14 +452,14 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     will_return(cx_bn_lock, -1);
-    assert_int_equal(sign_prepared_request(&account, &request_batch_private), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), -1);
 
     memcpy(hash_record, hash_record_c, 96);
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
     request_batch_private.inputs[0].value_length = 95;
-    assert_int_equal(sign_prepared_request(&account, &request_batch_private), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), -1);
     request_batch_private.inputs[0].value_length = 96;
 
     memcpy(hash_record, hash_record_c, 96);
@@ -468,7 +467,7 @@ static void test_signature(void **state)
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
     request_batch_private.inputs[0].value_length = 192;
-    assert_int_equal(sign_prepared_request(&account, &request_batch_private), -1);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), -1);
     request_batch_private.inputs[0].value_length = 96;
 
     scalar_t r_11 = {
@@ -493,7 +492,6 @@ static void test_signature(void **state)
         .big.u64 = {0x46ab387b0d0eba28, 0xc19d9f6b26bf5346, 0x6db0d19a90511dd4, 0x12af8b54c4c3a5e}
     };
 
-    print_message("Test\n");
     memcpy(program_checksum, program_checksum_c, 32);
     request.program_checksum = program_checksum;
     memcpy(hash_record, hash_record_c, 96);
@@ -501,7 +499,7 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&account, &request_batch_private), 0);
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), 0);
     assert_int_equal(request_batch_private.gammas_count, 0);
     check_scalar(&request_batch_private.r, &r_11);
     check_field(&request_batch_private.tvk, &tvk_11);
@@ -509,6 +507,83 @@ static void test_signature(void **state)
     check_field(&request_batch_private.tcm, &tcm_11);
     check_scalar(&request_batch_private.challenge, &challenge_11);
     check_scalar(&request_batch_private.response, &response_11);
+
+    r_list_erase();
+    field_t pre_tvk_0;
+    field_t pre_tvk_1;
+
+    prepare_random_ok(random_bn);
+    prepare_scalar_mult_ok();
+    prepare_scalar_mult_ok();
+    assert_int_equal(r_list_set(&G_context.account, 0), 0);
+    assert_int_equal(r_list_set(&G_context.account, 1), 0);
+    assert_int_equal(r_list_get_tvk(&G_context.account, 0, &pre_tvk_0), 0);
+    assert_int_equal(r_list_get_tvk(&G_context.account, 1, &pre_tvk_1), 0);
+
+    memcpy(program_checksum, program_checksum_c, 32);
+    request.program_checksum = program_checksum;
+    memcpy(hash_record, hash_record_c, 96);
+    request_batch_private.gammas_count = 0;
+    G_context.r_list.index             = 1;
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), -1);
+
+    G_context.r_list.index = 0;
+    prepare_scalar_mult_ok();
+    prepare_scalar_mult_ok();
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), 0);
+    check_field(&request_batch_private.tvk, &pre_tvk_0);
+
+    prepared_request_t request_join = {
+        .is_root              = false,
+        .network_id           = 1,
+        .program_id_length    = 12,
+        .program_id           = "credits.aleo",
+        .function_name_length = 4,
+        .function_name        = "join",
+        .inputs_count         = 2,
+        .inputs               = {{.value_length = 96,
+                                  .value        = hash_record,
+                                  .type_length  = 1,
+                                  .type         = (uint8_t *) "\x03\x07\x63\x72\x65\x64\x69\x74\x73"},
+                                 {.value_length = 96,
+                                  .value        = hash_record,
+                                  .type_length  = 1,
+                                  .type         = (uint8_t *) "\x03\x07\x63\x72\x65\x64\x69\x74\x73"}},
+        .program_checksum     = NULL,
+        .nested_call_count    = 0,
+    };
+
+    memcpy(hash_record, hash_record_c, 96);
+    request_join.gammas_count = 0;
+    prepare_scalar_mult_ok();
+    prepare_scalar_mult_ok();
+    prepare_scalar_mult_ok();
+    prepare_scalar_mult_ok();
+    prepare_scalar_mult_ok();
+    prepare_scalar_mult_ok();
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_join), 0);
+    check_field(&request_join.tvk, &pre_tvk_1);
+
+    r_list_erase();
+
+    prepare_random_ok(random_bn);
+    prepare_scalar_mult_ok();
+    assert_int_equal(r_list_set(&G_context.account, 0), 0);
+    assert_int_equal(r_list_get_tvk(&G_context.account, 0, &pre_tvk_0), 0);
+
+    memcpy(program_checksum, program_checksum_c, 32);
+    request.program_checksum = program_checksum;
+    memcpy(hash_record, hash_record_c, 96);
+    request_batch_private.gammas_count = 0;
+
+    prepare_scalar_mult_ok();
+    prepare_scalar_mult_ok();
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), 0);
+    check_field(&request_batch_private.tvk, &pre_tvk_0);
+
+    memcpy(hash_record, hash_record_c, 96);
+    request_join.gammas_count = 0;
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_join), -1);
 }
 
 int main()

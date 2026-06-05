@@ -38,6 +38,16 @@
 #define P2_CONTINUE (0x01)
 
 /**
+ * Parameter 1 for APDU get root tvk.
+ */
+#define P1_GET_TVK_SEED R_LIST_MODE_TVK_SEED
+
+/**
+ * Parameter 1 for APDU get nested call & fee tvk.
+ */
+#define P1_GET_TVK_DERIVED R_LIST_MODE_TVK_DERIVED
+
+/**
  * Dispatch APDU command received to the right handler.
  *
  * @param[in] cmd

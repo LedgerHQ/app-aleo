@@ -53,6 +53,7 @@ static void review_transaction(bool confirm)
                  || (G_context.sign_transaction_datas.max_priority_fee != 0)) {
             G_context.fees_waiting_time_ms = 0;
             G_context.signing_state        = SIGNING_STATE_WAIT_FEES;
+            r_list_erase();
 #ifndef FUZZ
             nbgl_useCaseSpinner("Calculating fees");
 #endif  // FUZZ

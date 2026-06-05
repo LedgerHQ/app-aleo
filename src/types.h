@@ -17,6 +17,7 @@ typedef enum {
     CMD_GET_ADDRESS      = 0x05,  /// get public address
     CMD_SIGN_TRANSACTION = 0x06,  /// sign transaction
     CMD_GET_VIEW_KEY     = 0x07,  /// get the view key
+    CMD_GET_TVK          = 0x08,  /// get the precomputed transition view key
 } command_e;
 
 typedef enum {

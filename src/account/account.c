@@ -394,15 +394,14 @@ int r_list_set(account_t *account, uint8_t index)
     LEDGER_ASSERT(account != NULL, "NULL account");
 
     if (index == 0) {
-        r = &G_context.r_list.array[index];
-
         r_list_erase();
         if ((status = field_random(&nonce)) < 0) {
-            status = -1;
             goto end;
         }
         PRINTF("R0 nonce : ");
         field_println(&nonce);
+
+        r = &G_context.r_list.array[index];
 
         // Compute a `r0` as `hash_to_scalar_psd4(domain || sk_sig || nonce)`
         _Static_assert(HASH_INPUT_MAX_LENGTH >= 7, "hash_input size won't fit");
@@ -413,11 +412,11 @@ int r_list_set(account_t *account, uint8_t index)
         if ((status = hash_to_scalar_psd4(hash_input, 4 + 3, r)) < 0) {
             goto end;
         }
-        G_context.r_list.count                   = 1;
+        G_context.r_list.count++;
         G_context.r_list_alive_remaining_time_ms = R_LIST_MAX_VALIDITY_TIME_MS;
     }
     else if ((G_context.r_list.index == 0) && (G_context.r_list.count > 0)
-             && (index < R_LIST_MAX_LENGTH)) {
+             && (index < R_LIST_MAX_LENGTH) && (index == G_context.r_list.count)) {
         r = &G_context.r_list.array[index];
 
         if (memcmp(&SCALAR_ZERO, r, sizeof(scalar_t))) {
@@ -447,6 +446,7 @@ int r_list_set(account_t *account, uint8_t index)
     scalar_println(r);
 
 end:
+    explicit_bzero(hash_input, sizeof(hash_input));
     if (status < 0) {
         r_list_erase();
     }
@@ -496,10 +496,13 @@ int r_list_get_tvk(account_t *account, uint8_t index, field_t *tvk)
     field_println(tvk);
 
 end:
+    explicit_bzero(&r, sizeof(r));
+    explicit_bzero(&g_temp, sizeof(g_temp));
     return status;
 }
 
 void r_list_erase(void)
 {
     explicit_bzero(&G_context.r_list, sizeof(G_context.r_list));
+    G_context.r_list_alive_remaining_time_ms = 0;
 }

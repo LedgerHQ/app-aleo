@@ -281,6 +281,30 @@ class Transaction():
         return apdus
 
 
+    def gen_get_tvk(self, tx: dict) -> list[str]:
+        req = ''
+        # Derivation path
+        sp_path = tx['path'].split('/')
+        if len(sp_path) > 1:
+            req += f"{(len(sp_path)-1):02x}"
+            for item in sp_path[1:]:
+                if "'" in item:
+                    # hardenned
+                    num = int(item.replace("'", "")) + 0x80000000
+                    req += f"{num:08x}"
+                else:
+                    req += f"{int(item):08x}"
+
+        index = tx['index']
+        if index == 0:
+            apdus = Transaction.gen_apdu_array('e0', '08', '00', req)
+        else:
+            req += f"{index:02x}"
+            apdus = Transaction.gen_apdu_array('e0', '08', '01', req)
+
+        return apdus
+
+
     def gen_apdus_tx(self, tx: dict) -> list[str]:
         if tx['type'] == 'intent':
             return self.gen_intent_apdu(tx)
@@ -288,6 +312,8 @@ class Transaction():
             return self.gen_nested_call(tx)
         if tx['type'] == 'fee':
             return self.gen_fee_apdu(tx)
+        if tx['type'] == 'get_tvk':
+            return self.gen_get_tvk(tx)
         return []
 
 
@@ -316,4 +342,11 @@ class Transaction():
                 if 'gammas' not in unpacked:
                     unpacked['gammas'] = []
                 unpacked['gammas'].append(v)
+        return unpacked
+
+
+    def unpack_get_tvk_response(self, response: str):
+        unpacked : Dict[str, Any] = {}
+        if len(response) >= 33*2:
+            unpacked['tvk'] = response[2:33*2]
         return unpacked
