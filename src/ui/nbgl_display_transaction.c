@@ -104,7 +104,7 @@ int ui_display_transaction(void)
     // 50 chars is comfortable for amount formatting
     explicit_bzero(g_amount, sizeof(g_amount));
     if (!format_fpu64(
-            amount, sizeof(amount), G_context.tx.transfer.amount, EXPONENT_SMALLEST_UNIT)) {
+            amount, sizeof(amount), G_context.tx.transfer.amount.low, EXPONENT_SMALLEST_UNIT)) {
         return -1;
     }
     snprintf(g_amount, sizeof(g_amount), "%.*s ALEO", (int) strlen(amount), amount);

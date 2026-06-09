@@ -215,6 +215,11 @@ Serialized TLV data:
 | -----            |    :--:  | -:      | -             |
 | `value`          |        8 |     u64 | int coded in 64 bits (big endian) |
 
+#### U128
+| _Name_           | _Length_ | _Type_  | _Description_ |
+| -----            |    :--:  | -:      | -             |
+| `value`          |        8 |    u128 | int coded in 128 bits (big endian) |
+
 #### Record
 | _Name_           | _Length_ | _Type_   | _Description_ |
 | -----            |    :--:  | -:       | -             |
@@ -293,6 +298,28 @@ Value
 ```shell
 u64     : 500
 u64_hex : f401000000000000
+```
+
+#### Public plaintext literal U128
+Type:
+| _Name_           | _Length_ | _Type_  | _Description_ |
+| -----            |    :--:  | -:      | -             |
+| `tag`            |        2 |   bytes | 0x81 0xb9 |
+| `length`         |        1 |      u8 | 0x03 |
+| `value type`     |        1 |      u8 | 0x01 : Public |
+| `plaintext type` |        1 |      u8 | 0x00 : Literal |
+| `literal type`   |        1 |      u8 | 0x0d : U128 |
+
+Value
+| _Name_           | _Length_ | _Type_  | _Description_ |
+| -----            |    :--:  | -:      | -             |
+| `tag`            |        2 |   bytes | 0x81 0xb8 |
+| `length`         |        1 |      u8 | 0x10 |
+| `value`          |        8 |    u128 | u128 (big endian) |
+
+```shell
+u128     : 500
+u128_hex : f4010000000000000000000000000000
 ```
 
 #### Record

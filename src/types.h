@@ -61,6 +61,11 @@ typedef struct {
 } input_t;
 
 typedef struct {
+    uint64_t low;
+    uint64_t high;
+} u128_t;
+
+typedef struct {
     // input
     bool     is_root;
     uint16_t network_id;
