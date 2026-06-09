@@ -23,4 +23,5 @@ typedef enum {
     PLAINTEXT_TYPE_LITERAL_ADDRESS = 0,
     PLAINTEXT_TYPE_LITERAL_FIELD   = 2,
     PLAINTEXT_TYPE_LITERAL_U64     = 12,
+    PLAINTEXT_TYPE_LITERAL_U128    = 13,
 } plaintext_type_literal_e;

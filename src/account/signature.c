@@ -122,6 +122,25 @@ static int hash_public_input(prepared_request_t *request, uint8_t input_index)
                 bit_buffer, (uint16_t) bit_length, &hash_input[hash_input_index], 1);
             field_print_array(&hash_input[hash_input_index - 1], 1);
         }
+        else if (input->type[2] == PLAINTEXT_TYPE_LITERAL_U128) {
+            PRINTF("PLAINTEXT_TYPE_LITERAL_U128\n");
+            if ((input->value_length * 8) < 128) {
+                return -1;
+            }
+            int bit_length = bits_from_plaintext(
+                input->value, &input->type[1], 128, bit_buffer, BIT_BUFFER_MAX_LENGTH * 8);
+            if (bit_length < 0) {
+                return bit_length;
+            }
+            if (bit_length >= BIT_BUFFER_MAX_LENGTH * 8) {
+                return -1;
+            }
+            bits_add_single(bit_buffer, (uint16_t) bit_length, true);
+            bit_length += 1;
+            hash_input_index += field_from_bits(
+                bit_buffer, (uint16_t) bit_length, &hash_input[hash_input_index], 1);
+            field_print_array(&hash_input[hash_input_index - 1], 1);
+        }
         else {
             PRINTF("Public plaintext type unsupported (%d)\n", input->type[2]);
             return -1;
@@ -200,6 +219,24 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
             }
             int bit_length = bits_from_plaintext(
                 input->value, &input->type[1], 64, bit_buffer, BIT_BUFFER_MAX_LENGTH * 8);
+            if (bit_length < 0) {
+                return bit_length;
+            }
+            if (bit_length >= BIT_BUFFER_MAX_LENGTH * 8) {
+                return -1;
+            }
+            bits_add_single(bit_buffer, (uint16_t) bit_length, true);
+            bit_length += 1;
+            num_randomizers = field_from_bits(
+                bit_buffer, (uint16_t) bit_length, plaintext_fields, PLAINTEXT_FIELDS_MAX_SIZE);
+        }
+        else if (input->type[2] == PLAINTEXT_TYPE_LITERAL_U128) {
+            PRINTF("PLAINTEXT_TYPE_LITERAL_U128\n");
+            if ((input->value_length * 8) < 128) {
+                return -1;
+            }
+            int bit_length = bits_from_plaintext(
+                input->value, &input->type[1], 128, bit_buffer, BIT_BUFFER_MAX_LENGTH * 8);
             if (bit_length < 0) {
                 return bit_length;
             }

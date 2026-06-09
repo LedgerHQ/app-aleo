@@ -1,7 +1,8 @@
 {
 	"cmds" : [
 		{
-			"type" : "root",
+			"type" : "intent",
+			"path" : "m/44'/683'/0'/0'",
 			"max_base_fee" : 500, 
 			"max_priority_fee" : 100, 
 			"fee_program_id" : "credits.aleo",
@@ -17,8 +18,8 @@
 					{"type" : "address.private", "value" : "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe"},
 					{"type" : "u64.private", "value" : 1000}
 				],
-				"root_tvk" : "",
-				"program_checksum" : ""
+				"program_checksum" : "",
+				"nested_call_count" : 0
 			}
 		}
 	]

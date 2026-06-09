@@ -32,7 +32,9 @@
 #include "tx.h"
 
 #define U64_TYPE_LENGTH      (3)
-#define U64_VALUE_LENGTH     sizeof(uint64_t)
+#define U64_VALUE_LENGTH     (8)
+#define U128_TYPE_LENGTH     (3)
+#define U128_VALUE_LENGTH    (2 * U64_VALUE_LENGTH)
 #define ADDRESS_TYPE_LENGTH  (3)
 #define ADDRESS_VALUE_LENGTH sizeof(field_t)
 
@@ -45,6 +47,7 @@ typedef struct {
 } program_infos_t;
 
 static int get_u64(input_t *input, bool is_private, uint64_t *value);
+static int get_u128(input_t *input, bool is_private, u128_t *value);
 static int get_address(input_t *input, bool is_private, char address[ADDRESS_LEN + 1]);
 
 static int parse_aleo_transfer_public(sign_transaction_datas_t *data, tx_t *tx);
@@ -75,6 +78,35 @@ static int get_u64(input_t *input, bool is_private, uint64_t *value)
     for (int i = 0; i < (int) U64_VALUE_LENGTH; i++) {
         *value <<= 8;
         *value += input->value[U64_VALUE_LENGTH - 1 - i];
+    }
+
+    return 0;
+}
+
+static int get_u128(input_t *input, bool is_private, u128_t *value)
+{
+    if ((input->type_length != U128_TYPE_LENGTH) || (input->value_length != U128_VALUE_LENGTH)) {
+        return -1;
+    }
+    else if (is_private && (input->type[0] != INPUT_ID_PRIVATE)) {
+        return -1;
+    }
+    else if (!is_private && (input->type[0] != INPUT_ID_PUBLIC)) {
+        return -1;
+    }
+    else if ((input->type[1] != INPUT_VALUE_TYPE_PLAINTEXT)
+             || (input->type[2] != PLAINTEXT_TYPE_LITERAL_U128)) {
+        return -1;
+    }
+    value->high = 0;
+    for (int i = 0; i < (int) U64_VALUE_LENGTH; i++) {
+        value->high <<= 8;
+        value->high += input->value[U128_VALUE_LENGTH - 1 - i];
+    }
+    value->low = 0;
+    for (int i = 0; i < (int) U64_VALUE_LENGTH; i++) {
+        value->low <<= 8;
+        value->low += input->value[U64_VALUE_LENGTH - 1 - i];
     }
 
     return 0;
@@ -117,7 +149,8 @@ static int parse_aleo_transfer_public(sign_transaction_datas_t *data, tx_t *tx)
 {
     int status = get_address(&data->prepared_request.inputs[0], false, tx->transfer.address_to);
     if (status == 0) {
-        status = get_u64(&data->prepared_request.inputs[1], false, &tx->transfer.amount);
+        status = get_u64(&data->prepared_request.inputs[1], false, &tx->transfer.amount.low);
+        tx->transfer.amount.high = 0;
     }
 
     return status;
@@ -127,7 +160,8 @@ static int parse_aleo_transfer_private(sign_transaction_datas_t *data, tx_t *tx)
 {
     int status = get_address(&data->prepared_request.inputs[1], true, tx->transfer.address_to);
     if (status == 0) {
-        status = get_u64(&data->prepared_request.inputs[2], true, &tx->transfer.amount);
+        status = get_u64(&data->prepared_request.inputs[2], true, &tx->transfer.amount.low);
+        tx->transfer.amount.high = 0;
     }
 
     return status;
@@ -139,8 +173,9 @@ static int parse_aleo_batch_transfer_private(sign_transaction_datas_t *data, tx_
     int     status       = get_address(
         &data->prepared_request.inputs[inputs_count - 2], true, tx->transfer.address_to);
     if (status == 0) {
-        status
-            = get_u64(&data->prepared_request.inputs[inputs_count - 1], true, &tx->transfer.amount);
+        status = get_u64(
+            &data->prepared_request.inputs[inputs_count - 1], true, &tx->transfer.amount.low);
+        tx->transfer.amount.high = 0;
     }
 
     return status;
@@ -150,7 +185,8 @@ static int parse_aleo_transfer_public_to_private(sign_transaction_datas_t *data,
 {
     int status = get_address(&data->prepared_request.inputs[0], true, tx->transfer.address_to);
     if (status == 0) {
-        status = get_u64(&data->prepared_request.inputs[1], false, &tx->transfer.amount);
+        status = get_u64(&data->prepared_request.inputs[1], false, &tx->transfer.amount.low);
+        tx->transfer.amount.high = 0;
     }
 
     return status;
@@ -159,8 +195,9 @@ static int parse_aleo_transfer_public_to_private(sign_transaction_datas_t *data,
 static int parse_aleo_batch_transfer_public_to_private(sign_transaction_datas_t *data, tx_t *tx)
 {
     uint8_t inputs_count = data->prepared_request.inputs_count;
-    int     status
-        = get_u64(&data->prepared_request.inputs[inputs_count - 1], false, &tx->transfer.amount);
+    int     status       = get_u64(
+        &data->prepared_request.inputs[inputs_count - 1], false, &tx->transfer.amount.low);
+    tx->transfer.amount.high = 0;
     memset(tx->transfer.address_to, 0, sizeof(tx->transfer.address_to));
 
     return status;
@@ -170,7 +207,8 @@ static int parse_aleo_transfer_private_to_public(sign_transaction_datas_t *data,
 {
     int status = get_address(&data->prepared_request.inputs[1], false, tx->transfer.address_to);
     if (status == 0) {
-        status = get_u64(&data->prepared_request.inputs[2], false, &tx->transfer.amount);
+        status = get_u64(&data->prepared_request.inputs[2], false, &tx->transfer.amount.low);
+        tx->transfer.amount.high = 0;
     }
 
     return status;
