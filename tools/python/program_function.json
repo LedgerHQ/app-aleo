@@ -114,5 +114,21 @@
 		{"function" : "transfer_private_to_public_14",
 			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
 			"input_count" : 15}
+	],
+	"usad_stablecoin.aleo" : [
+		{"function" : "transfer_public",
+			"tx_type" : "TX_USAD_TRANSFER_PUBLIC",
+			"input_count" : 2},
+		{"function" : "transfer_public_to_private",
+			"tx_type" : "TX_USAD_TRANSFER_PUBLIC_TO_PRIVATE",
+			"input_count" : 2}
+	],
+	"usdcx_stablecoin.aleo" : [
+		{"function" : "transfer_public",
+			"tx_type" : "TX_USDCX_TRANSFER_PUBLIC",
+			"input_count" : 2},
+		{"function" : "transfer_public_to_private",
+			"tx_type" : "TX_USDCX_TRANSFER_PUBLIC_TO_PRIVATE",
+			"input_count" : 2}
 	]
 }

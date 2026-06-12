@@ -33,9 +33,11 @@
 #include "types.h"
 #include "menu.h"
 #include "tokens.h"
+#include "format_decimal.h"
 
 // Buffer where the transaction amount string is written
-static char g_amount[30];
+// g_amount must fit a u128 token amount (up to 39 decimal digits) + NUL.
+static char g_amount[64];
 static char g_amount_2[30];
 
 // The flow with the most pairs to display is the token signing flow with amount + dest + token
@@ -96,18 +98,43 @@ int ui_display_transaction(void)
     else if (G_context.tx.type == TX_ALEO_TRANSFER_PUBLIC_TO_PRIVATE) {
         review_subtitle = "Transfer from public to private address";
     }
+    else if (G_context.tx.type == TX_USAD_TRANSFER_PUBLIC) {
+        review_subtitle = "Public USAD transfer";
+    }
+    else if (G_context.tx.type == TX_USAD_TRANSFER_PUBLIC_TO_PRIVATE) {
+        review_subtitle = "USAD transfer from public to private address";
+    }
+    else if (G_context.tx.type == TX_USDCX_TRANSFER_PUBLIC) {
+        review_subtitle = "Public USDCX transfer";
+    }
+    else if (G_context.tx.type == TX_USDCX_TRANSFER_PUBLIC_TO_PRIVATE) {
+        review_subtitle = "USDCX transfer from public to private address";
+    }
     else {
         return -1;
     }
 
-    // Format amount
+    const bool is_token = (G_context.tx.type >= TX_TOKEN_TRANSFER_START)
+                          && (G_context.tx.type <= TX_TOKEN_TRANSFER_END);
+
+    // Format amount. Tokens render the raw u128 integer with no ticker — the
+    // device has no chain access to the token's decimals/symbol metadata.
+    // ALEO credits keep the existing fixed-point formatting.
     // 50 chars is comfortable for amount formatting
     explicit_bzero(g_amount, sizeof(g_amount));
-    if (!format_fpu64(
-            amount, sizeof(amount), G_context.tx.transfer.amount, EXPONENT_SMALLEST_UNIT)) {
-        return -1;
+    if (is_token) {
+        if (!format_decimal_le(
+                g_amount, sizeof(g_amount), G_context.tx.transfer.amount_u128, 16)) {
+            return -1;
+        }
     }
-    snprintf(g_amount, sizeof(g_amount), "%.*s ALEO", (int) strlen(amount), amount);
+    else {
+        if (!format_fpu64(
+                amount, sizeof(amount), G_context.tx.transfer.amount, EXPONENT_SMALLEST_UNIT)) {
+            return -1;
+        }
+        snprintf(g_amount, sizeof(g_amount), "%.*s ALEO", (int) strlen(amount), amount);
+    }
 
     uint64_t max_base_fee     = (uint64_t) G_context.sign_transaction_datas.max_base_fee;
     uint64_t max_priority_fee = (uint64_t) G_context.sign_transaction_datas.max_priority_fee;
@@ -144,19 +171,23 @@ int ui_display_transaction(void)
     pairList.pairs              = pairs;
     pairList.wrapping           = true;
 
+    const char *review_title
+        = is_token ? "Review transaction to send tokens?" : "Review transaction to send ALEO?";
 #ifdef HAVE_SE_TOUCH
+    const char *finish_title
+        = is_token ? "Sign transaction to send tokens?" : "Sign transaction to send ALEO?";
     nbgl_useCaseReview(TYPE_TRANSACTION,
                        &pairList,
                        &ICON_APP_ALEO,
-                       "Review transaction to send ALEO?",
+                       review_title,
                        review_subtitle,
-                       "Sign transaction to send ALEO?",
+                       finish_title,
                        review_transaction);
 #else   // !HAVE_SE_TOUCH
     nbgl_useCaseReview(TYPE_TRANSACTION,
                        &pairList,
                        &ICON_APP_ALEO,
-                       "Review transaction to send ALEO?",
+                       review_title,
                        review_subtitle,
                        "Sign transaction",
                        review_transaction);

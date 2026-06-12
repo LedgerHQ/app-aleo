@@ -111,7 +111,11 @@ static int sign_root_tx(buffer_t *cdata)
         goto end;
     }
 
-    if ((G_context.tx.type < TX_TRANSFER_START) || (G_context.tx.type > TX_ALEO_TRANSFER_END)) {
+    const bool is_aleo_transfer
+        = (G_context.tx.type >= TX_TRANSFER_START) && (G_context.tx.type <= TX_ALEO_TRANSFER_END);
+    const bool is_token_transfer = (G_context.tx.type >= TX_TOKEN_TRANSFER_START)
+                                   && (G_context.tx.type <= TX_TOKEN_TRANSFER_END);
+    if (!is_aleo_transfer && !is_token_transfer) {
         status = -1;
         account_erase(&G_context.account);
         r_list_erase();
@@ -391,6 +395,8 @@ int handler_get_tvk(buffer_t *cdata, uint8_t mode)
     field_t tvk;
 
     LEDGER_ASSERT(cdata != NULL, "NULL cdata");
+
+    G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
 
     if (G_context.signing_state != SIGNING_STATE_WAIT_INTENT) {
         account_erase(&G_context.account);

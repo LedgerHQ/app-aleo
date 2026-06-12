@@ -118,11 +118,18 @@ typedef enum {
     TX_FEE_PUBLIC = TX_FEE_START,
     TX_FEE_PRIVATE,
     TX_FEE_END = TX_FEE_PRIVATE,
+    TX_TOKEN_TRANSFER_START,
+    TX_USAD_TRANSFER_PUBLIC = TX_TOKEN_TRANSFER_START,
+    TX_USAD_TRANSFER_PUBLIC_TO_PRIVATE,
+    TX_USDCX_TRANSFER_PUBLIC,
+    TX_USDCX_TRANSFER_PUBLIC_TO_PRIVATE,
+    TX_TOKEN_TRANSFER_END = TX_USDCX_TRANSFER_PUBLIC_TO_PRIVATE,
 } tx_type_e;
 
 typedef struct {
     char     address_to[ADDRESS_LEN + 1];
-    uint64_t amount;
+    uint64_t amount;           // ALEO credits (u64)
+    uint8_t  amount_u128[16];  // token amounts (u128, little-endian wire order)
 } tx_transfer_t;
 
 typedef struct {
