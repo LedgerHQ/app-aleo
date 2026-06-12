@@ -14,9 +14,9 @@ typedef enum {
 } input_id_e;
 
 typedef enum {
-    INPUT_VALUE_TYPE_PLAINTEXT = 0,
-    INPUT_VALUE_TYPE_RECORD    = 1,
-    INPUT_VALUE_TYPE_FUTURE    = 2,
+    INPUT_VALUE_TYPE_PLAINTEXT_LITERAL = 0,
+    INPUT_VALUE_TYPE_PLAINTEXT_STRUCT  = 1,
+    INPUT_VALUE_TYPE_PLAINTEXT_ARRAY   = 2,
 } input_value_type_e;
 
 typedef enum {

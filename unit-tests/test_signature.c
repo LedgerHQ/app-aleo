@@ -219,18 +219,6 @@ static void test_signature(void **state)
     check_scalar(&request.challenge, &challenge_1);
     check_scalar(&request.response, &response_1);
 
-    prepare_random_ok(random_bn);
-    prepare_scalar_mult_ok();
-    prepare_scalar_mult_ok();
-    assert_int_equal(sign_prepared_request(&G_context.account, &request), 0);
-    assert_int_equal(request.gammas_count, 0);
-    check_scalar(&request.r, &r_1);
-    check_field(&request.tvk, &tvk_1);
-    check_group(&request.tpk, &tpk_1);
-    check_field(&request.tcm, &tcm_1);
-    check_scalar(&request.challenge, &challenge_1);
-    check_scalar(&request.response, &response_1);
-
     scalar_t challenge_2 = {
         .big.u64 = {0x86c48867d9c17da2, 0xc85a1cfc35cfa6eb, 0x7b40835b5f215b13, 0x167e30d287ef76a}
     };
@@ -466,7 +454,15 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    request_batch_private.inputs[0].value_length = 192;
+    request_batch_private.inputs[0].value_length = 97;
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), -1);
+    request_batch_private.inputs[0].value_length = 96;
+
+    memcpy(hash_record, hash_record_c, 96);
+    prepare_random_ok(random_bn);
+    prepare_scalar_mult_ok();
+    prepare_scalar_mult_ok();
+    request_batch_private.inputs[0].value_length = (12+16)*32;
     assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), -1);
     request_batch_private.inputs[0].value_length = 96;
 
