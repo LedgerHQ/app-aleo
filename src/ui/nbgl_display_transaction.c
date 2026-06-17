@@ -34,9 +34,13 @@
 #include "menu.h"
 #include "tokens.h"
 
+#define MAX_AMOUNT_SIZE (50)  // 50 chars is comfortable for amount formatting
+
 // Buffer where the transaction amount string is written
-static char g_amount[30];
-static char g_amount_2[30];
+static char g_amount[MAX_AMOUNT_SIZE + 1 + MAX_TICKER_SIZE];
+static char g_amount_fees[MAX_AMOUNT_SIZE + 4];  // Ticker is ALEO for fees
+static char g_finish_title[26 + MAX_TICKER_SIZE];
+static char g_review_title[28 + MAX_TICKER_SIZE];
 
 // The flow with the most pairs to display is the token signing flow with amount + dest + token
 static nbgl_contentTagValue_t     pairs[3];
@@ -75,25 +79,30 @@ static void review_transaction(bool confirm)
 // Flow used to display a clear-signed transaction
 int ui_display_transaction(void)
 {
-    uint8_t     pair_index                   = 0;
-    char        amount[50 + MAX_TICKER_SIZE] = {0};
-    const char *review_subtitle              = NULL;
-    if (G_context.tx.type == TX_ALEO_TRANSFER_PUBLIC) {
+    uint8_t     pair_index              = 0;
+    char        amount[MAX_AMOUNT_SIZE] = {0};
+    const char *review_subtitle         = NULL;
+
+    if ((G_context.tx.type == TX_ALEO_TRANSFER_PUBLIC)
+        || (G_context.tx.type == TX_TOKEN_TRANSFER_PUBLIC)) {
         review_subtitle = "Public transfer";
     }
-    else if (G_context.tx.type == TX_ALEO_TRANSFER_PRIVATE) {
+    else if ((G_context.tx.type == TX_ALEO_TRANSFER_PRIVATE)
+             || (G_context.tx.type == TX_TOKEN_TRANSFER_PRIVATE)) {
         review_subtitle = "Private transfer";
     }
     else if (G_context.tx.type == TX_ALEO_TRANSFER_BATCH_PRIVATE) {
         review_subtitle = "Private batch transfer";
     }
-    else if (G_context.tx.type == TX_ALEO_TRANSFER_PRIVATE_TO_PUBLIC) {
+    else if ((G_context.tx.type == TX_ALEO_TRANSFER_PRIVATE_TO_PUBLIC)
+             || (G_context.tx.type == TX_TOKEN_TRANSFER_PRIVATE_TO_PUBLIC)) {
         review_subtitle = "Transfer from private to public address";
     }
     else if (G_context.tx.type == TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC) {
         review_subtitle = "Batch transfer from private to public address";
     }
-    else if (G_context.tx.type == TX_ALEO_TRANSFER_PUBLIC_TO_PRIVATE) {
+    else if ((G_context.tx.type == TX_ALEO_TRANSFER_PUBLIC_TO_PRIVATE)
+             || (G_context.tx.type == TX_TOKEN_TRANSFER_PUBLIC_TO_PRIVATE)) {
         review_subtitle = "Transfer from public to private address";
     }
     else {
@@ -103,20 +112,28 @@ int ui_display_transaction(void)
     // Format amount
     // 50 chars is comfortable for amount formatting
     explicit_bzero(g_amount, sizeof(g_amount));
-    if (!format_fpu64(
-            amount, sizeof(amount), G_context.tx.transfer.amount.low, EXPONENT_SMALLEST_UNIT)) {
+    if (!format_fpu64(amount,
+                      sizeof(amount),
+                      G_context.tx.transfer.amount.low,
+                      G_context.tx.transfer.token_info->decimals)) {
         return -1;
     }
-    snprintf(g_amount, sizeof(g_amount), "%.*s ALEO", (int) strlen(amount), amount);
+    snprintf(g_amount,
+             sizeof(g_amount),
+             "%.*s %s",
+             (int) strlen(amount),
+             amount,
+             G_context.tx.transfer.token_info->ticker);
 
     uint64_t max_base_fee     = (uint64_t) G_context.sign_transaction_datas.max_base_fee;
     uint64_t max_priority_fee = (uint64_t) G_context.sign_transaction_datas.max_priority_fee;
     uint64_t total_fees       = max_base_fee + max_priority_fee;
-    explicit_bzero(g_amount_2, sizeof(g_amount_2));
-    if (!format_fpu64(amount, sizeof(amount), total_fees, EXPONENT_SMALLEST_UNIT)) {
+    explicit_bzero(g_amount_fees, sizeof(g_amount_fees));
+    if (!format_fpu64(amount, sizeof(amount), total_fees, ALEO_DECIMALS)) {
         return -1;
     }
-    snprintf(g_amount_2, sizeof(g_amount_2), "%.*s ALEO", (int) strlen(amount), amount);
+    snprintf(
+        g_amount_fees, sizeof(g_amount_fees), "%.*s " ALEO_TICKER, (int) strlen(amount), amount);
 
     // Amount
     pairs[pair_index].item  = "Amount";
@@ -135,7 +152,7 @@ int ui_display_transaction(void)
 
     // Fees
     pairs[pair_index].item  = "Fees";
-    pairs[pair_index].value = g_amount_2;
+    pairs[pair_index].value = g_amount_fees;
     pair_index++;
 
     // Setup list
@@ -144,21 +161,31 @@ int ui_display_transaction(void)
     pairList.pairs              = pairs;
     pairList.wrapping           = true;
 
+    snprintf(g_review_title,
+             sizeof(g_review_title),
+             "Review transaction to send %s?",
+             G_context.tx.transfer.token_info->ticker);
+
+    snprintf(g_finish_title,
+             sizeof(g_finish_title),
+             "Sign transaction to send %s?",
+             G_context.tx.transfer.token_info->ticker);
+
 #ifdef HAVE_SE_TOUCH
     nbgl_useCaseReview(TYPE_TRANSACTION,
                        &pairList,
                        &ICON_APP_ALEO,
-                       "Review transaction to send ALEO?",
+                       g_review_title,
                        review_subtitle,
-                       "Sign transaction to send ALEO?",
+                       g_finish_title,
                        review_transaction);
 #else   // !HAVE_SE_TOUCH
     nbgl_useCaseReview(TYPE_TRANSACTION,
                        &pairList,
                        &ICON_APP_ALEO,
-                       "Review transaction to send ALEO?",
+                       g_review_title,
                        review_subtitle,
-                       "Sign transaction",
+                       g_finish_title,
                        review_transaction);
 #endif  // HAVE_SE_TOUCH
 

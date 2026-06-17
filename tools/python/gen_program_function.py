@@ -93,7 +93,7 @@ if __name__ == "__main__":
 		for item in programs[program_id]:
 			function_name = item['function']
 			print('    ' + function_name)
-			print('    {{.string      = "{}",'.format(function_name), file=c_file)
+			print('    {{.name        = "{}",'.format(function_name), file=c_file)
 			print('     .tx_type     = {},'.format(item['tx_type']), file=c_file)
 			print('     .input_count = {:d},'.format(item['input_count']), file=c_file)
 			print('     .bhp_1024_hashes', file=c_file)

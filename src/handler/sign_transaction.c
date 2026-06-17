@@ -111,7 +111,7 @@ static int sign_root_tx(buffer_t *cdata)
         goto end;
     }
 
-    if ((G_context.tx.type < TX_TRANSFER_START) || (G_context.tx.type > TX_ALEO_TRANSFER_END)) {
+    if ((G_context.tx.type < TX_TRANSFER_START) || (G_context.tx.type > TX_TRANSFER_END)) {
         status = -1;
         account_erase(&G_context.account);
         r_list_erase();
