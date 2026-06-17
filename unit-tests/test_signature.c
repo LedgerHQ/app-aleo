@@ -171,7 +171,7 @@ static void test_signature(void **state)
     assert_int_equal(sign_prepared_request(&G_context.account, &request), -1);
     request.inputs[0].type = (uint8_t *) "\x01\x00\x00";
 
-    request.inputs[0].type = (uint8_t *) "\x01\x01\x00";
+    request.inputs[0].type = (uint8_t *) "\x01\x08\x00";
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
@@ -462,7 +462,7 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    request_batch_private.inputs[0].value_length = (12+16)*32;
+    request_batch_private.inputs[0].value_length = (12+26)*32;
     assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), -1);
     request_batch_private.inputs[0].value_length = 96;
 
