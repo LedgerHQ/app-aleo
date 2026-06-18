@@ -261,3 +261,25 @@ int helper_send_response_sign_transaction(void)
 
     return io_legacy_apdu_tx(response_buffer, offset);
 }
+
+int helper_send_response_get_tvk(field_t *tvk)
+{
+    _Static_assert(RESPONSE_BUFFER_MAX_LENGTH >= 35, "response_buffer size won't fit");
+
+    size_t       offset = 0;
+    bigint_256_t b;
+
+    memset(response_buffer, 0, sizeof(response_buffer));
+
+    response_buffer[offset++] = 32;
+
+    field_to_big_int(tvk, &b);
+    big_int_to_bn(&b, &response_buffer[offset]);
+    bn_reverse(&response_buffer[offset]);
+    offset += 32;
+
+    write_u16_be(response_buffer, offset, SWO_SUCCESS);  // 2 bytes
+    offset += 2;
+
+    return io_legacy_apdu_tx(response_buffer, offset);
+}

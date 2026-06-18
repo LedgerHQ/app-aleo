@@ -36,6 +36,7 @@ static void review_choice(bool confirm)
 {
     // Answer, display a status page and go back to main
     validate_address(confirm);
+    account_erase(&G_context.account);
     if (confirm) {
         nbgl_useCaseReviewStatus(STATUS_TYPE_ADDRESS_VERIFIED, ui_menu_main);
     }

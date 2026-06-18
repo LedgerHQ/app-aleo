@@ -32,7 +32,10 @@ if __name__ == "__main__":
 
 	for cmd in cmds:
 		apdus = tx.gen_apdus_tx(cmd)
-		print('{} : {}.{}'.format(cmd['type'], cmd['request']['program_id'], cmd['request']['function_name']))
+		if cmd['type'] != 'get_tvk':
+			print('{} : {}.{}'.format(cmd['type'], cmd['request']['program_id'], cmd['request']['function_name']))
+		else:
+			print('get_tvk : {:d}'.format(cmd['index']))
 		for apdu in apdus:
 			if args.dry_run:
 				print('echo {} | python3 -m ledgerblue.runScript --apdu'.format(apdu))

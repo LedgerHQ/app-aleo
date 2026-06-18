@@ -60,7 +60,7 @@ static int sign_root_tx(buffer_t *cdata)
 {
     int status = -1;
 
-    explicit_bzero(&G_context, sizeof(G_context));
+    G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
 
     // Extract bip32 path
     if (!buffer_read_u8(cdata, &G_context.bip32_path_len)
@@ -71,7 +71,8 @@ static int sign_root_tx(buffer_t *cdata)
     status
         = account_generate_keys(G_context.bip32_path, G_context.bip32_path_len, &G_context.account);
     if (status < 0) {
-        explicit_bzero(&G_context.account, sizeof(G_context.account));
+        account_erase(&G_context.account);
+        r_list_erase();
 #ifndef FUZZ
         nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
 #endif  // FUZZ
@@ -89,7 +90,8 @@ static int sign_root_tx(buffer_t *cdata)
 
     // Extract intent
     if ((status = tx_extract_intent(&tlv_buffer)) < 0) {
-        explicit_bzero(&G_context.account, sizeof(G_context.account));
+        account_erase(&G_context.account);
+        r_list_erase();
 #ifndef FUZZ
         nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
 #endif  // FUZZ
@@ -101,7 +103,8 @@ static int sign_root_tx(buffer_t *cdata)
 
     // Parse intent
     if ((status = tx_parse(&G_context.sign_transaction_datas, &G_context.tx)) < 0) {
-        explicit_bzero(&G_context.account, sizeof(G_context.account));
+        account_erase(&G_context.account);
+        r_list_erase();
 #ifndef FUZZ
         nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
 #endif  // FUZZ
@@ -110,7 +113,8 @@ static int sign_root_tx(buffer_t *cdata)
 
     if ((G_context.tx.type < TX_TRANSFER_START) || (G_context.tx.type > TX_ALEO_TRANSFER_END)) {
         status = -1;
-        explicit_bzero(&G_context.account, sizeof(G_context.account));
+        account_erase(&G_context.account);
+        r_list_erase();
 #ifndef FUZZ
         nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
 #endif  // FUZZ
@@ -121,7 +125,8 @@ static int sign_root_tx(buffer_t *cdata)
 
     // Display & sign transaction
     if ((status = ui_display_transaction()) < 0) {
-        explicit_bzero(&G_context.account, sizeof(G_context.account));
+        account_erase(&G_context.account);
+        r_list_erase();
 #ifndef FUZZ
         nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
 #endif  // FUZZ
@@ -142,7 +147,8 @@ static int sign_nested_call_tx(buffer_t *cdata)
 
     if (G_context.signing_state != SIGNING_STATE_NESTED_CALL) {
         PRINTF("sign_nested_call_tx wrong state : %d\n", G_context.signing_state);
-        explicit_bzero(&G_context.account, sizeof(G_context.account));
+        account_erase(&G_context.account);
+        r_list_erase();
         return io_send_sw(SWO_CONDITIONS_NOT_SATISFIED);
     }
 
@@ -189,6 +195,7 @@ static int sign_nested_call_tx(buffer_t *cdata)
 
     G_context.nested_call_offset++;
     if (G_context.nested_call_offset >= G_context.nested_call_count) {
+        r_list_erase();
         if ((G_context.sign_transaction_datas.max_base_fee != 0)
             || (G_context.sign_transaction_datas.max_priority_fee != 0)) {
             G_context.fees_waiting_time_ms = 0;
@@ -199,6 +206,7 @@ static int sign_nested_call_tx(buffer_t *cdata)
         }
         else {
 #ifndef FUZZ
+            account_erase(&G_context.account);
             nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
             G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
 #endif  // FUZZ
@@ -215,10 +223,10 @@ static int sign_fee_tx(buffer_t *cdata)
 
     if (G_context.signing_state != SIGNING_STATE_WAIT_FEES) {
         PRINTF("sign_fee_tx wrong state : %d\n", G_context.signing_state);
-        explicit_bzero(&G_context.account, sizeof(G_context.account));
+        account_erase(&G_context.account);
+        r_list_erase();
         return io_send_sw(SWO_CONDITIONS_NOT_SATISFIED);
     }
-    explicit_bzero(&G_context.sign_transaction_datas.prepared_request, sizeof(prepared_request_t));
 
     // Bypass intent length
     cdata->offset += 2;
@@ -289,8 +297,11 @@ static int sign_fee_tx(buffer_t *cdata)
 
     // Sign fees
     validate_transaction(true);
+    account_erase(&G_context.account);
+    r_list_erase();
     nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
     G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
+    status                  = 0;
 
 end:
     return status;
@@ -372,6 +383,75 @@ int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool next_chunk)
     }
 
     return status;
+}
+
+int handler_get_tvk(buffer_t *cdata, uint8_t mode)
+{
+    uint8_t index = 0;
+    field_t tvk;
+
+    LEDGER_ASSERT(cdata != NULL, "NULL cdata");
+
+    if (G_context.signing_state != SIGNING_STATE_WAIT_INTENT) {
+        account_erase(&G_context.account);
+        r_list_erase();
+        return io_send_sw(SWO_CONDITIONS_NOT_SATISFIED);
+    }
+
+    if (!cdata->size) {
+        // Reject empty data
+        account_erase(&G_context.account);
+        r_list_erase();
+        return io_send_sw(SWO_WRONG_DATA_LENGTH);
+    }
+
+    if (mode == R_LIST_MODE_TVK_SEED) {
+        explicit_bzero(&G_context, sizeof(G_context));
+    }
+
+    // Extract bip32 path
+    if (!buffer_read_u8(cdata, &G_context.bip32_path_len)
+        || !buffer_read_bip32_path(
+            cdata, G_context.bip32_path, (size_t) G_context.bip32_path_len)) {
+        return io_send_sw(SWO_WRONG_DATA_LENGTH);
+    }
+
+    if (mode == R_LIST_MODE_TVK_SEED) {
+        // Generate account
+        if (account_generate_keys(
+                G_context.bip32_path, G_context.bip32_path_len, &G_context.account)
+            < 0) {
+            account_erase(&G_context.account);
+            r_list_erase();
+            return io_send_sw(SW_DISPLAY_BIP32_PATH_FAIL);
+        }
+        index = 0;
+    }
+    else if (!buffer_read_u8(cdata, &index)) {
+        account_erase(&G_context.account);
+        r_list_erase();
+        return io_send_sw(SWO_INCORRECT_DATA);
+    }
+
+    if (r_list_set(&G_context.account, index) < 0) {
+        account_erase(&G_context.account);
+        r_list_erase();
+        return io_send_sw(SWO_INCORRECT_DATA);
+    }
+
+    if (r_list_get_tvk(&G_context.account, index, &tvk) < 0) {
+        account_erase(&G_context.account);
+        r_list_erase();
+        return io_send_sw(SWO_INCORRECT_DATA);
+    }
+
+    if (helper_send_response_get_tvk(&tvk) < 0) {
+        account_erase(&G_context.account);
+        r_list_erase();
+        return io_send_sw(SWO_INCORRECT_DATA);
+    }
+
+    return 0;
 }
 
 void sign_transaction_init(void)

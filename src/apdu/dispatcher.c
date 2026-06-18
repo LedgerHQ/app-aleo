@@ -72,6 +72,7 @@ int apdu_dispatcher(const command_t *cmd)
             buf.ptr    = cmd->data;
             buf.size   = cmd->lc;
             buf.offset = 0;
+
             return handler_get_address(&buf, (bool) cmd->p1);
 
         case CMD_GET_VIEW_KEY:
@@ -86,6 +87,7 @@ int apdu_dispatcher(const command_t *cmd)
             buf.ptr    = cmd->data;
             buf.size   = cmd->lc;
             buf.offset = 0;
+
             return handler_get_view_key(&buf);
 
         case CMD_SIGN_TRANSACTION:
@@ -102,6 +104,21 @@ int apdu_dispatcher(const command_t *cmd)
             buf.offset = 0;
 
             return handler_sign_transaction(&buf, cmd->p1, (bool) cmd->p2 == P2_CONTINUE);
+
+        case CMD_GET_TVK:
+            if ((cmd->p1 != P1_GET_TVK_SEED) && (cmd->p1 != P1_GET_TVK_DERIVED)) {
+                return io_send_sw(SWO_INCORRECT_P1_P2);
+            }
+
+            if (!cmd->data) {
+                return io_send_sw(SWO_WRONG_DATA_LENGTH);
+            }
+
+            buf.ptr    = cmd->data;
+            buf.size   = cmd->lc;
+            buf.offset = 0;
+
+            return handler_get_tvk(&buf, cmd->p1);
 
         default:
             return io_send_sw(SWO_INVALID_INS);

@@ -36,6 +36,7 @@ class InsType(IntEnum):
     CMD_GET_ADDRESS      = 0x05
     CMD_SIGN_TRANSACTION = 0x06
     CMD_GET_VIEW_KEY     = 0x07
+    CMD_GET_TVK          = 0x08
 
 class Errors(IntEnum):
     SW_DISPLAY_BIP32_PATH_FAIL   = 0xb001
@@ -85,12 +86,14 @@ class CommandSender:
                                      p2=0x00,
                                      data=b"")
 
+
     def get_address_without_confirmation(self, path: str) -> RAPDU:
         return self.backend.exchange(cla=CLA,
                                      ins=InsType.CMD_GET_ADDRESS,
                                      p1=P1.P1_GET_WITHOUT_CONFIRMATION,
                                      p2=0x00,
                                      data=pack_derivation_path(path))
+
 
     @contextmanager
     def get_address_with_confirmation(self, path: str) -> Generator[None, None, None]:
@@ -101,6 +104,7 @@ class CommandSender:
                                          data=pack_derivation_path(path)) as response:
             yield response
 
+
     @contextmanager
     def get_view_key(self, path: str) -> Generator[None, None, None]:
         with self.backend.exchange_async(cla=CLA,
@@ -109,6 +113,27 @@ class CommandSender:
                                          p2=0x00,
                                          data=pack_derivation_path(path)) as response:
             yield response
+
+
+    def get_tvk(self, tx_datas: dict) -> RAPDU:
+        tx = Transaction()
+        apdus = tx.gen_apdus_tx(tx_datas)
+        if len(apdus) != 0:
+            for item in apdus[:-1]:
+                apdu = bytes.fromhex(item)
+                self.backend.exchange(cla=apdu[0],
+                                      ins=apdu[1],
+                                      p1=apdu[2],
+                                      p2=apdu[3],
+                                      data=apdu[5:])
+            apdu = bytes.fromhex(apdus[-1])
+            return self.backend.exchange(cla=apdu[0],
+                                         ins=apdu[1],
+                                         p1=apdu[2],
+                                         p2=apdu[3],
+                                         data=apdu[5:])
+        return RAPDU(0x0000, b"")
+
 
     @contextmanager
     def sign_transaction(self, tx_datas: dict) -> Generator[None, None, None]:

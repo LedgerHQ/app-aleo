@@ -17,6 +17,7 @@ typedef enum {
     CMD_GET_ADDRESS      = 0x05,  /// get public address
     CMD_SIGN_TRANSACTION = 0x06,  /// sign transaction
     CMD_GET_VIEW_KEY     = 0x07,  /// get the view key
+    CMD_GET_TVK          = 0x08,  /// get the precomputed transition view key
 } command_e;
 
 typedef enum {
@@ -156,4 +157,7 @@ typedef struct {
     uint8_t                  nested_call_offset;
     sign_transaction_datas_t sign_transaction_datas;
     tx_t                     tx;
+    uint32_t                 r_list_alive_remaining_time_ms;
+    r_list_t                 r_list;
+
 } global_ctx_t;

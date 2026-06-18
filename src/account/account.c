@@ -47,6 +47,10 @@ const field_t GRAPH_KEY_DOMAIN = {
     .big.u64 = {0xbe2ebe0e9bbca61b, 0x1cd3f707abca5c71, 0xfd11846a18bef8c1, 0x02c5f9cb610ab8f5}
 };
 
+const field_t LEDGER_APP_ALEO_DOMAIN = {
+    .big.u64 = {0x481b338d07459331, 0xb2ce09da746ebfeb, 0x5dd09194a3876dee, 0x06b3870c5c4bb0a9}
+};
+
 const uint8_t VIEW_KEY_PREFIX[7]     = {14, 138, 223, 204, 247, 224, 122};
 const uint8_t PRIVATE_KEY_PREFIX[11] = {127, 134, 189, 116, 210, 221, 210, 137, 145, 18, 253};
 const char    ADDRESS_PREFIX[5]      = {'a', 'l', 'e', 'o', 0};
@@ -374,4 +378,146 @@ error:
     explicit_bzero(hash_input, sizeof(hash_input));
     explicit_bzero(account, sizeof(account_t));
     return status;
+}
+
+void account_erase(account_t *account)
+{
+    explicit_bzero(account, sizeof(account_t));
+}
+
+int r_list_set(account_t *account, uint8_t index)
+{
+    int       status = -1;
+    field_t   nonce;
+    scalar_t *r = NULL;
+
+    LEDGER_ASSERT(account != NULL, "NULL account");
+
+    if (index == 0) {
+        r_list_erase();
+        if ((status = field_random(&nonce)) < 0) {
+            goto end;
+        }
+        PRINTF("R%d nonce : ", index);
+        field_println(&nonce);
+        if (!memcmp(&FIELD_ZERO, &nonce, sizeof(field_t))) {
+            status = -1;
+            goto end;
+        }
+
+        r = &G_context.r_list.array[index];
+
+        // Compute a `r0` as `hash_to_scalar_psd4(domain || sk_sig || nonce)`
+        _Static_assert(HASH_INPUT_MAX_LENGTH >= 7, "hash_input size won't fit");
+        memset(hash_input, 0, sizeof(hash_input));
+        memcpy(&hash_input[4], &LEDGER_APP_ALEO_DOMAIN, sizeof(field_t));
+        scalar_to_field(&account->private_key.sk_sig, &hash_input[5]);
+        memcpy(&hash_input[6], &nonce, sizeof(field_t));
+        field_from_int(&hash_input[7], index);
+        if ((status = hash_to_scalar_psd4(hash_input, 4 + 4, r)) < 0) {
+            goto end;
+        }
+        G_context.r_list.count++;
+        G_context.r_list_alive_remaining_time_ms = R_LIST_MAX_VALIDITY_TIME_MS;
+    }
+    else if ((G_context.r_list.index == 0) && (G_context.r_list.count > 0)
+             && (index < R_LIST_MAX_LENGTH) && (index == G_context.r_list.count)) {
+        r = &G_context.r_list.array[index];
+
+        if (memcmp(&SCALAR_ZERO, r, sizeof(scalar_t))) {
+            status = -1;
+            goto end;
+        }
+
+        if ((status = field_random(&nonce)) < 0) {
+            goto end;
+        }
+        PRINTF("R%d nonce : ", index);
+        field_println(&nonce);
+        if (!memcmp(&FIELD_ZERO, &nonce, sizeof(field_t))) {
+            status = -1;
+            goto end;
+        }
+
+        // Compute a `rx` as `hash_to_scalar_psd4(domain || sk_sig || nonce || index)`
+        _Static_assert(HASH_INPUT_MAX_LENGTH >= 8, "hash_input size won't fit");
+        memset(hash_input, 0, sizeof(hash_input));
+        memcpy(&hash_input[4], &LEDGER_APP_ALEO_DOMAIN, sizeof(field_t));
+        scalar_to_field(&account->private_key.sk_sig, &hash_input[5]);
+        memcpy(&hash_input[6], &nonce, sizeof(field_t));
+        field_from_int(&hash_input[7], index);
+        if ((status = hash_to_scalar_psd4(hash_input, 4 + 4, r)) < 0) {
+            goto end;
+        }
+        G_context.r_list.count++;
+        G_context.r_list_alive_remaining_time_ms = R_LIST_MAX_VALIDITY_TIME_MS;
+    }
+    else {
+        status = -1;
+        goto end;
+    }
+    status = 0;
+    PRINTF("R%d : ", index);
+    scalar_println(r);
+
+end:
+    explicit_bzero(hash_input, sizeof(hash_input));
+    if (status < 0) {
+        r_list_erase();
+    }
+    return status;
+}
+
+int r_list_get(uint8_t index, scalar_t *r)
+{
+    int status = -1;
+
+    LEDGER_ASSERT(r != NULL, "NULL r");
+
+    if (index >= R_LIST_MAX_LENGTH) {
+        status = -1;
+        goto end;
+    }
+    if (!memcmp(&SCALAR_ZERO, &G_context.r_list.array[index], sizeof(scalar_t))) {
+        status = -1;
+        goto end;
+    }
+    status = 0;
+    memcpy(r, &G_context.r_list.array[index], sizeof(scalar_t));
+
+end:
+    return status;
+}
+
+int r_list_get_tvk(account_t *account, uint8_t index, field_t *tvk)
+{
+    int      status = -1;
+    group_t  g_temp;
+    scalar_t r;
+
+    LEDGER_ASSERT(account != NULL, "NULL account");
+    LEDGER_ASSERT(tvk != NULL, "NULL tvk");
+
+    if ((status = r_list_get(index, &r)) < 0) {
+        goto end;
+    }
+    PRINTF("R%d : ", index);
+    scalar_println(&r);
+    if ((status = group_scalar_multiply(&account->address, &r, &g_temp)) < 0) {
+        goto end;
+    }
+    memcpy(tvk, &g_temp.x, sizeof(field_t));
+    PRINTF("TVK_%d : ", index);
+    field_println(tvk);
+
+end:
+    explicit_bzero(&r, sizeof(r));
+    explicit_bzero(&g_temp, sizeof(g_temp));
+    return status;
+}
+
+void r_list_erase(void)
+{
+    explicit_bzero(&G_context.r_list, sizeof(G_context.r_list));
+    G_context.r_list_alive_remaining_time_ms = 0;
 }

@@ -205,6 +205,8 @@ int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
     size_t                 program_index = 0;
     function_parameters_t *functions     = NULL;
 
+    explicit_bzero(tx, sizeof(tx_t));
+
     if (!data->prepared_request.program_id) {
         return -1;
     }

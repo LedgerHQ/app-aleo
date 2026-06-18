@@ -9,7 +9,10 @@
 
 #include "os.h"
 #include "cx.h"
+#include "types.h"
 #include "account.h"
+
+global_ctx_t G_context;
 
 static void check_field(field_t *a, field_t *b)
 {
@@ -25,6 +28,15 @@ static void check_scalar(scalar_t *a, scalar_t *b)
     assert_int_equal(a->big.u64[1], b->big.u64[1]);
     assert_int_equal(a->big.u64[2], b->big.u64[2]);
     assert_int_equal(a->big.u64[3], b->big.u64[3]);
+}
+
+static void prepare_random_ok(uint8_t *random_bn)
+{
+    will_return(cx_bn_alloc_init, CX_OK);
+    will_return(cx_bn_alloc, CX_OK);
+    will_return(cx_bn_rng, CX_OK);
+    will_return(cx_bn_export, random_bn);
+    will_return(cx_bn_export, CX_OK);
 }
 
 static void check_group(group_t *a, group_t *b)
@@ -80,69 +92,177 @@ static void test_account(void **state)
     assert_int_equal(account_get_view_key_string(path, 4, address), -1);
 
     // account_generate_keys
-    account_t account;
     will_return(sys_hdkey_derive, bn_seed);
     will_return(sys_hdkey_derive, SWO_OK);
-    assert_int_equal(account_generate_keys(path, 4, &account), 0);
+    assert_int_equal(account_generate_keys(path, 4, &G_context.account), 0);
     field_t seed = {
         .big.u64 = {0x326dab4d918236e0, 0xec37e9452f68725, 0x7099819b51333787, 0x46977186edbf965}
     };
-    check_field(&account.private_key.seed, &seed);
+    check_field(&G_context.account.private_key.seed, &seed);
     scalar_t sk_sig = {
         .big.u64
         = {0x07eabdc6534c858f, 0x44f1027b4d903652, 0xe8496250b2b42c9a, 0x044f53f538456ce2}
     };
-    check_scalar(&account.private_key.sk_sig, &sk_sig);
+    check_scalar(&G_context.account.private_key.sk_sig, &sk_sig);
     scalar_t r_sig = {
         .big.u64
         = {0xe05c5bfcd63c0709, 0x928969617eb6172e, 0xa1bef1a9817696c4, 0x02cab0981b27e5e5}
     };
-    check_scalar(&account.private_key.r_sig, &r_sig);
+    check_scalar(&G_context.account.private_key.r_sig, &r_sig);
     group_t pk_sig = {
         .x.big.u64
         = {0xde8cc5ec217ad253, 0xea6bd6b4a4d0cf4b, 0x9556a907cd59336b, 0x0a3d18918155940e},
         .y.big.u64
         = {0xe456322861acf6ac, 0x68b72f3d5529218e, 0x3cbe762b292509f8, 0x0c03f4d9376b27cd}
     };
-    check_group(&account.compute_key.pk_sig, &pk_sig);
+    check_group(&G_context.account.compute_key.pk_sig, &pk_sig);
     group_t pr_sig = {
         .x.big.u64
         = {0x773d1f206139cff5, 0xef1122c53bf34151, 0x58c4735db29ca6a7, 0x11d1c7a9b23a52f5},
         .y.big.u64
         = {0x799be5fcf4f15c35, 0x674847c970493e9b, 0xe1cb4589e5b4c7f3, 0x01c2c9083e4798e1}
     };
-    check_group(&account.compute_key.pr_sig, &pr_sig);
+    check_group(&G_context.account.compute_key.pr_sig, &pr_sig);
     scalar_t sk_prf = {
         .big.u64
         = {0xa99e4b1f9b8435cb, 0x973b73acef28d87e, 0x84efb6bac52969ca, 0x0401510674801756}
     };
-    check_scalar(&account.compute_key.sk_prf, &sk_prf);
+    check_scalar(&G_context.account.compute_key.sk_prf, &sk_prf);
     scalar_t view_key = {
         .big.u64
         = {0x1f2f87ad3e8d0e65, 0xc98e982a32f61002, 0xde9de425cb385528, 0x01c5a2e47ad71773}
     };
-    check_scalar(&account.view_key, &view_key);
+    check_scalar(&G_context.account.view_key, &view_key);
     group_t addr = {
         .x.big.u64
         = {0xce0f78517f7376e6, 0xf4ea033ea47d149e, 0x287213cc619348f0, 0x06687fceca169ebd},
         .y.big.u64
         = {0x013ace29509f45c6, 0x37979a102f766dd3, 0xcf78a3e195b59666, 0x0893f1ae42d7df25}
     };
-    check_group(&account.address, &addr);
+    check_group(&G_context.account.address, &addr);
     field_t graph_key = {
         .big.u64
         = {0x837f9d098b4fd96a, 0x8e3724af86c9b19d, 0x19dbeeebcba9e6f8, 0x0caf51a7e4157238}
     };
-    check_field(&account.graph_key, &graph_key);
+    check_field(&G_context.account.graph_key, &graph_key);
 
     will_return(sys_hdkey_derive, bn_seed);
     will_return(sys_hdkey_derive, 0x0001);
-    assert_int_equal(account_generate_keys(path, 4, &account), -1);
+    assert_int_equal(account_generate_keys(path, 4, &G_context.account), -1);
+
+    // account_erase
+    account_t empty_account = {0};
+    account_erase(&G_context.account);
+    assert_memory_equal(&G_context.account, &empty_account, sizeof(account_t));
+}
+
+static void test_r_list(void **state)
+{
+    (void) state;
+
+    uint32_t path[4]     = {0x8000002c, 0x800002ab, 0x80000000, 0x80000000};
+    uint8_t  bn_seed[32] = {0xff, 0xc3, 0xde, 0x3c, 0x85, 0x23, 0x3e, 0x2c, 0xca, 0x13, 0x90,
+                            0xdb, 0xdd, 0x6b, 0x6f, 0x04, 0x5b, 0x6a, 0x74, 0xfa, 0xde, 0x6e,
+                            0x58, 0x07, 0xd2, 0xe3, 0x15, 0x27, 0x05, 0xea, 0x65, 0x7e};
+
+    uint8_t random_bn[BN_LENGTH]
+        = {0x93, 0x83, 0xb2, 0x70, 0x2a, 0x29, 0x2d, 0x0f, 0x5a, 0x3c, 0x2c,
+           0xa6, 0xcf, 0x9c, 0x53, 0x18, 0xc6, 0x54, 0xe4, 0xd1, 0x5a, 0x65,
+           0x4c, 0x32, 0x74, 0x78, 0xf4, 0x2e, 0x2d, 0x65, 0x4a, 0x56};
+
+    will_return_always(cx_bn_lock, CX_OK);
+    will_return_always(cx_ecpoint_alloc, CX_OK);
+    will_return_always(cx_ecpoint_init, CX_OK);
+    will_return_always(cx_ecpoint_scalarmul, CX_OK);
+    will_return_always(cx_ecpoint_export, CX_OK);
+    will_return_always(cx_ecpoint_destroy, CX_OK);
+    will_return_always(cx_bn_unlock, CX_OK);
+    will_return(sys_hdkey_derive, bn_seed);
+    will_return(sys_hdkey_derive, SWO_OK);
+    assert_int_equal(account_generate_keys(path, 4, &G_context.account), 0);
+
+    // r_list_set
+    r_list_erase();
+    assert_int_equal(r_list_set(&G_context.account, 1), -1);
+
+    r_list_erase();
+    prepare_random_ok(random_bn);
+    assert_int_equal(r_list_set(&G_context.account, 0), 0);
+    assert_int_equal(G_context.r_list.index, 0);
+    assert_int_equal(G_context.r_list.count, 1);
+    scalar_t r_0 = {
+        .big.u64 = {0x6e545a11bc879b13, 0x59a25b6387b3de05, 0x836534e4f20da9a9, 0x2ed6f017494bea8}
+    };
+    check_scalar(&G_context.r_list.array[0], &r_0);
+
+    prepare_random_ok(random_bn);
+    assert_int_equal(r_list_set(&G_context.account, 1), 0);
+    assert_int_equal(G_context.r_list.index, 0);
+    assert_int_equal(G_context.r_list.count, 2);
+    scalar_t r_1 = {
+        .big.u64 = {0x23707f160447f275, 0x2e2f1b73603788de, 0x24fcf7e0c6e0a9a9, 0x10e68c0dc743b19}
+    };
+    check_scalar(&G_context.r_list.array[1], &r_1);
+
+    assert_int_equal(r_list_set(&G_context.account, 1), -1);
+
+    assert_int_equal(r_list_set(&G_context.account, R_LIST_MAX_LENGTH), -1);
+
+    G_context.r_list.index = 1;
+    assert_int_equal(r_list_set(&G_context.account, 1), -1);
+
+    will_return(cx_bn_alloc_init, -1);
+    assert_int_equal(r_list_set(&G_context.account, 0), -1);
+
+    prepare_random_ok(random_bn);
+    assert_int_equal(r_list_set(&G_context.account, 0), 0);
+    assert_int_equal(G_context.r_list.index, 0);
+    assert_int_equal(G_context.r_list.count, 1);
+    check_scalar(&G_context.r_list.array[0], &r_0);
+    check_scalar(&G_context.r_list.array[1], (scalar_t *) &SCALAR_ZERO);
+
+    // r_list_get
+    r_list_erase();
+    prepare_random_ok(random_bn);
+    assert_int_equal(r_list_set(&G_context.account, 0), 0);
+    prepare_random_ok(random_bn);
+    assert_int_equal(r_list_set(&G_context.account, 1), 0);
+
+    scalar_t r;
+    assert_int_equal(r_list_get(0, &r), 0);
+    check_scalar(&r, &r_0);
+    assert_int_equal(r_list_get(1, &r), 0);
+    check_scalar(&r, &r_1);
+    assert_int_equal(r_list_get(R_LIST_MAX_LENGTH, &r), -1);
+    assert_int_equal(r_list_get(2, &r), -1);
+
+    // r_list_get_tvk
+    r_list_erase();
+    prepare_random_ok(random_bn);
+    assert_int_equal(r_list_set(&G_context.account, 0), 0);
+    prepare_random_ok(random_bn);
+    assert_int_equal(r_list_set(&G_context.account, 1), 0);
+
+    field_t tvk;
+    assert_int_equal(r_list_get_tvk(&G_context.account, R_LIST_MAX_LENGTH, &tvk), -1);
+
+    field_t tvk_0 = {
+        .big.u64 = {0xc27b9f8c4d99f7c4, 0xf448a69122e3080f, 0xcd33e6190da2c413, 0x1259b4ad2a3c4469}
+    };
+    assert_int_equal(r_list_get_tvk(&G_context.account, 0, &tvk), 0);
+
+    // r_list_erase
+    r_list_t r_list_empty = {0};
+    r_list_erase();
+    assert_memory_equal(&G_context.r_list, &r_list_empty, sizeof(r_list_t));
+
+    check_field(&tvk, &tvk_0);
 }
 
 int main()
 {
-    const struct CMUnitTest tests[] = {cmocka_unit_test(test_account)};
+    const struct CMUnitTest tests[]
+        = {cmocka_unit_test(test_account), cmocka_unit_test(test_r_list)};
 
     return cmocka_run_group_tests(tests, NULL, NULL);
 }
