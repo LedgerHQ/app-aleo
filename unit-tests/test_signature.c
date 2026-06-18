@@ -513,6 +513,7 @@ static void test_signature(void **state)
     field_t pre_tvk_1;
 
     prepare_random_ok(random_bn);
+    prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
     assert_int_equal(r_list_set(&G_context.account, 0), 0);

@@ -191,15 +191,16 @@ static void test_r_list(void **state)
     assert_int_equal(G_context.r_list.index, 0);
     assert_int_equal(G_context.r_list.count, 1);
     scalar_t r_0 = {
-        .big.u64 = {0xd12073752c196d6d, 0x6f96db151559f1ff, 0x25a34b586f7f9723, 0x2697302b89ed397}
+        .big.u64 = {0x6e545a11bc879b13, 0x59a25b6387b3de05, 0x836534e4f20da9a9, 0x2ed6f017494bea8}
     };
     check_scalar(&G_context.r_list.array[0], &r_0);
 
+    prepare_random_ok(random_bn);
     assert_int_equal(r_list_set(&G_context.account, 1), 0);
     assert_int_equal(G_context.r_list.index, 0);
     assert_int_equal(G_context.r_list.count, 2);
     scalar_t r_1 = {
-        .big.u64 = {0x93d66c73ba287b08, 0x3b4d2a61e7a0e018, 0x206efdef5fa34718, 0x110d86f87a8f09f}
+        .big.u64 = {0x23707f160447f275, 0x2e2f1b73603788de, 0x24fcf7e0c6e0a9a9, 0x10e68c0dc743b19}
     };
     check_scalar(&G_context.r_list.array[1], &r_1);
 
@@ -224,6 +225,7 @@ static void test_r_list(void **state)
     r_list_erase();
     prepare_random_ok(random_bn);
     assert_int_equal(r_list_set(&G_context.account, 0), 0);
+    prepare_random_ok(random_bn);
     assert_int_equal(r_list_set(&G_context.account, 1), 0);
 
     scalar_t r;
@@ -238,13 +240,14 @@ static void test_r_list(void **state)
     r_list_erase();
     prepare_random_ok(random_bn);
     assert_int_equal(r_list_set(&G_context.account, 0), 0);
+    prepare_random_ok(random_bn);
     assert_int_equal(r_list_set(&G_context.account, 1), 0);
 
     field_t tvk;
     assert_int_equal(r_list_get_tvk(&G_context.account, R_LIST_MAX_LENGTH, &tvk), -1);
 
     field_t tvk_0 = {
-        .big.u64 = {0xfcd99dd33fd711b9, 0x3085372523a8663b, 0x69091782d0a1eb9e, 0x56f3af574b36c6a}
+        .big.u64 = {0xc27b9f8c4d99f7c4, 0xf448a69122e3080f, 0xcd33e6190da2c413, 0x1259b4ad2a3c4469}
     };
     assert_int_equal(r_list_get_tvk(&G_context.account, 0, &tvk), 0);
 

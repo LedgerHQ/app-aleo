@@ -47,8 +47,8 @@ const field_t GRAPH_KEY_DOMAIN = {
     .big.u64 = {0xbe2ebe0e9bbca61b, 0x1cd3f707abca5c71, 0xfd11846a18bef8c1, 0x02c5f9cb610ab8f5}
 };
 
-const field_t SERIAL_NUMBER_DOMAIN_TVK = {
-    .big.u64 = {0xf993d63c8bc0a4ad, 0xe22f8477532c74cc, 0x367fe5e2c9f74b96, 0x0309ea7b80fce820}
+const field_t LEDGER_APP_ALEO_DOMAIN = {
+    .big.u64 = {0x481b338d07459331, 0xb2ce09da746ebfeb, 0x5dd09194a3876dee, 0x06b3870c5c4bb0a9}
 };
 
 const uint8_t VIEW_KEY_PREFIX[7]     = {14, 138, 223, 204, 247, 224, 122};
@@ -398,18 +398,23 @@ int r_list_set(account_t *account, uint8_t index)
         if ((status = field_random(&nonce)) < 0) {
             goto end;
         }
-        PRINTF("R0 nonce : ");
+        PRINTF("R%d nonce : ", index);
         field_println(&nonce);
+        if (!memcmp(&FIELD_ZERO, &nonce, sizeof(field_t))) {
+            status = -1;
+            goto end;
+        }
 
         r = &G_context.r_list.array[index];
 
         // Compute a `r0` as `hash_to_scalar_psd4(domain || sk_sig || nonce)`
         _Static_assert(HASH_INPUT_MAX_LENGTH >= 7, "hash_input size won't fit");
         memset(hash_input, 0, sizeof(hash_input));
-        memcpy(&hash_input[4], &SERIAL_NUMBER_DOMAIN_TVK, sizeof(field_t));
+        memcpy(&hash_input[4], &LEDGER_APP_ALEO_DOMAIN, sizeof(field_t));
         scalar_to_field(&account->private_key.sk_sig, &hash_input[5]);
         memcpy(&hash_input[6], &nonce, sizeof(field_t));
-        if ((status = hash_to_scalar_psd4(hash_input, 4 + 3, r)) < 0) {
+        field_from_int(&hash_input[7], index);
+        if ((status = hash_to_scalar_psd4(hash_input, 4 + 4, r)) < 0) {
             goto end;
         }
         G_context.r_list.count++;
@@ -424,12 +429,22 @@ int r_list_set(account_t *account, uint8_t index)
             goto end;
         }
 
-        // Compute a `rx` as `hash_to_scalar_psd4(domain || sk_sig || r0 || index)`
+        if ((status = field_random(&nonce)) < 0) {
+            goto end;
+        }
+        PRINTF("R%d nonce : ", index);
+        field_println(&nonce);
+        if (!memcmp(&FIELD_ZERO, &nonce, sizeof(field_t))) {
+            status = -1;
+            goto end;
+        }
+
+        // Compute a `rx` as `hash_to_scalar_psd4(domain || sk_sig || nonce || index)`
         _Static_assert(HASH_INPUT_MAX_LENGTH >= 8, "hash_input size won't fit");
         memset(hash_input, 0, sizeof(hash_input));
-        memcpy(&hash_input[4], &SERIAL_NUMBER_DOMAIN_TVK, sizeof(field_t));
+        memcpy(&hash_input[4], &LEDGER_APP_ALEO_DOMAIN, sizeof(field_t));
         scalar_to_field(&account->private_key.sk_sig, &hash_input[5]);
-        scalar_to_field(&G_context.r_list.array[0], &hash_input[6]);
+        memcpy(&hash_input[6], &nonce, sizeof(field_t));
         field_from_int(&hash_input[7], index);
         if ((status = hash_to_scalar_psd4(hash_input, 4 + 4, r)) < 0) {
             goto end;
