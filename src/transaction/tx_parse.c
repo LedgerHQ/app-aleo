@@ -34,7 +34,7 @@
 #define ADDRESS_TYPE_LENGTH  (3)
 #define ADDRESS_VALUE_LENGTH sizeof(field_t)
 
-#define NB_OF_PROGRAMS (6)
+#define NB_OF_PROGRAMS (9)
 
 typedef struct {
     const char *string;
@@ -53,6 +53,9 @@ static int parse_transfer_public_to_private(sign_transaction_datas_t *data, tx_t
 static int parse_transfer_private_to_public(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_fee_public(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx);
+static int parse_bond_public(sign_transaction_datas_t *data, tx_t *tx);
+static int parse_unbond_public(sign_transaction_datas_t *data, tx_t *tx);
+static int parse_claim_unbond_public(sign_transaction_datas_t *data, tx_t *tx);
 
 static const program_infos_t program_infos[NB_OF_PROGRAMS] = {
     {
@@ -96,6 +99,27 @@ static const program_infos_t program_infos[NB_OF_PROGRAMS] = {
      .tx_type       = TX_FEE,
      .input_count   = 4,
      .parse_fn      = parse_fee_private,
+     },
+    {
+     .string        = "bond_public",
+     .string_length = 11,
+     .tx_type       = TX_STAKING,
+     .input_count   = 3,
+     .parse_fn      = parse_bond_public,
+     },
+    {
+     .string        = "unbond_public",
+     .string_length = 13,
+     .tx_type       = TX_STAKING,
+     .input_count   = 2,
+     .parse_fn      = parse_unbond_public,
+     },
+    {
+     .string        = "claim_unbond_public",
+     .string_length = 19,
+     .tx_type       = TX_STAKING,
+     .input_count   = 1,
+     .parse_fn      = parse_claim_unbond_public,
      },
 };
 
@@ -222,6 +246,43 @@ static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx)
     }
 
     return status;
+}
+
+static int parse_bond_public(sign_transaction_datas_t *data, tx_t *tx)
+{
+    //TODO: (decide on that)
+    // NOTE: bond_public's on-chain finalize asserts caller != validator (and a
+    // minimum bond of 1 ALEO). Both are locally checkable on-device (we hold the
+    // signer address and the validator input at index 0), but per ADR004 §12 they
+    // are intentionally NOT rejected here for now: the device is a trusted-display
+    // passthrough signer and lets on-chain finalize stay authoritative.
+    tx->staking.type = TX_STAKING_BOND;
+    int status = get_address(&data->prepared_request.inputs[0], false, tx->staking.validator);
+    if (status == 0) {
+        status = get_address(&data->prepared_request.inputs[1], false, tx->staking.withdrawal);
+    }
+    if (status == 0) {
+        status = get_u64(&data->prepared_request.inputs[2], false, &tx->staking.amount);
+    }
+
+    return status;
+}
+
+static int parse_unbond_public(sign_transaction_datas_t *data, tx_t *tx)
+{
+    tx->staking.type = TX_STAKING_UNBOND;
+    int status = get_address(&data->prepared_request.inputs[0], false, tx->staking.staker);
+    if (status == 0) {
+        status = get_u64(&data->prepared_request.inputs[1], false, &tx->staking.amount);
+    }
+
+    return status;
+}
+
+static int parse_claim_unbond_public(sign_transaction_datas_t *data, tx_t *tx)
+{
+    tx->staking.type = TX_STAKING_CLAIM;
+    return get_address(&data->prepared_request.inputs[0], false, tx->staking.staker);
 }
 
 int tx_parse(sign_transaction_datas_t *data, tx_t *tx)

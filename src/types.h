@@ -105,6 +105,7 @@ typedef enum {
     TX_UNKNOWN,
     TX_TRANSFER,
     TX_FEE,
+    TX_STAKING,
 } tx_type_e;
 
 typedef enum {
@@ -119,6 +120,12 @@ typedef enum {
     TX_FEE_PRIVATE,
 } tx_fee_type_e;
 
+typedef enum {
+    TX_STAKING_BOND,
+    TX_STAKING_UNBOND,
+    TX_STAKING_CLAIM,
+} tx_staking_type_e;
+
 typedef struct {
     tx_transfer_type_e type;
     char               address_to[ADDRESS_LEN + 1];
@@ -132,9 +139,18 @@ typedef struct {
 } tx_fee_t;
 
 typedef struct {
+    tx_staking_type_e type;
+    char              validator[ADDRESS_LEN + 1];   // bond only
+    char              withdrawal[ADDRESS_LEN + 1];  // bond only
+    char              staker[ADDRESS_LEN + 1];      // unbond / claim
+    uint64_t          amount;                       // bond / unbond (claim leaves unset)
+} tx_staking_t;
+
+typedef struct {
     tx_type_e     type;
     tx_transfer_t transfer;
     tx_fee_t      fee;
+    tx_staking_t  staking;
 } tx_t;
 
 /**

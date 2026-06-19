@@ -17,7 +17,7 @@
 
 #include "bhp_1024_parameters.h"
 
-#define NB_OF_CREDITS_ALEO_FUNCTIONS (8)
+#define NB_OF_CREDITS_ALEO_FUNCTIONS (11)
 const function_hashes_t credits_aleo[NB_OF_CREDITS_ALEO_FUNCTIONS] = {
     {.string = "transfer_public",
      .hashes
@@ -66,7 +66,25 @@ const function_hashes_t credits_aleo[NB_OF_CREDITS_ALEO_FUNCTIONS] = {
      = {{.big.u64
          = {0xb56e347d9733de05, 0x29c0febaeb2bee52, 0x6c4d0ed1285f19fd, 0x0ec48ec3bdf25eb8}},
         {.big.u64
-         = {0x921936604e6eddfe, 0x429d23effcfce58b, 0x072b665308c3d12b, 0x1241fcb49a8a9b72}}}}
+         = {0x921936604e6eddfe, 0x429d23effcfce58b, 0x072b665308c3d12b, 0x1241fcb49a8a9b72}}}},
+    {.string = "bond_public",
+     .hashes
+     = {{.big.u64
+         = {0xfad1870949c8aa5f, 0xb94139693a1a9ede, 0x13826b9d3dda98ed, 0x11692029f1d694e3}},
+        {.big.u64
+         = {0x11e14f163d3f2b7c, 0xc591f619d35fb0ab, 0x3456c789125b6f67, 0x0eec83be57f64f40}}}},
+    {.string = "unbond_public",
+     .hashes
+     = {{.big.u64
+         = {0x7023ecbf86089ad7, 0x1d8626b632ad9001, 0x9f1706e883708361, 0x029c23c1fc2b9465}},
+        {.big.u64
+         = {0x75ca6051e895980f, 0x86110aa6b233d58e, 0x53106280baec89af, 0x0628c9c0bfeaeb79}}}},
+    {.string = "claim_unbond_public",
+     .hashes
+     = {{.big.u64
+         = {0x44e8eea54a97db6b, 0x137b370eeb14174b, 0xb14498709cf52fb5, 0x10df36004e953eb8}},
+        {.big.u64
+         = {0xe506d14510bc7c88, 0xb5566ac3133fe094, 0x8c7852dcca7e24e1, 0x0bce73be56cbba46}}}}
 };
 
 const bhp_1024_parameter_t bhp_1024_parameters[NB_OF_PROGRAMS] = {

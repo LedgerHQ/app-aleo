@@ -38,8 +38,9 @@
 static char g_amount[30];
 static char g_amount_2[30];
 
-// The flow with the most pairs to display is the token signing flow with amount + dest + token
-static nbgl_contentTagValue_t     pairs[3];
+//IMPORTANT:
+//Remember to bump that number when adding new pairs !!!
+static nbgl_contentTagValue_t     pairs[4];
 static nbgl_contentTagValueList_t pairList;
 
 static void review_transaction(bool confirm)
@@ -147,6 +148,104 @@ static int display_review_transaction(void)
     return 0;
 }
 
+static int display_review_staking(void)
+{
+    uint8_t     pair_index                   = 0;
+    char        amount[50 + MAX_TICKER_SIZE] = {0};
+    const char *review_subtitle              = NULL;
+
+    if (G_context.tx.staking.type == TX_STAKING_BOND) {
+        review_subtitle = "Stake ALEO";
+    }
+    else if (G_context.tx.staking.type == TX_STAKING_UNBOND) {
+        review_subtitle = "Unstake ALEO";
+    }
+    else if (G_context.tx.staking.type == TX_STAKING_CLAIM) {
+        review_subtitle = "Claim ALEO";
+    }
+    else {
+        return io_send_sw(SWO_INCORRECT_DATA);
+    }
+
+    // Format fees (always shown, always the last pair)
+    uint64_t total_fees = G_context.sign_transaction_datas.max_base_fee
+                          + G_context.sign_transaction_datas.max_priority_fee;
+    explicit_bzero(g_amount_2, sizeof(g_amount_2));
+    if (!format_fpu64(amount, sizeof(amount), total_fees, EXPONENT_SMALLEST_UNIT)) {
+        return io_send_sw(SWO_INCORRECT_DATA);
+    }
+    snprintf(g_amount_2, sizeof(g_amount_2), "%.*s ALEO", (int) strlen(amount), amount);
+
+    if (G_context.tx.staking.type == TX_STAKING_BOND) {
+        pairs[pair_index].item  = "Validator";
+        pairs[pair_index].value = G_context.tx.staking.validator;
+        pair_index++;
+        pairs[pair_index].item  = "Payout to";
+        pairs[pair_index].value = G_context.tx.staking.withdrawal;
+        pair_index++;
+
+        explicit_bzero(g_amount, sizeof(g_amount));
+        if (!format_fpu64(
+                amount, sizeof(amount), G_context.tx.staking.amount, EXPONENT_SMALLEST_UNIT)) {
+            return io_send_sw(SWO_INCORRECT_DATA);
+        }
+        snprintf(g_amount, sizeof(g_amount), "%.*s ALEO", (int) strlen(amount), amount);
+        pairs[pair_index].item  = "Amount";
+        pairs[pair_index].value = g_amount;
+        pair_index++;
+    }
+    else if (G_context.tx.staking.type == TX_STAKING_UNBOND) {
+        pairs[pair_index].item  = "Staker";
+        pairs[pair_index].value = G_context.tx.staking.staker;
+        pair_index++;
+
+        explicit_bzero(g_amount, sizeof(g_amount));
+        if (!format_fpu64(
+                amount, sizeof(amount), G_context.tx.staking.amount, EXPONENT_SMALLEST_UNIT)) {
+            return io_send_sw(SWO_INCORRECT_DATA);
+        }
+        snprintf(g_amount, sizeof(g_amount), "%.*s ALEO", (int) strlen(amount), amount);
+        pairs[pair_index].item  = "Amount";
+        pairs[pair_index].value = g_amount;
+        pair_index++;
+    }
+    else {  // TX_STAKING_CLAIM — no amount pair
+        pairs[pair_index].item  = "Staker";
+        pairs[pair_index].value = G_context.tx.staking.staker;
+        pair_index++;
+    }
+
+    // Fees (always last)
+    pairs[pair_index].item  = "Fees";
+    pairs[pair_index].value = g_amount_2;
+    pair_index++;
+
+    pairList.nbMaxLinesForValue = 0;
+    pairList.nbPairs            = pair_index;
+    pairList.pairs              = pairs;
+    pairList.wrapping           = true;
+
+#ifdef HAVE_SE_TOUCH
+    nbgl_useCaseReview(TYPE_TRANSACTION,
+                       &pairList,
+                       &ICON_APP_ALEO,
+                       "Review staking transaction?",
+                       review_subtitle,
+                       "Sign staking transaction?",
+                       review_transaction);
+#else   // !HAVE_SE_TOUCH
+    nbgl_useCaseReview(TYPE_TRANSACTION,
+                       &pairList,
+                       &ICON_APP_ALEO,
+                       "Review staking transaction?",
+                       review_subtitle,
+                       "Sign transaction",
+                       review_transaction);
+#endif  // HAVE_SE_TOUCH
+
+    return 0;
+}
+
 // Flow used to display a clear-signed transaction
 int ui_display_transaction(void)
 {
@@ -159,6 +258,9 @@ int ui_display_transaction(void)
 
     if (G_context.tx.type == TX_TRANSFER) {
         return display_review_transaction();
+    }
+    else if (G_context.tx.type == TX_STAKING) {
+        return display_review_staking();
     }
     else if (G_context.tx.type == TX_FEE) {
         validate_transaction(true);
