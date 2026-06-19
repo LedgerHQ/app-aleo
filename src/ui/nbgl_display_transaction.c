@@ -38,8 +38,8 @@
 static char g_amount[30];
 static char g_amount_2[30];
 
-//IMPORTANT:
-//Remember to bump that number when adding new pairs !!!
+// IMPORTANT:
+// Remember to bump that number when adding new pairs !!!
 static nbgl_contentTagValue_t     pairs[4];
 static nbgl_contentTagValueList_t pairList;
 

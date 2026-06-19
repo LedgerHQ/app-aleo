@@ -250,14 +250,14 @@ static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx)
 
 static int parse_bond_public(sign_transaction_datas_t *data, tx_t *tx)
 {
-    //TODO: (decide on that)
-    // NOTE: bond_public's on-chain finalize asserts caller != validator (and a
-    // minimum bond of 1 ALEO). Both are locally checkable on-device (we hold the
-    // signer address and the validator input at index 0), but per ADR004 §12 they
-    // are intentionally NOT rejected here for now: the device is a trusted-display
-    // passthrough signer and lets on-chain finalize stay authoritative.
+    // TODO: (decide on that)
+    //  NOTE: bond_public's on-chain finalize asserts caller != validator (and a
+    //  minimum bond of 1 ALEO). Both are locally checkable on-device (we hold the
+    //  signer address and the validator input at index 0), but per ADR004 §12 they
+    //  are intentionally NOT rejected here for now: the device is a trusted-display
+    //  passthrough signer and lets on-chain finalize stay authoritative.
     tx->staking.type = TX_STAKING_BOND;
-    int status = get_address(&data->prepared_request.inputs[0], false, tx->staking.validator);
+    int status       = get_address(&data->prepared_request.inputs[0], false, tx->staking.validator);
     if (status == 0) {
         status = get_address(&data->prepared_request.inputs[1], false, tx->staking.withdrawal);
     }
@@ -271,7 +271,7 @@ static int parse_bond_public(sign_transaction_datas_t *data, tx_t *tx)
 static int parse_unbond_public(sign_transaction_datas_t *data, tx_t *tx)
 {
     tx->staking.type = TX_STAKING_UNBOND;
-    int status = get_address(&data->prepared_request.inputs[0], false, tx->staking.staker);
+    int status       = get_address(&data->prepared_request.inputs[0], false, tx->staking.staker);
     if (status == 0) {
         status = get_u64(&data->prepared_request.inputs[1], false, &tx->staking.amount);
     }
