@@ -185,7 +185,7 @@ int ui_display_transaction(void)
                        &ICON_APP_ALEO,
                        g_review_title,
                        review_subtitle,
-                       g_finish_title,
+                       "Sign transaction",
                        review_transaction);
 #endif  // HAVE_SE_TOUCH
 

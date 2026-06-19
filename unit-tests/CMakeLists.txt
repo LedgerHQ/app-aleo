@@ -140,6 +140,7 @@ add_library(account       SHARED ../src/account/account.c)
 add_library(signature     SHARED ../src/account/signature.c)
 add_library(transaction   SHARED ../src/transaction/tx_extract.c ../src/transaction/tx_parse.c  ../src/db/db_program_function.c ../src/db/db.c ../src/db/db_tokens.c)
 add_library(send_response SHARED ../src/helper/send_response.c)
+add_library(db            SHARED ../src/db/db.c ../src/db/db_program_function.c ../src/db/db_tokens.c)
 
 # Common link set for tests that use TLV parsing
 set(COMMON_LIBS buffer read write varint format cmocka gcov stubs_os_utils)
@@ -192,3 +193,7 @@ add_test(test_transaction test_transaction)
 add_executable(test_send_response test_send_response.c)
 target_link_libraries(test_send_response PUBLIC send_response group scalar field fp256 bigint_256 bits stubs_ox ${COMMON_LIBS})
 add_test(test_send_response test_send_response)
+
+add_executable(test_db test_db.c)
+target_link_libraries(test_db PUBLIC db field fp256 bigint_256 bits stubs_ox ${COMMON_LIBS})
+add_test(test_db test_db)

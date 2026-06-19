@@ -283,7 +283,6 @@ static int parse_token_transfer_private(sign_transaction_datas_t *data, tx_t *tx
     if (status < 0) {
         return status;
     }
-
     if (tx->transfer.token_info->type == TOKEN_TYPE_ARC20) {
         status = get_address(&data->prepared_request.inputs[1], true, tx->transfer.address_to);
         if (status == 0) {

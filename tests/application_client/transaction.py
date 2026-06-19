@@ -150,6 +150,8 @@ class Transaction():
             val += f"03{len(sp_input_type[0]):02x}{sp_input_type[0].encode('ascii').hex()}"
         elif sp_input_type[-1] == 'external_record':
             val += '04'
+        elif sp_input_type[-1] == 'merkle_proof':
+            val += '020100'
 
         return val
 
@@ -182,6 +184,11 @@ class Transaction():
                 input_val += input_item['value'].to_bytes(8, 'little').hex()
             elif 'u128' in input_item['type']:
                 input_val += input_item['value'].to_bytes(16, 'little').hex()
+            elif 'merkle_proof' in input_item['type']:
+                for in_val in input_item['value']:
+                    value = int(in_val.split('field')[0])
+                    big = BigInteger256(int(value))
+                    input_val += big.to_int().to_bytes(32, 'little').hex()
             else:
                 input_val += input_item['value']
             val += Transaction.forge_tlv(Transaction.TlvTypes.INPUT_VALUES, input_val)

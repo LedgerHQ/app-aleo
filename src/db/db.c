@@ -156,10 +156,11 @@ int db_get_token_display_info(char                  *program_id,
             continue;
         }
         if (memcmp(program_id, PIC(token_parameters[index].program_id), program_id_length)) {
-            if (token_id) {
-                if (memcmp(token_id, PIC(&token_parameters[index].token_id), sizeof(field_t))) {
-                    continue;
-                }
+            continue;
+        }
+        else if (token_id) {
+            if (memcmp(token_id, PIC(&token_parameters[index].token_id), sizeof(field_t))) {
+                continue;
             }
         }
         break;
