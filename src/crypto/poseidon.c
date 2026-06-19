@@ -226,70 +226,23 @@ static int absorb_internal(uint8_t rate_start, field_t *input, uint16_t input_le
 
 static int squeeze_internal(uint8_t rate_start, field_t *output, uint16_t output_length)
 {
-    uint8_t first_chunk_size = output_length;
+    // Squeeze `output_length` elements from the rate region of the state, permuting
+    // whenever the current rate window is exhausted. Supports an arbitrary output_length
+    uint8_t pos = rate_start;
 
-    if ((sponge.rate - rate_start) < first_chunk_size) {
-        first_chunk_size = sponge.rate - rate_start;
-    }
-    uint8_t num_output_remaining = output_length - first_chunk_size;
-    uint8_t total_num_chunks     = 1 + (num_output_remaining / sponge.rate);
-    if (num_output_remaining % sponge.rate) {
-        total_num_chunks += 1;
-    }
-
-    // FIRST CHUNK
-    uint8_t chunk_length = first_chunk_size;
-
-    // Sanity check
-    if ((CAPACITY + rate_start + chunk_length) > SPONGE_STATE_SIZE) {
-        return -1;
-    }
-    if (chunk_length > output_length) {
-        return -1;
+    for (uint16_t produced = 0; produced < output_length; produced++) {
+        if (pos == sponge.rate) {
+            sponge_permute();
+            pos = 0;
+        }
+        memcpy(&output[produced], &sponge.state[CAPACITY + pos], sizeof(field_t));
+        pos++;
     }
 
-    for (uint8_t i = 0; i < chunk_length; i++) {
-        memcpy(&output[i], &sponge.state[CAPACITY + rate_start + i], sizeof(field_t));
-    }
-
-    if (total_num_chunks == 1) {
-        sponge.mode.type               = SPONGE_MODE_SQUEEZING;
-        sponge.mode.next_squeeze_index = rate_start + chunk_length;
-        return 0;
-    }
-    else {
-        sponge_permute();
-    }
-    rate_start = 0;
-
-    // REST CHUNK
-    chunk_length = output_length - first_chunk_size;
-
-    // Sanity check
-    if ((CAPACITY + rate_start + chunk_length) > SPONGE_STATE_SIZE) {
-        return -1;
-    }
-    if (first_chunk_size + chunk_length > output_length) {
-        return -1;
-    }
-
-    for (uint8_t i = 0; i < chunk_length; i++) {
-#ifndef __clang_analyzer__
-        memcpy(&output[first_chunk_size + i],
-               &sponge.state[CAPACITY + rate_start + i],
-               sizeof(field_t));
-#endif
-    }
-
-    if (total_num_chunks == 2) {
-        sponge.mode.type               = SPONGE_MODE_SQUEEZING;
-        sponge.mode.next_squeeze_index = rate_start + chunk_length;
-        return 0;
-    }
-    else {
-        sponge_permute();
-    }
-
+    // Leave the index at the last position used; the next squeeze permutes lazily when it
+    // equals the rate (handled in sponge_squeeze). Do not permute after the final element.
+    sponge.mode.type               = SPONGE_MODE_SQUEEZING;
+    sponge.mode.next_squeeze_index = pos;
     return 0;
 }
 
@@ -344,8 +297,6 @@ static int poseidon_hash_many(uint8_t  rate,
                               field_t *output,
                               size_t   num_output)
 {
-    field_t tmp[SPONGE_STATE_SIZE];
-
     // Sanity check
     if ((rate != 2) && (rate != 4) && (rate != 8)) {
         PRINTF("Bad poseidon rate (%d)\n", rate);
@@ -355,7 +306,7 @@ static int poseidon_hash_many(uint8_t  rate,
         PRINTF("Bad poseidon input length vs rate (%d < %d)\n", input_length, rate);
         return -1;
     }
-    if (num_output > SPONGE_STATE_SIZE) {
+    if (num_output == 0) {
         PRINTF("Bad poseidon num output (%d)\n", num_output);
         return -1;
     }
@@ -383,11 +334,9 @@ static int poseidon_hash_many(uint8_t  rate,
     if (sponge_absorb(input, input_length) < 0) {
         return -1;
     }
-    if (sponge_squeeze(tmp, num_output) < 0) {
+    if (sponge_squeeze(output, num_output) < 0) {
         return -1;
     }
-
-    memcpy(output, tmp, sizeof(field_t) * num_output);
 
     return 0;
 }
