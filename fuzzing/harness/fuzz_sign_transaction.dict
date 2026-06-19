@@ -1,0 +1,53 @@
+# libFuzzer dictionary for fuzz_sign_transaction
+# Function names recognised by tx_parse.c (credits.aleo program_id + one of these triggers a parse path)
+"transfer_public"
+"transfer_private"
+"transfer_public_to_private"
+"transfer_private_to_public"
+"fee_public"
+"fee_private"
+"bond_public"
+"unbond_public"
+"claim_unbond_public"
+"credits.aleo"
+
+# TLV type bytes (single-byte tags encoded with 0x81 long-form prefix in the wire format)
+# Tags <= 0x7f are encoded directly; tags 0x80-0xff use the 0x81 <tag> two-byte form.
+# STRUCTURE_TYPE=0x01, VERSION=0x02 (short-form tags)
+"\x01"
+"\x02"
+# SIGNATURE=0x15
+"\x15"
+# Long-form tag prefix used for all 0x80+ tags
+"\x81"
+# MAX_BASE_FEE=0xb0, MAX_PRIORITY_FEE=0xb1
+"\xb0"
+"\xb1"
+# FEE_FUNCTION_NAME=0xb2, FEE_PROGRAM_ID=0xb3
+"\xb2"
+"\xb3"
+# REQUEST=0xb4, PROGRAM_ID=0xb5
+"\xb4"
+"\xb5"
+# FUNCTION_NAME=0xb6, INPUT_COUNT=0xb7
+"\xb6"
+"\xb7"
+# INPUT_VALUES=0xb8, INPUT_TYPES=0xb9, NESTED_CALL_COUNT=0xba
+"\xb8"
+"\xb9"
+"\xba"
+# NETWORK_ID=0xc3, PROGRAM_CHECKSUM=0xc4
+"\xc3"
+"\xc4"
+
+# Input-type tag sequences (3-byte prefix encoding: visibility | plaintext-kind | literal-type)
+# address.public  -> 0x01 (public) 0x00 (plaintext) 0x00 (literal address)
+"\x01\x00\x00"
+# address.private -> 0x02 (private) 0x00 (plaintext) 0x00 (literal address)
+"\x02\x00\x00"
+# u64.public      -> 0x01 (public) 0x00 (plaintext) 0x0c (literal u64)
+"\x01\x00\x0c"
+# u64.private     -> 0x02 (private) 0x00 (plaintext) 0x0c (literal u64)
+"\x02\x00\x0c"
+# record input    -> 0x03 (record) prefix
+"\x03"
