@@ -80,6 +80,49 @@ None
 
 [Description](doc/SIGN_TRANSACTION.md)
 
+## Supported credits.aleo functions for clear-signing
+
+The device performs clear-signed review screens only for the following
+`credits.aleo` functions.  Any other function name causes the signing flow to
+return `SWO_INCORRECT_DATA`.
+
+### Transfer functions
+
+| Function name               | Review subtitle                              | Fields shown on device                  |
+| --------------------------- | -------------------------------------------- | --------------------------------------- |
+| `transfer_public`           | "Public transfer"                            | Amount, To (address), Fees              |
+| `transfer_private`          | "Private transfer"                           | Amount, To (address), Fees              |
+| `transfer_public_to_private`| "Transfer from public to private address"    | Amount, To (address), Fees              |
+| `transfer_private_to_public`| "Transfer from private to public address"    | Amount, To (address), Fees              |
+
+### Fee functions (auto-approved, no interactive review screen)
+
+| Function name  | Behaviour                                            |
+| -------------- | ---------------------------------------------------- |
+| `fee_public`   | Automatically signed; no screen shown to the user.  |
+| `fee_private`  | Automatically signed; no screen shown to the user.  |
+
+### Staking functions
+
+These three functions map to `TX_STAKING` and display the "Review staking
+transaction?" screen.
+
+| Function name          | Review subtitle | Fields shown on device                                                |
+| ---------------------- | --------------- | --------------------------------------------------------------------- |
+| `bond_public`          | "Stake ALEO"    | Validator (address), Payout to / withdrawal (address), Amount, Fees  |
+| `unbond_public`        | "Unstake ALEO"  | Staker (address), Amount, Fees                                        |
+| `claim_unbond_public`  | "Claim ALEO"    | Staker (address), Fees  *(no Amount field — claim has no amount)*     |
+
+All amounts are displayed in ALEO (microcredits converted by
+`EXPONENT_SMALLEST_UNIT` = 6 decimal places).  Fees shown are
+`max_base_fee + max_priority_fee`.
+
+### Other functions recognised by the BHP-1024 parameter table
+
+`split` and `join` are present in `bhp_1024_parameters.c` for function-ID
+verification purposes but are not dispatched to a review screen by the current
+firmware; they return `SWO_INCORRECT_DATA` if presented as a root transaction.
+
 ## STATUS WORDS
 
 The following standard Status Words are returned for all APDUs.

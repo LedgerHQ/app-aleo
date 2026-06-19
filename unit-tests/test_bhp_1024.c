@@ -101,6 +101,43 @@ static bhp_test_t bhp_tests[] = {
            {.big.u64
             = {0x0bb53e032f965178, 0x6cd697d8b5df7efc, 0x12e2736c492f2495, 0x0529c62123003bca}}},
      },
+    /* staking functions — golden values from bhp_1024_parameters.c (see provenance comment there) */
+    {
+     .status = 0,
+     .data   = {.network_id         = 0,
+                   .program_id_name    = "credits",
+                   .program_id_network = "aleo",
+                   .function_name      = "bond_public"},
+     .hash
+        = {{.big.u64
+            = {0xfad1870949c8aa5f, 0xb94139693a1a9ede, 0x13826b9d3dda98ed, 0x11692029f1d694e3}},
+           {.big.u64
+            = {0x11e14f163d3f2b7c, 0xc591f619d35fb0ab, 0x3456c789125b6f67, 0x0eec83be57f64f40}}},
+     },
+    {
+     .status = 0,
+     .data   = {.network_id         = 0,
+                   .program_id_name    = "credits",
+                   .program_id_network = "aleo",
+                   .function_name      = "unbond_public"},
+     .hash
+        = {{.big.u64
+            = {0x7023ecbf86089ad7, 0x1d8626b632ad9001, 0x9f1706e883708361, 0x029c23c1fc2b9465}},
+           {.big.u64
+            = {0x75ca6051e895980f, 0x86110aa6b233d58e, 0x53106280baec89af, 0x0628c9c0bfeaeb79}}},
+     },
+    {
+     .status = 0,
+     .data   = {.network_id         = 0,
+                   .program_id_name    = "credits",
+                   .program_id_network = "aleo",
+                   .function_name      = "claim_unbond_public"},
+     .hash
+        = {{.big.u64
+            = {0x44e8eea54a97db6b, 0x137b370eeb14174b, 0xb14498709cf52fb5, 0x10df36004e953eb8}},
+           {.big.u64
+            = {0xe506d14510bc7c88, 0xb5566ac3133fe094, 0x8c7852dcca7e24e1, 0x0bce73be56cbba46}}},
+     },
 
  // failure
     {

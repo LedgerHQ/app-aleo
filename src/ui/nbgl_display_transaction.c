@@ -38,10 +38,21 @@
 static char g_amount[30];
 static char g_amount_2[30];
 
-// IMPORTANT:
-// Remember to bump that number when adding new pairs !!!
+// Tag/value rows for the review screen; 
+// Remember to increase pairs[] when a transaction type needs more fields.
 static nbgl_contentTagValue_t     pairs[4];
 static nbgl_contentTagValueList_t pairList;
+
+static int format_aleo_amount(char *dest, size_t dest_size, uint64_t amount)
+{
+    char tmp[50 + MAX_TICKER_SIZE];
+    explicit_bzero(dest, dest_size);
+    if (!format_fpu64(tmp, sizeof(tmp), amount, EXPONENT_SMALLEST_UNIT)) {
+        return -1;
+    }
+    snprintf(dest, dest_size, "%.*s ALEO", (int) strlen(tmp), tmp);
+    return 0;
+}
 
 static void review_transaction(bool confirm)
 {
@@ -70,9 +81,8 @@ static void review_transaction(bool confirm)
 
 static int display_review_transaction(void)
 {
-    uint8_t     pair_index                   = 0;
-    char        amount[50 + MAX_TICKER_SIZE] = {0};
-    const char *review_subtitle              = NULL;
+    uint8_t     pair_index      = 0;
+    const char *review_subtitle = NULL;
     if (G_context.tx.transfer.type == TX_TRANSFER_PUBLIC) {
         review_subtitle = "Public transfer";
     }
@@ -89,22 +99,17 @@ static int display_review_transaction(void)
         return io_send_sw(SWO_INCORRECT_DATA);
     }
 
-    // Format amount
-    // 50 chars is comfortable for amount formatting
-    explicit_bzero(g_amount, sizeof(g_amount));
-    if (!format_fpu64(
-            amount, sizeof(amount), G_context.tx.transfer.amount, EXPONENT_SMALLEST_UNIT)) {
+    // Format transfer amount
+    if (format_aleo_amount(g_amount, sizeof(g_amount), G_context.tx.transfer.amount) != 0) {
         return io_send_sw(SWO_INCORRECT_DATA);
     }
-    snprintf(g_amount, sizeof(g_amount), "%.*s ALEO", (int) strlen(amount), amount);
 
+    // Format total fees
     uint64_t total_fees = G_context.sign_transaction_datas.max_base_fee
                           + G_context.sign_transaction_datas.max_priority_fee;
-    explicit_bzero(g_amount_2, sizeof(g_amount_2));
-    if (!format_fpu64(amount, sizeof(amount), total_fees, EXPONENT_SMALLEST_UNIT)) {
+    if (format_aleo_amount(g_amount_2, sizeof(g_amount_2), total_fees) != 0) {
         return io_send_sw(SWO_INCORRECT_DATA);
     }
-    snprintf(g_amount_2, sizeof(g_amount_2), "%.*s ALEO", (int) strlen(amount), amount);
 
     // Amount
     pairs[pair_index].item  = "Amount";
@@ -150,9 +155,8 @@ static int display_review_transaction(void)
 
 static int display_review_staking(void)
 {
-    uint8_t     pair_index                   = 0;
-    char        amount[50 + MAX_TICKER_SIZE] = {0};
-    const char *review_subtitle              = NULL;
+    uint8_t     pair_index      = 0;
+    const char *review_subtitle = NULL;
 
     if (G_context.tx.staking.type == TX_STAKING_BOND) {
         review_subtitle = "Stake ALEO";
@@ -170,11 +174,9 @@ static int display_review_staking(void)
     // Format fees (always shown, always the last pair)
     uint64_t total_fees = G_context.sign_transaction_datas.max_base_fee
                           + G_context.sign_transaction_datas.max_priority_fee;
-    explicit_bzero(g_amount_2, sizeof(g_amount_2));
-    if (!format_fpu64(amount, sizeof(amount), total_fees, EXPONENT_SMALLEST_UNIT)) {
+    if (format_aleo_amount(g_amount_2, sizeof(g_amount_2), total_fees) != 0) {
         return io_send_sw(SWO_INCORRECT_DATA);
     }
-    snprintf(g_amount_2, sizeof(g_amount_2), "%.*s ALEO", (int) strlen(amount), amount);
 
     if (G_context.tx.staking.type == TX_STAKING_BOND) {
         pairs[pair_index].item  = "Validator";
@@ -184,12 +186,9 @@ static int display_review_staking(void)
         pairs[pair_index].value = G_context.tx.staking.withdrawal;
         pair_index++;
 
-        explicit_bzero(g_amount, sizeof(g_amount));
-        if (!format_fpu64(
-                amount, sizeof(amount), G_context.tx.staking.amount, EXPONENT_SMALLEST_UNIT)) {
+        if (format_aleo_amount(g_amount, sizeof(g_amount), G_context.tx.staking.amount) != 0) {
             return io_send_sw(SWO_INCORRECT_DATA);
         }
-        snprintf(g_amount, sizeof(g_amount), "%.*s ALEO", (int) strlen(amount), amount);
         pairs[pair_index].item  = "Amount";
         pairs[pair_index].value = g_amount;
         pair_index++;
@@ -199,12 +198,9 @@ static int display_review_staking(void)
         pairs[pair_index].value = G_context.tx.staking.staker;
         pair_index++;
 
-        explicit_bzero(g_amount, sizeof(g_amount));
-        if (!format_fpu64(
-                amount, sizeof(amount), G_context.tx.staking.amount, EXPONENT_SMALLEST_UNIT)) {
+        if (format_aleo_amount(g_amount, sizeof(g_amount), G_context.tx.staking.amount) != 0) {
             return io_send_sw(SWO_INCORRECT_DATA);
         }
-        snprintf(g_amount, sizeof(g_amount), "%.*s ALEO", (int) strlen(amount), amount);
         pairs[pair_index].item  = "Amount";
         pairs[pair_index].value = g_amount;
         pair_index++;
