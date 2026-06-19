@@ -367,10 +367,112 @@ static void test_tx_parse(void **state)
     assert_int_equal(tx_parse(&datas_private_3, &tx), 0);
 }
 
+static void test_tx_parse_staking(void **state)
+{
+    (void) state;
+    tx_t tx;
+
+    uint8_t addr_a[32] = "\x82\x48\xd5\xe8\x5a\xc4\xc1\x23\x46\xf8\x45\x8b\xd9\x39\xf1\xce"
+                         "\x25\xae\x03\xe9\xc6\xcb\xc8\x86\x28\x6d\xf1\x61\x63\x0a\x75\x0c";
+    uint8_t addr_b[32] = "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10"
+                         "\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f\x20";
+    uint8_t amount_val[8] = "\xe8\x03\x00\x00\x00\x00\x00\x00";  // 1000
+    uint8_t addr_type[3]  = "\x01\x00\x00";  // public / plaintext / address
+    uint8_t u64_type[3]   = "\x01\x00\x0c";  // public / plaintext / u64
+
+    // ---- bond_public: validator=addr_a (idx0), withdrawal=addr_b (idx1), amount (idx2) ----
+    memset(&tx, 0, sizeof(tx));
+    sign_transaction_datas_t datas_bond = {
+        .prepared_request = {
+            .program_id_length    = 12,
+            .program_id           = "credits.aleo",
+            .function_name_length = 11,
+            .function_name        = "bond_public",
+            .inputs_count         = 3,
+            .inputs = {{.value_length = 32, .value = addr_a,     .type_length = 3, .type = addr_type},
+                       {.value_length = 32, .value = addr_b,     .type_length = 3, .type = addr_type},
+                       {.value_length = 8,  .value = amount_val, .type_length = 3, .type = u64_type}},
+        }
+    };
+    assert_int_equal(tx_parse(&datas_bond, &tx), 0);
+    assert_int_equal(tx.type, TX_STAKING);
+    assert_int_equal(tx.staking.type, TX_STAKING_BOND);
+    assert_int_equal(tx.staking.amount, 1000);
+    // validator and withdrawal decode as distinct, full-length addresses
+    assert_int_equal(strlen(tx.staking.validator), ADDRESS_LEN);
+    assert_int_equal(strlen(tx.staking.withdrawal), ADDRESS_LEN);
+    assert_string_not_equal(tx.staking.validator, tx.staking.withdrawal);
+    char bond_validator[ADDRESS_LEN + 1];
+    char bond_withdrawal[ADDRESS_LEN + 1];
+    strncpy(bond_validator, tx.staking.validator, sizeof(bond_validator));
+    strncpy(bond_withdrawal, tx.staking.withdrawal, sizeof(bond_withdrawal));
+
+    // Swap the two address inputs. validator must now hold what withdrawal held,
+    // proving inputs[0]->validator and inputs[1]->withdrawal (the security-critical
+    // mapping is not transposed by the parser).
+    memset(&tx, 0, sizeof(tx));
+    datas_bond.prepared_request.inputs[0].value = addr_b;
+    datas_bond.prepared_request.inputs[1].value = addr_a;
+    assert_int_equal(tx_parse(&datas_bond, &tx), 0);
+    assert_string_equal(tx.staking.validator, bond_withdrawal);
+    assert_string_equal(tx.staking.withdrawal, bond_validator);
+    datas_bond.prepared_request.inputs[0].value = addr_a;
+    datas_bond.prepared_request.inputs[1].value = addr_b;
+
+    // arity mismatch rejected by the generic dispatch loop
+    datas_bond.prepared_request.inputs_count = 2;
+    assert_int_equal(tx_parse(&datas_bond, &tx), -1);
+    datas_bond.prepared_request.inputs_count = 3;
+
+    // ---- unbond_public: staker (idx0), amount (idx1) ----
+    memset(&tx, 0, sizeof(tx));
+    sign_transaction_datas_t datas_unbond = {
+        .prepared_request = {
+            .program_id_length    = 12,
+            .program_id           = "credits.aleo",
+            .function_name_length = 13,
+            .function_name        = "unbond_public",
+            .inputs_count         = 2,
+            .inputs = {{.value_length = 32, .value = addr_a,     .type_length = 3, .type = addr_type},
+                       {.value_length = 8,  .value = amount_val, .type_length = 3, .type = u64_type}},
+        }
+    };
+    assert_int_equal(tx_parse(&datas_unbond, &tx), 0);
+    assert_int_equal(tx.type, TX_STAKING);
+    assert_int_equal(tx.staking.type, TX_STAKING_UNBOND);
+    assert_int_equal(tx.staking.amount, 1000);
+    assert_int_equal(strlen(tx.staking.staker), ADDRESS_LEN);
+    assert_string_equal(tx.staking.staker, bond_validator);  // addr_a decodes consistently
+
+    // ---- claim_unbond_public: staker (idx0), NO amount ----
+    memset(&tx, 0, sizeof(tx));
+    sign_transaction_datas_t datas_claim = {
+        .prepared_request = {
+            .program_id_length    = 12,
+            .program_id           = "credits.aleo",
+            .function_name_length = 19,
+            .function_name        = "claim_unbond_public",
+            .inputs_count         = 1,
+            .inputs = {{.value_length = 32, .value = addr_a, .type_length = 3, .type = addr_type}},
+        }
+    };
+    assert_int_equal(tx_parse(&datas_claim, &tx), 0);
+    assert_int_equal(tx.type, TX_STAKING);
+    assert_int_equal(tx.staking.type, TX_STAKING_CLAIM);
+    assert_string_equal(tx.staking.staker, bond_validator);
+    // claim must NOT populate amount (types.h: "claim leaves unset")
+    assert_int_equal(tx.staking.amount, 0);
+    // arity: claim with an extra input must be rejected
+    datas_claim.prepared_request.inputs_count = 2;
+    assert_int_equal(tx_parse(&datas_claim, &tx), -1);
+}
+
 int main()
 {
     const struct CMUnitTest tests[]
-        = {cmocka_unit_test(test_tx_extract), cmocka_unit_test(test_tx_parse)};
+        = {cmocka_unit_test(test_tx_extract),
+           cmocka_unit_test(test_tx_parse),
+           cmocka_unit_test(test_tx_parse_staking)};
 
     return cmocka_run_group_tests(tests, NULL, NULL);
 }
