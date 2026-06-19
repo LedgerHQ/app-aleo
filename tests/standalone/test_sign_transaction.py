@@ -66,7 +66,7 @@ def forge_batch_private_transfer(max_base_fee: int, max_priority_fee: int, exter
     data = {'type' : 'intent',
             'max_base_fee' : max_base_fee, 'max_priority_fee' : max_priority_fee,
             'fee_program_id' : 'credits.aleo', 'fee_function_name' : 'fee_private'}
-    data['request'] = {'network_id' : 'mainnet', 'program_id' : 'ldgbatcher_p28.aleo', 'function_name' : 'transfer_private_2'}
+    data['request'] = {'network_id' : 'mainnet', 'program_id' : 'ldg_p_28.aleo', 'function_name' : 'transfer_private_2'}
     data['request']['inputs'] = [{'type' : 'external_record',  'value' : external_record[0]},
                                  {'type' : 'external_record',  'value' : external_record[1]},
                                  {'type' : 'address.private', 'value' : address_to},

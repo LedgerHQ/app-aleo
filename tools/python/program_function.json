@@ -25,7 +25,7 @@
 			"tx_type" : "TX_JOIN",
 			"input_count" : 2}
 	],
-	"ldgbatcher_p28.aleo" : [
+	"ldg_p_28.aleo" : [
 		{"function" : "transfer_private_2",
 			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE",
 			"input_count" : 4},
@@ -48,7 +48,7 @@
 			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE",
 			"input_count" : 10}
 	],
-	"ldgbatcher_p910.aleo" : [
+	"ldg_p_910.aleo" : [
 		{"function" : "transfer_private_9",
 			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE",
 			"input_count" : 11},
@@ -56,7 +56,7 @@
 			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE",
 			"input_count" : 12}
 	],
-	"ldgbatcher_p1114.aleo" : [
+	"ldg_p_1114.aleo" : [
 		{"function" : "transfer_private_11",
 			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE",
 			"input_count" : 13},
@@ -70,7 +70,7 @@
 			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE",
 			"input_count" : 16}
 	],
-	"ldgbatcher_ppub_28.aleo" : [
+	"ldg_p2p_28.aleo" : [
 		{"function" : "transfer_private_to_public_2",
 			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
 			"input_count" : 3},
@@ -93,7 +93,7 @@
 			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
 			"input_count" : 9}
 	],
-	"ldgbatcher_ppub_910.aleo" : [
+	"ldg_p2p_910.aleo" : [
 		{"function" : "transfer_private_to_public_9",
 			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
 			"input_count" : 10},
@@ -101,7 +101,7 @@
 			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
 			"input_count" : 11}
 	],
-	"ldgbatcher_ppub_1114.aleo" : [
+	"ldg_p2p_1114.aleo" : [
 		{"function" : "transfer_private_to_public_11",
 			"tx_type" : "TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC",
 			"input_count" : 12},

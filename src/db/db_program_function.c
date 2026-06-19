@@ -85,258 +85,258 @@ const function_parameters_t credits_aleo[NB_OF_CREDITS_ALEO_FUNCTIONS] = {
          = {0x921936604e6eddfe, 0x429d23effcfce58b, 0x072b665308c3d12b, 0x1241fcb49a8a9b72}}}},
 };
 
-#define NB_OF_LDGBATCHER_P28_ALEO_FUNCTIONS (7)
-const function_parameters_t ldgbatcher_p28_aleo[NB_OF_LDGBATCHER_P28_ALEO_FUNCTIONS] = {
+#define NB_OF_LDG_P_28_ALEO_FUNCTIONS (7)
+const function_parameters_t ldg_p_28_aleo[NB_OF_LDG_P_28_ALEO_FUNCTIONS] = {
     {.string      = "transfer_private_2",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE,
      .input_count = 4,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x711bd2f0fd3b8860, 0x2140898228c34911, 0x0aae5605d3b999fe, 0x0487b38e575e54a4}},
+         = {0xaa53141c28f75d2c, 0x65b13fba609a6035, 0x7040a11cb3a3f62b, 0x05201e528f3480c4}},
         {.big.u64
-         = {0x94fe7832f23f69f8, 0x79ed7c0a94a507b8, 0x19375744cd4d66cf, 0x0a0d8242d888337b}}}},
+         = {0x122b908e513a4ee9, 0xb1eaf2a82d86ea62, 0x213f99d902e331a6, 0x0578c3617e2651c8}}}},
     {.string      = "transfer_private_3",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE,
      .input_count = 5,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0xc52d556215ca8d42, 0xdd6855255a8999fc, 0x96a0067debdae976, 0x05457b2b07ff2258}},
+         = {0xc5efbffe7658eef4, 0xdc84d624b875bdbd, 0xa37465e2a36bec63, 0x04b51a50403ecfea}},
         {.big.u64
-         = {0xaa089e65aad01997, 0x3c449656a3f1cfb6, 0x034a6d7ada794cc6, 0x0e0823456dc1865e}}}},
+         = {0xf29d99f2c2c53871, 0x719b0165a61d8b76, 0x01849030f9becec1, 0x04bb3a79745f7a02}}}},
     {.string      = "transfer_private_4",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE,
      .input_count = 6,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x5a549bc57d7ed08e, 0x57081afbde550716, 0xfd460bb66b8552f7, 0x0d98770ff6216767}},
+         = {0x9cc05109092305ba, 0x7b615a532555f011, 0x8b094b3f1c0edc45, 0x0e9a68dc1b103c7a}},
         {.big.u64
-         = {0x6bcc11ae56749122, 0x260e2b57d5d5fbef, 0xce5371258b939c59, 0x0884f29ecd7a4f1f}}}},
+         = {0xbb293f8f1b48a386, 0xb86465e5ec6ad220, 0x3bc07a6b8afbb685, 0x124550060e45f07b}}}},
     {.string      = "transfer_private_5",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE,
      .input_count = 7,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x224995cd589d1640, 0x6373aaa70a095470, 0xdf9bc58530309041, 0x01f320b522e45a10}},
+         = {0xe8b3ef130b97897b, 0x8e4fd93480f74e02, 0x764544d67a317dc9, 0x0017b6bd21303713}},
         {.big.u64
-         = {0xfec2e5eb27e81ed1, 0x30342feb79e7b799, 0x895988e43a223100, 0x0d77f3954dc2bd3a}}}},
+         = {0xc647789c16496645, 0xa7a50dfc5400cfce, 0xd006732d30108dad, 0x0a28719827978fb4}}}},
     {.string      = "transfer_private_6",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE,
      .input_count = 8,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0xbc81a96cea70096d, 0x8b056fb89161bad6, 0x63cacb85d316cadb, 0x0e3562712c147531}},
+         = {0x1d28cca31b2f3b52, 0x0090094678ede7c5, 0x59302b1fa066d6cb, 0x055921d2d3c08d88}},
         {.big.u64
-         = {0xdd5ec7c602f5a9db, 0xc846d46174e69814, 0xcb0457c70b198957, 0x1178e2cfd2c4f6de}}}},
+         = {0x72c488a09596a7cb, 0xb129fed5ebb2d725, 0x4e463da58d947f1f, 0x00a20449067cf7b6}}}},
     {.string      = "transfer_private_7",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE,
      .input_count = 9,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x433f8bef1e650481, 0x10d600f6d41e3197, 0xe862611390273369, 0x0158dab93d6cbea6}},
+         = {0x69347a906aefae3e, 0xf0aef8bff72b73aa, 0x4a20df41143a795e, 0x032729808ae8392e}},
         {.big.u64
-         = {0x080a8386e49889ef, 0xb896be0d0173b849, 0x74fe7461b27002f1, 0x0002580b37e0e04f}}}},
+         = {0xbe6517af6fdc663b, 0xe38a0322ed28df31, 0x29fc25306d983d43, 0x03ea993c3a2bbe2b}}}},
     {.string      = "transfer_private_8",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE,
      .input_count = 10,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x738c7d8d9546e4c7, 0xb3a42c93014c13b5, 0xa7bfbaa1fdbfaedf, 0x0cdd3604cfb57700}},
+         = {0x72d1f721ee2455e2, 0x6a2eca0622bf617a, 0x8adfa61d037e3b19, 0x119d53a85545f29d}},
         {.big.u64
-         = {0x963d210f3ca0a9c6, 0xdef5b86772cb88ae, 0xc937f1616d1cabbb, 0x0050e835094c6a46}}}},
+         = {0x3ad6cd9ea53fbfce, 0xdf3d3dbe8a6c7f3b, 0xb077de61a52f2ee8, 0x0a2983140a27e484}}}},
 };
 
-#define NB_OF_LDGBATCHER_P910_ALEO_FUNCTIONS (2)
-const function_parameters_t ldgbatcher_p910_aleo[NB_OF_LDGBATCHER_P910_ALEO_FUNCTIONS] = {
+#define NB_OF_LDG_P_910_ALEO_FUNCTIONS (2)
+const function_parameters_t ldg_p_910_aleo[NB_OF_LDG_P_910_ALEO_FUNCTIONS] = {
     {.string      = "transfer_private_9",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE,
      .input_count = 11,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x98aa9cc1c8ee2642, 0xbe62182fbb92ffca, 0x35a23ab833271ffa, 0x03310b27a0d00370}},
+         = {0x6d501b891b40d91b, 0x80b03c0c6bc37b6e, 0xd63cc12e0fbf0826, 0x0a2cd6810fa8a2dd}},
         {.big.u64
-         = {0x32ee6dde1ebe65de, 0xb8c26f628d1e6f21, 0xe1c2b67275d1b93f, 0x0e9e1d8fc177dd94}}}},
+         = {0x875481377667049b, 0xf2993332afe329c4, 0xa87697c9279c895a, 0x1181f5735de8a303}}}},
     {.string      = "transfer_private_10",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE,
      .input_count = 12,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x186d4555fde9475c, 0x2e8cef1de078b120, 0x5fdccdbe70ef5a5d, 0x02ffa736d1f5dee5}},
+         = {0x6b21034d6e07b76e, 0x1fa946a7fb11b54d, 0x6668c085e27ba62d, 0x04c999766c155c8c}},
         {.big.u64
-         = {0x348fed2e2ebff55a, 0xaaa512a36c5161d1, 0xc15f74c614285ada, 0x011281933285eae8}}}},
+         = {0x80f3a8adc3d167cb, 0x89eb2b7aa33c59ef, 0x7b29dbdef43bb4bb, 0x0b6fe9d8f9515706}}}},
 };
 
-#define NB_OF_LDGBATCHER_P1114_ALEO_FUNCTIONS (4)
-const function_parameters_t ldgbatcher_p1114_aleo[NB_OF_LDGBATCHER_P1114_ALEO_FUNCTIONS] = {
+#define NB_OF_LDG_P_1114_ALEO_FUNCTIONS (4)
+const function_parameters_t ldg_p_1114_aleo[NB_OF_LDG_P_1114_ALEO_FUNCTIONS] = {
     {.string      = "transfer_private_11",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE,
      .input_count = 13,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x3ff43124394dbd33, 0x531338625ef6c666, 0x65e5e9895329685f, 0x07f68d6b21f8e833}},
+         = {0x1c83112f8fbe9744, 0x1404d211a60c5f27, 0x09c6a3e952985fd2, 0x1038a06be15e2326}},
         {.big.u64
-         = {0x328851886470667b, 0x64e21d37f7925b67, 0x35ac4567af808ffe, 0x0026ad7b8ee7aff7}}}},
+         = {0xdf8fb60e5a6a46d7, 0x579e4967135b0a85, 0x71120c0c2c011361, 0x027099e0cf2b091f}}}},
     {.string      = "transfer_private_12",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE,
      .input_count = 14,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x6d1d3896bd2839bb, 0xbd8958b0462624bd, 0xe860528af9002653, 0x112a53bacbcbe7ce}},
+         = {0x36fdefdcff969019, 0xc56ecec797347235, 0x51b2c0f27a342161, 0x01d6cd45f97fd86b}},
         {.big.u64
-         = {0xedcad1eb8b147d4f, 0x02fde54d519738c2, 0x9341ee3381358a1c, 0x044020e3a68d76a0}}}},
+         = {0x62037507249cc333, 0xc5394356e0def99b, 0x7d17fa7873a5e437, 0x0e5b6361ba6791cd}}}},
     {.string      = "transfer_private_13",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE,
      .input_count = 15,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x09c5f6f27cbbfec9, 0xbab4c48888eaf220, 0x9881a77c0de86ec0, 0x02755a441a2744cc}},
+         = {0xb84db2f460bdfd74, 0x93a0ac1f127d263e, 0x78e94ba5b897aba5, 0x0d0304a39071bc51}},
         {.big.u64
-         = {0xb1e64caf9634b655, 0xb3ac2e6fbabf1940, 0x172b5caf1d663d14, 0x11ae9762c3f6d96a}}}},
+         = {0x5f7e3f4f171c8c12, 0x719d0cf625b0db37, 0xe76bef010d869341, 0x071b63d188b80eb5}}}},
     {.string      = "transfer_private_14",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE,
      .input_count = 16,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0xe3c90261c06a4b1c, 0x4fc657a9764c2ac9, 0x9447c78f2fd4ad7e, 0x0d89d16a0d9cede8}},
+         = {0x2709908463ddc772, 0x12c6d41deb48a7b1, 0x93fac827fc509c5e, 0x047f8c7bcbfcdca9}},
         {.big.u64
-         = {0x8dbb40d608335e21, 0x7dafcd5c7a42044e, 0x7ed046b72a0ba325, 0x0e6ae1d15f10345d}}}},
+         = {0xe73262598eb64dbb, 0x3a5a5afdde2fbb6f, 0x8e9230d0722378e7, 0x06ac00bc0ffbb2df}}}},
 };
 
-#define NB_OF_LDGBATCHER_PPUB_28_ALEO_FUNCTIONS (7)
-const function_parameters_t ldgbatcher_ppub_28_aleo[NB_OF_LDGBATCHER_PPUB_28_ALEO_FUNCTIONS] = {
+#define NB_OF_LDG_P2P_28_ALEO_FUNCTIONS (7)
+const function_parameters_t ldg_p2p_28_aleo[NB_OF_LDG_P2P_28_ALEO_FUNCTIONS] = {
     {.string      = "transfer_private_to_public_2",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
      .input_count = 3,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x2e202cb29f237ff0, 0x95ac470726eec1b3, 0xf926efce4965f631, 0x06994f0de2afbbea}},
+         = {0x024afc7a35abeb5f, 0xa4b9cd021fd349c0, 0x00e8632107ac50a9, 0x072d243cb8013779}},
         {.big.u64
-         = {0x8431ac482d71262b, 0x9dacedbb722faa48, 0x3e1242530da85257, 0x0245170992fe443b}}}},
+         = {0x668753065d63f5da, 0x448750dde6834911, 0x596669429cc94d08, 0x03f910b128421b87}}}},
     {.string      = "transfer_private_to_public_3",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
      .input_count = 4,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0xaefa4d43e173e47b, 0xf892da4a203a50f6, 0xc17a7f8fbcd997ff, 0x08e12aff2b496e8a}},
+         = {0xe743c48cc551f715, 0x1f2f3d1a6196248a, 0xc5a2b01c9fb7614a, 0x074ae85ad3b05169}},
         {.big.u64
-         = {0x7e9e6d6b849d78bf, 0xbfd7d207a7377c9c, 0x5ba17e7a2e1be0a6, 0x08d41f5f3403286b}}}},
+         = {0x82925136d6963b81, 0xc3b15b2dbe7a4e1f, 0xc91a65db8e82c8df, 0x023ea48e3de07b07}}}},
     {.string      = "transfer_private_to_public_4",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
      .input_count = 5,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x93a2213762b0c65a, 0x37c2eca9b7cdb3bc, 0xd56c8e5821e80bb8, 0x0e0bbd6c7cda39dd}},
+         = {0xa66eaab99ce296af, 0x90b3a6d6c6a764f7, 0x16e54165755271f7, 0x03dcfdb5ec2dc480}},
         {.big.u64
-         = {0x9faad67addfda98e, 0x6474f6f56eeaf3f4, 0x4afc955e45b7ed88, 0x0798b94074ccbfe9}}}},
+         = {0x62abb8da6bc250d0, 0xacf3b3a520579393, 0x946b425878d27344, 0x0db7a3d9e1d588d1}}}},
     {.string      = "transfer_private_to_public_5",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
      .input_count = 6,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x46c9f29a42fd6235, 0x0dafa85eae9bc356, 0x61270bbf636f934d, 0x0abaa6f52a6752f4}},
+         = {0x96d046eb9f2653e3, 0xfb368287e24bd7f7, 0x3e7ff1c0a91b6613, 0x02d29fc9d842d26d}},
         {.big.u64
-         = {0xde629954b703d153, 0xfa19518c7613adef, 0x8b30ab7453281da2, 0x07a0b6a68395b6d3}}}},
+         = {0xe6f971f96c01b808, 0x92b2ad7e67737d3e, 0x2c19562e7e828402, 0x113923d0d91c6fb4}}}},
     {.string      = "transfer_private_to_public_6",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
      .input_count = 7,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0xc60fc62388df8ebf, 0xd3c8011e59977462, 0xdb14b83ca2c2aa2f, 0x0fd917a652fccd6e}},
+         = {0x2bfa344283c05f46, 0xc9c5513a163c8568, 0x567c261de13825ff, 0x0b8122fcdde0336a}},
         {.big.u64
-         = {0xb273d3ef3dab4efe, 0x6b29647fd309a74e, 0x7dd0861bfb88d6f9, 0x019ce7551644284e}}}},
+         = {0xc4b2655f5a4e98bc, 0x922ff4829ee2b7b0, 0x8190fd5716cc1e9a, 0x07614c66ce4a4ab1}}}},
     {.string      = "transfer_private_to_public_7",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
      .input_count = 8,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x81fa4f7e550ba2ed, 0x289971c5a59e4103, 0xf4a759009ea50b6b, 0x0e7841f6e4f0c7db}},
+         = {0x1b8fbdd16584eeb4, 0xfde3e1b1080fba3d, 0x60d0b90f021cad05, 0x07abcc3d5d7b7483}},
         {.big.u64
-         = {0x18c759f9c7d74e44, 0x461615c31b180ffd, 0x249204dc159e6e3a, 0x06c67c9e4647b153}}}},
+         = {0x220c503806b19cb3, 0x66437416ec094bc0, 0x7cb9679f6b70ba2e, 0x11b133d830ae34f7}}}},
     {.string      = "transfer_private_to_public_8",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
      .input_count = 9,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x795cd03fd2f21bdf, 0x549cc5aea39d33a7, 0xfc64e46494fa936f, 0x066701f2776b7405}},
+         = {0xbca7c89e835c5c28, 0x508084a5f36646f1, 0x1e6d9b5eceb27506, 0x0cb539ef202e2101}},
         {.big.u64
-         = {0xf1565b606c1c9499, 0xf2a03bcadef84933, 0x9fc2c83fd4bcdb24, 0x1138c6e52a18ec91}}}},
+         = {0x92e9ddadb8d49f56, 0xc7d341a3639c31a7, 0x69bb85ef44061f37, 0x0ebd58d4fe93f8fd}}}},
 };
 
-#define NB_OF_LDGBATCHER_PPUB_910_ALEO_FUNCTIONS (2)
-const function_parameters_t ldgbatcher_ppub_910_aleo[NB_OF_LDGBATCHER_PPUB_910_ALEO_FUNCTIONS] = {
+#define NB_OF_LDG_P2P_910_ALEO_FUNCTIONS (2)
+const function_parameters_t ldg_p2p_910_aleo[NB_OF_LDG_P2P_910_ALEO_FUNCTIONS] = {
     {.string      = "transfer_private_to_public_9",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
      .input_count = 10,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x7e850aeff72bb532, 0x15c669e3b28d43d5, 0xa4288c550b1594c6, 0x0e54f0a78144077e}},
+         = {0xe74498bb957f07bc, 0xa619047a33b0b50e, 0xd00093dabb2c4adf, 0x1086d4168b8937d2}},
         {.big.u64
-         = {0xef17e6595ac6125b, 0x7466d5a59c926aac, 0xb45d4c306ed5e79c, 0x03e930b3cc66d8b0}}}},
+         = {0x4daa04ba4c62c680, 0x2e57f703be7c2b80, 0x6f36bde8067a4675, 0x09f518c4e84aa0de}}}},
     {.string      = "transfer_private_to_public_10",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
      .input_count = 11,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x19ecd93e5ef4470f, 0x79ef784335bdb4f1, 0xd40b7d452fb2e12c, 0x0c8b7f636f512f7e}},
+         = {0xd53efb94b180ff2e, 0xed94525e8db0890d, 0x8595222bcf7eaac9, 0x026fd794621c156d}},
         {.big.u64
-         = {0x09c61c1cc4a9d941, 0x2bb6a709e1206773, 0xd5d9f01ae2a054c5, 0x0298a0f6469bf062}}}},
+         = {0xefac2507bdd2655b, 0xc1e1dcde197a64c4, 0x495ca91149c6955c, 0x095d072369a645d3}}}},
 };
 
-#define NB_OF_LDGBATCHER_PPUB_1114_ALEO_FUNCTIONS (4)
-const function_parameters_t ldgbatcher_ppub_1114_aleo[NB_OF_LDGBATCHER_PPUB_1114_ALEO_FUNCTIONS] = {
+#define NB_OF_LDG_P2P_1114_ALEO_FUNCTIONS (4)
+const function_parameters_t ldg_p2p_1114_aleo[NB_OF_LDG_P2P_1114_ALEO_FUNCTIONS] = {
     {.string      = "transfer_private_to_public_11",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
      .input_count = 12,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x09afac9c39dbe1a4, 0x332e976f09cfb1f9, 0x9e00dbc824e9c873, 0x0517c8fa9f8e7c73}},
+         = {0x298e19f02ae80020, 0x55351e3d2c151c1f, 0x47bc537c27a537b2, 0x0bf507aa5c98536d}},
         {.big.u64
-         = {0x84c054b961ad3545, 0x90012849112b8372, 0x02bcc43090085e6e, 0x10c431e4797574f9}}}},
+         = {0xbf0cdae9d128a7cc, 0x05fea4578678f80a, 0x71e76a808e416f9b, 0x06e494f700c23d1a}}}},
     {.string      = "transfer_private_to_public_12",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
      .input_count = 13,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0xc34709ce79a3316b, 0xadcc93b1033a32cf, 0x3a7e7b678fcf44bc, 0x06ed307f460eed06}},
+         = {0x6ef2e6349b63fd5d, 0x6bcf946ea244d7f7, 0x9798f6aad41dad6e, 0x10199fd795a53a55}},
         {.big.u64
-         = {0xa0c9fd2a537c2527, 0x0e7e6bfde27a2b39, 0xe2ab55373b8bb9ba, 0x116c58d8c843ace2}}}},
+         = {0x718f996a6f8dc3e8, 0x5d1d6a84f83df08c, 0x7ac4ba08bf005393, 0x11c9dbc7beaa4595}}}},
     {.string      = "transfer_private_to_public_13",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
      .input_count = 14,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x75b716b410306dfb, 0x949674d9d47fad9b, 0xb5d06a456c8e0d66, 0x0a7b39e70b31ebf1}},
+         = {0x149b3b821a48b6d0, 0x1c0c19937b4e8ed0, 0x702c82cb56d61487, 0x03dbd6799e48de64}},
         {.big.u64
-         = {0x83b3d743b20a8705, 0x2aa74341421735a1, 0x11e5432f70a9aeef, 0x05eb29ec75591e75}}}},
+         = {0xe3482f7760f28b93, 0xc15b78244865e3d6, 0xa40e9da8a1855f5c, 0x12101e7ba7fe395b}}}},
     {.string      = "transfer_private_to_public_14",
      .tx_type     = TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
      .input_count = 15,
      .bhp_1024_hashes
      = {{.big.u64
-         = {0x98b984950f7992b2, 0x73c090056cf218e4, 0x828e5cd005ee2c11, 0x008ad35fcadfa529}},
+         = {0xda8189e5c2639603, 0x93a1980cc034befc, 0x08284787b9dfc918, 0x0d9751043fe14a3e}},
         {.big.u64
-         = {0x31c3c3359850db6f, 0x58b6708d903b569a, 0xc494d0b8138e6b30, 0x0ff69533a0201287}}}},
+         = {0x6df5a23c6941d2c8, 0x2bba7da140a71fc8, 0x8b60f455805ab5d9, 0x0305bd8e7d3e4633}}}},
 };
 
 const program_parameter_t program_parameters[NB_OF_PROGRAMS] = {
     {.program_id      = "credits.aleo",
      .nb_of_functions = NB_OF_CREDITS_ALEO_FUNCTIONS,
-     .functions       = credits_aleo             },
-    {.program_id      = "ldgbatcher_p28.aleo",
-     .nb_of_functions = NB_OF_LDGBATCHER_P28_ALEO_FUNCTIONS,
-     .functions       = ldgbatcher_p28_aleo      },
-    {.program_id      = "ldgbatcher_p910.aleo",
-     .nb_of_functions = NB_OF_LDGBATCHER_P910_ALEO_FUNCTIONS,
-     .functions       = ldgbatcher_p910_aleo     },
-    {.program_id      = "ldgbatcher_p1114.aleo",
-     .nb_of_functions = NB_OF_LDGBATCHER_P1114_ALEO_FUNCTIONS,
-     .functions       = ldgbatcher_p1114_aleo    },
-    {.program_id      = "ldgbatcher_ppub_28.aleo",
-     .nb_of_functions = NB_OF_LDGBATCHER_PPUB_28_ALEO_FUNCTIONS,
-     .functions       = ldgbatcher_ppub_28_aleo  },
-    {.program_id      = "ldgbatcher_ppub_910.aleo",
-     .nb_of_functions = NB_OF_LDGBATCHER_PPUB_910_ALEO_FUNCTIONS,
-     .functions       = ldgbatcher_ppub_910_aleo },
-    {.program_id      = "ldgbatcher_ppub_1114.aleo",
-     .nb_of_functions = NB_OF_LDGBATCHER_PPUB_1114_ALEO_FUNCTIONS,
-     .functions       = ldgbatcher_ppub_1114_aleo},
+     .functions       = credits_aleo     },
+    {.program_id      = "ldg_p_28.aleo",
+     .nb_of_functions = NB_OF_LDG_P_28_ALEO_FUNCTIONS,
+     .functions       = ldg_p_28_aleo    },
+    {.program_id      = "ldg_p_910.aleo",
+     .nb_of_functions = NB_OF_LDG_P_910_ALEO_FUNCTIONS,
+     .functions       = ldg_p_910_aleo   },
+    {.program_id      = "ldg_p_1114.aleo",
+     .nb_of_functions = NB_OF_LDG_P_1114_ALEO_FUNCTIONS,
+     .functions       = ldg_p_1114_aleo  },
+    {.program_id      = "ldg_p2p_28.aleo",
+     .nb_of_functions = NB_OF_LDG_P2P_28_ALEO_FUNCTIONS,
+     .functions       = ldg_p2p_28_aleo  },
+    {.program_id      = "ldg_p2p_910.aleo",
+     .nb_of_functions = NB_OF_LDG_P2P_910_ALEO_FUNCTIONS,
+     .functions       = ldg_p2p_910_aleo },
+    {.program_id      = "ldg_p2p_1114.aleo",
+     .nb_of_functions = NB_OF_LDG_P2P_1114_ALEO_FUNCTIONS,
+     .functions       = ldg_p2p_1114_aleo},
 };

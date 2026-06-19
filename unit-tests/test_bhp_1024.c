@@ -112,93 +112,93 @@ static bhp_test_t bhp_tests[] = {
     {
      .status  = 0,
      .request = {.network_id           = 0,
-                    .program_id           = "ldgbatcher_p28.aleo",
-                    .program_id_length    = 19,
+                    .program_id           = "ldg_p_28.aleo",
+                    .program_id_length    = 13,
                     .function_name        = "transfer_private_2",
                     .function_name_length = 18},
      .hash
         = {{.big.u64
-            = {0x711bd2f0fd3b8860, 0x2140898228c34911, 0x0aae5605d3b999fe, 0x0487b38e575e54a4}},
+            = {0xaa53141c28f75d2c, 0x65b13fba609a6035, 0x7040a11cb3a3f62b, 0x05201e528f3480c4}},
            {.big.u64
-            = {0x94fe7832f23f69f8, 0x79ed7c0a94a507b8, 0x19375744cd4d66cf, 0x0a0d8242d888337b}}},
+            = {0x122b908e513a4ee9, 0xb1eaf2a82d86ea62, 0x213f99d902e331a6, 0x0578c3617e2651c8}}},
      },
     {
      .status  = 0,
      .request = {.network_id           = 0,
-                    .program_id           = "ldgbatcher_p28.aleo",
-                    .program_id_length    = 19,
+                    .program_id           = "ldg_p_28.aleo",
+                    .program_id_length    = 13,
                     .function_name        = "transfer_private_3",
                     .function_name_length = 18},
      .hash
         = {{.big.u64
-            = {0xc52d556215ca8d42, 0xdd6855255a8999fc, 0x96a0067debdae976, 0x05457b2b07ff2258}},
+            = {0xc5efbffe7658eef4, 0xdc84d624b875bdbd, 0xa37465e2a36bec63, 0x04b51a50403ecfea}},
            {.big.u64
-            = {0xaa089e65aad01997, 0x3c449656a3f1cfb6, 0x034a6d7ada794cc6, 0x0e0823456dc1865e}}},
+            = {0xf29d99f2c2c53871, 0x719b0165a61d8b76, 0x01849030f9becec1, 0x04bb3a79745f7a02}}},
      },
     {
      .status  = 0,
      .request = {.network_id           = 0,
-                    .program_id           = "ldgbatcher_p28.aleo",
-                    .program_id_length    = 19,
+                    .program_id           = "ldg_p_28.aleo",
+                    .program_id_length    = 13,
                     .function_name        = "transfer_private_4",
                     .function_name_length = 18},
      .hash
         = {{.big.u64
-            = {0x5a549bc57d7ed08e, 0x57081afbde550716, 0xfd460bb66b8552f7, 0x0d98770ff6216767}},
+            = {0x9cc05109092305ba, 0x7b615a532555f011, 0x8b094b3f1c0edc45, 0x0e9a68dc1b103c7a}},
            {.big.u64
-            = {0x6bcc11ae56749122, 0x260e2b57d5d5fbef, 0xce5371258b939c59, 0x0884f29ecd7a4f1f}}},
+            = {0xbb293f8f1b48a386, 0xb86465e5ec6ad220, 0x3bc07a6b8afbb685, 0x124550060e45f07b}}},
      },
     {
      .status  = 0,
      .request = {.network_id           = 0,
-                    .program_id           = "ldgbatcher_p28.aleo",
-                    .program_id_length    = 19,
+                    .program_id           = "ldg_p_28.aleo",
+                    .program_id_length    = 13,
                     .function_name        = "transfer_private_5",
                     .function_name_length = 18},
      .hash
         = {{.big.u64
-            = {0x224995cd589d1640, 0x6373aaa70a095470, 0xdf9bc58530309041, 0x01f320b522e45a10}},
+            = {0xe8b3ef130b97897b, 0x8e4fd93480f74e02, 0x764544d67a317dc9, 0x0017b6bd21303713}},
            {.big.u64
-            = {0xfec2e5eb27e81ed1, 0x30342feb79e7b799, 0x895988e43a223100, 0x0d77f3954dc2bd3a}}},
+            = {0xc647789c16496645, 0xa7a50dfc5400cfce, 0xd006732d30108dad, 0x0a28719827978fb4}}},
      },
     {
      .status  = 0,
      .request = {.network_id           = 0,
-                    .program_id           = "ldgbatcher_p28.aleo",
-                    .program_id_length    = 19,
+                    .program_id           = "ldg_p_28.aleo",
+                    .program_id_length    = 13,
                     .function_name        = "transfer_private_6",
                     .function_name_length = 18},
      .hash
         = {{.big.u64
-            = {0xbc81a96cea70096d, 0x8b056fb89161bad6, 0x63cacb85d316cadb, 0x0e3562712c147531}},
+            = {0x1d28cca31b2f3b52, 0x0090094678ede7c5, 0x59302b1fa066d6cb, 0x055921d2d3c08d88}},
            {.big.u64
-            = {0xdd5ec7c602f5a9db, 0xc846d46174e69814, 0xcb0457c70b198957, 0x1178e2cfd2c4f6de}}},
+            = {0x72c488a09596a7cb, 0xb129fed5ebb2d725, 0x4e463da58d947f1f, 0x00a20449067cf7b6}}},
      },
     {
      .status  = 0,
      .request = {.network_id           = 0,
-                    .program_id           = "ldgbatcher_p28.aleo",
-                    .program_id_length    = 19,
+                    .program_id           = "ldg_p_28.aleo",
+                    .program_id_length    = 13,
                     .function_name        = "transfer_private_7",
                     .function_name_length = 18},
      .hash
         = {{.big.u64
-            = {0x433f8bef1e650481, 0x10d600f6d41e3197, 0xe862611390273369, 0x0158dab93d6cbea6}},
+            = {0x69347a906aefae3e, 0xf0aef8bff72b73aa, 0x4a20df41143a795e, 0x032729808ae8392e}},
            {.big.u64
-            = {0x080a8386e49889ef, 0xb896be0d0173b849, 0x74fe7461b27002f1, 0x0002580b37e0e04f}}},
+            = {0xbe6517af6fdc663b, 0xe38a0322ed28df31, 0x29fc25306d983d43, 0x03ea993c3a2bbe2b}}},
      },
     {
      .status  = 0,
      .request = {.network_id           = 0,
-                    .program_id           = "ldgbatcher_p28.aleo",
-                    .program_id_length    = 19,
+                    .program_id           = "ldg_p_28.aleo",
+                    .program_id_length    = 13,
                     .function_name        = "transfer_private_8",
                     .function_name_length = 18},
      .hash
         = {{.big.u64
-            = {0x738c7d8d9546e4c7, 0xb3a42c93014c13b5, 0xa7bfbaa1fdbfaedf, 0x0cdd3604cfb57700}},
+            = {0x72d1f721ee2455e2, 0x6a2eca0622bf617a, 0x8adfa61d037e3b19, 0x119d53a85545f29d}},
            {.big.u64
-            = {0x963d210f3ca0a9c6, 0xdef5b86772cb88ae, 0xc937f1616d1cabbb, 0x0050e835094c6a46}}},
+            = {0x3ad6cd9ea53fbfce, 0xdf3d3dbe8a6c7f3b, 0xb077de61a52f2ee8, 0x0a2983140a27e484}}},
      },
 
  // failure
@@ -229,7 +229,6 @@ static void test_bhp_1024(void **state)
 
     int index = 0;
     while (bhp_tests[index].status != -1111) {
-		print_message("index %d\n", index);
         bhp_tests[index].request.network_id = 0;
         assert_int_equal(bhp_1024_hash_function_id(&bhp_tests[index].request),
                          bhp_tests[index].status);
