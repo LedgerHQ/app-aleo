@@ -432,8 +432,8 @@ static void test_signature(void **state)
     prepared_request_t request_batch_private = {
         .is_root              = true,
         .network_id           = 1,
-        .program_id_length    = 23,
-        .program_id           = "ldgbatcher_ppub_28.aleo",
+        .program_id_length    = 15,
+        .program_id           = "ldg_p2p_28.aleo",
         .function_name_length = 28,
         .function_name        = "transfer_private_to_public_2",
         .inputs_count         = 3,
@@ -486,10 +486,10 @@ static void test_signature(void **state)
         .big.u64 = {0x25910ef54db490ed, 0x1748ffd6736145e7, 0x288b9a16ca91d094, 0x220b2a6efe46d2c}
     };
     scalar_t challenge_11 = {
-        .big.u64 = {0xaf39868d3ced57ab, 0x325b5ef796728723, 0x80060bb6fd767dfb, 0x21a1e0b8703a6fc}
+        .big.u64 = {0x16094ebbd553a898, 0xf225610b0e91af5a, 0x454153533cc45563, 0x22a4ccf060f0d6c}
     };
     scalar_t response_11 = {
-        .big.u64 = {0x46ab387b0d0eba28, 0xc19d9f6b26bf5346, 0x6db0d19a90511dd4, 0x12af8b54c4c3a5e}
+        .big.u64 = {0xc633322e4b182df9, 0xc062fb9df221c71d, 0x20060f9d73f5303c, 0x1bfd1a219c70967}
     };
 
     memcpy(program_checksum, program_checksum_c, 32);
