@@ -101,4 +101,4 @@
 #define R_LIST_MAX_VALIDITY_TIME_MS (5 * 1000)
 
 #define ALEO_DECIMALS (6)
-#define ALEO_TICKER "ALEO"
+#define ALEO_TICKER   "ALEO"

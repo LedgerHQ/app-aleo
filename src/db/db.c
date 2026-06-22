@@ -82,7 +82,7 @@ static int get_token_function_parameters(char                   *program_id,
     function_parameters_t *functions     = NULL;
 
     // Find program
-    for (index = 0; index < NB_OF_PROGRAMS; index++) {
+    for (index = 0; index < NB_OF_TOKENS; index++) {
         if (program_id_length != strlen(PIC(token_parameters[index].program_id))) {
             continue;
         }
@@ -92,7 +92,7 @@ static int get_token_function_parameters(char                   *program_id,
         break;
     }
 
-    if (index >= NB_OF_PROGRAMS) {
+    if (index >= NB_OF_TOKENS) {
         return -1;
     }
 
@@ -151,7 +151,7 @@ int db_get_token_display_info(char                  *program_id,
     size_t index = 0;
 
     // Find program
-    for (index = 0; index < NB_OF_PROGRAMS; index++) {
+    for (index = 0; index < NB_OF_TOKENS; index++) {
         if (program_id_length != strlen(PIC(token_parameters[index].program_id))) {
             continue;
         }
@@ -166,7 +166,7 @@ int db_get_token_display_info(char                  *program_id,
         break;
     }
 
-    if (index >= NB_OF_PROGRAMS) {
+    if (index >= NB_OF_TOKENS) {
         return -1;
     }
 
