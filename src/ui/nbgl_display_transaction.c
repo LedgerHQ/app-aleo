@@ -16,6 +16,7 @@
  *****************************************************************************/
 
 #include <stdbool.h>  // bool
+#include <stdint.h>   // uint*_t
 #include <string.h>   // memset
 
 #include "os.h"
@@ -112,10 +113,10 @@ int ui_display_transaction(void)
     // Format amount
     // 50 chars is comfortable for amount formatting
     explicit_bzero(g_amount, sizeof(g_amount));
-    if (!format_fpu64(amount,
-                      sizeof(amount),
-                      G_context.tx.transfer.amount.low,
-                      G_context.tx.transfer.token_info->decimals)) {
+    if (!format_fpu128(amount,
+                       sizeof(amount),
+                       G_context.tx.transfer.amount,
+                       G_context.tx.transfer.token_info->decimals)) {
         return -1;
     }
     snprintf(g_amount,

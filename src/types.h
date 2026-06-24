@@ -13,13 +13,12 @@
  * Enumeration with expected INS of APDU commands.
  */
 typedef enum {
-    CMD_GET_VERSION        = 0x03,  /// version of the application
-    CMD_GET_APP_NAME       = 0x04,  /// name of the application
-    CMD_GET_ADDRESS        = 0x05,  /// get public address
-    CMD_SIGN_TRANSACTION   = 0x06,  /// sign transaction
-    CMD_GET_VIEW_KEY       = 0x07,  /// get the view key
-    CMD_GET_TVK            = 0x08,  /// get the precomputed transition view key
-    CMD_PROVIDE_TOKEN_INFO = 0x22   /// provide dynamic token info via CAL TLV descriptor
+    CMD_GET_VERSION      = 0x03,  /// version of the application
+    CMD_GET_APP_NAME     = 0x04,  /// name of the application
+    CMD_GET_ADDRESS      = 0x05,  /// get public address
+    CMD_SIGN_TRANSACTION = 0x06,  /// sign transaction
+    CMD_GET_VIEW_KEY     = 0x07,  /// get the view key
+    CMD_GET_TVK          = 0x08,  /// get the precomputed transition view key
 } command_e;
 
 typedef enum {

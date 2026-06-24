@@ -315,7 +315,7 @@ Value
 | -----            |    :--:  | -:      | -             |
 | `tag`            |        2 |   bytes | 0x81 0xb8 |
 | `length`         |        1 |      u8 | 0x10 |
-| `value`          |        8 |    u128 | u128 (big endian) |
+| `value`          |       16 |    u128 | u128 (big endian) |
 
 ```shell
 u128     : 500
