@@ -102,6 +102,7 @@ bool format_fpu128(char *dst, size_t dst_len, const u128_t value, uint8_t decima
         memmove(dst, buffer, shift);
         dst[shift] = '.';
         strncpy(dst + shift + 1, buffer + shift, decimals);
+        dst[shift + 1 + decimals] = '\0';
     }
 
     return true;
