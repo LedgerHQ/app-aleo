@@ -344,8 +344,6 @@ static int poseidon_hash_many(uint8_t  rate,
                               field_t *output,
                               size_t   num_output)
 {
-    field_t tmp[SPONGE_STATE_SIZE];
-
     // Sanity check
     if ((rate != 2) && (rate != 4) && (rate != 8)) {
         PRINTF("Bad poseidon rate (%d)\n", rate);
@@ -353,10 +351,6 @@ static int poseidon_hash_many(uint8_t  rate,
     }
     if (input_length < rate) {
         PRINTF("Bad poseidon input length vs rate (%d < %d)\n", input_length, rate);
-        return -1;
-    }
-    if (num_output > SPONGE_STATE_SIZE) {
-        PRINTF("Bad poseidon num output (%d)\n", num_output);
         return -1;
     }
     // init sponge
@@ -383,11 +377,9 @@ static int poseidon_hash_many(uint8_t  rate,
     if (sponge_absorb(input, input_length) < 0) {
         return -1;
     }
-    if (sponge_squeeze(tmp, num_output) < 0) {
+    if (sponge_squeeze(output, num_output) < 0) {
         return -1;
     }
-
-    memcpy(output, tmp, sizeof(field_t) * num_output);
 
     return 0;
 }

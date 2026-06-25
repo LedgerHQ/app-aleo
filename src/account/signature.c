@@ -32,9 +32,9 @@
 #include "nbgl_use_case.h"
 #include "signature.h"
 
-#define HASH_INPUT_MAX_LENGTH     (48)
+#define HASH_INPUT_MAX_LENGTH     (56)
 #define MESSAGE_MAX_LENGTH        (64)
-#define PLAINTEXT_FIELDS_MAX_SIZE (40)
+#define PLAINTEXT_FIELDS_MAX_SIZE (48)
 #define BIT_BUFFER_MAX_LENGTH     (128)
 
 const field_t SERIAL_NUMBER_DOMAIN = {

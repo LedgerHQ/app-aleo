@@ -77,8 +77,12 @@
 
 /**
  * Maximum length of input value.
+ *
+ * Sized for the largest input we sign: the stablecoin freeze-list exclusion proof
+ * `[MerkleProof; 2u32]`, whose `to_fields()` encoding is 41 fields = 1312 bytes. Set to
+ * 48 * 32 = 1536 for headroom, matching PLAINTEXT_FIELDS_MAX_SIZE (signature.c).
  */
-#define INPUT_VALUE_MAX_LEN (128)
+#define INPUT_VALUE_MAX_LEN (1536)
 
 /**
  * Maximum length of input type.
