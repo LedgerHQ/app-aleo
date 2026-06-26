@@ -416,23 +416,23 @@ static void test_tx_parse(void **state)
         .fee_function_name        = "fee_private",
         .fee_program_id_length    = 12,
         .fee_program_id           = "credits.aleo",
-        .prepared_request         = {.program_id_length    = 15,
-                                     .program_id           = "ldg_p2p_28.aleo",
-                                     .function_name_length = 28,
-                                     .function_name        = "transfer_private_to_public_2",
-                                     .inputs_count         = 3,
-                                     .inputs               = {{.value_length = 96,
-                                                               .value        = hash_record,
-                                                               .type_length  = 1,
-                                                               .type         = (uint8_t *) "\x04"},
-                                                              {.value_length = 96,
-                                                               .value        = hash_record,
-                                                               .type_length  = 1,
-                                                               .type         = (uint8_t *) "\x04"},
-                                                              {.value_length = 8,
-                                                               .value = (uint8_t *) "\xe8\x03\x00\x00\x00\x00\x00\x00",
-                                                               .type_length = 3,
-                                                               .type        = (uint8_t *) "\x01\x00\x0c"}}}
+        .prepared_request = {.program_id_length    = 15,
+                             .program_id           = "ldg_p2p_28.aleo",
+                             .function_name_length = 28,
+                             .function_name        = "transfer_private_to_public_2",
+                             .inputs_count         = 3,
+                             .inputs = {{.value_length = 96,
+                                         .value        = hash_record,
+                                         .type_length  = 1,
+                                         .type         = (uint8_t *) "\x04"},
+                                        {.value_length = 96,
+                                         .value        = hash_record,
+                                         .type_length  = 1,
+                                         .type         = (uint8_t *) "\x04"},
+                                        {.value_length = 8,
+                                         .value = (uint8_t *) "\xe8\x03\x00\x00\x00\x00\x00\x00",
+                                         .type_length = 3,
+                                         .type        = (uint8_t *) "\x01\x00\x0c"}}}
     };
 
     assert_int_equal(tx_parse(&datas_batch_private_to_public, &tx), 0);
@@ -558,6 +558,57 @@ static void test_tx_token_parse(void **state)
     assert_int_equal(tx_parse(&datas_token_private, &tx), 0);
     datas_token_private.prepared_request.inputs[0].type = type_12;
     assert_int_equal(tx_parse(&datas_token_private, &tx), -1);
+
+    sign_transaction_datas_t datas_token_batch_private = {
+        .max_base_fee             = 100,
+        .max_priority_fee         = 500,
+        .fee_function_name_length = 11,
+        .fee_function_name        = "fee_private",
+        .fee_program_id_length    = 12,
+        .fee_program_id           = "credits.aleo",
+        .prepared_request
+        = {.program_id_length    = 18,
+           .program_id           = "ldg_usad_p_28.aleo",
+           .function_name_length = 18,
+           .function_name        = "transfer_private_2",
+           .inputs_count         = 5,
+           .inputs               = {
+               {.value_length = 96,
+                .value        = hash_record,
+                .type_length  = 9,
+                .type         = (uint8_t *) "\x04"},
+               {.value_length = 96,
+                .value        = hash_record,
+                .type_length  = 9,
+                .type         = (uint8_t *) "\x04"},
+               {.value_length = 32,
+                .value
+                = (uint8_t *) "\x82\x48\xd5\xe8\x5a\xc4\xc1\x23\x46\xf8\x45\x8b\xd9\x39\xf1\xce"
+                              "\x25\xae\x03\xe9\xc6\xcb\xc8\x86\x28\x6d\xf1\x61\x63\x0a\x75\x0c",
+                .type_length = 3,
+                .type        = (uint8_t *) "\x02\x00\x00"},
+               {.value_length = 16,
+                .value
+                = (uint8_t *) "\xe8\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+                .type_length = 3,
+                .type        = (uint8_t *) "\x02\x00\x0d"},
+               {.value_length = 32 * 32,
+                .value        = merkle_proof,
+                .type_length  = 3,
+                .type         = (uint8_t *) "\x02\x01\x00"},
+           }}
+    };
+    memcpy(hash_record, hash_record_c, sizeof(hash_record));
+    memcpy(merkle_proof, merkle_proof_c, sizeof(merkle_proof));
+    assert_int_equal(tx_parse(&datas_token_batch_private, &tx), 0);
+
+    char program_id_5[20]                                        = "ldg_usad_p2p_28.aleo";
+    datas_token_batch_private.prepared_request.program_id_length = sizeof(program_id_5);
+    datas_token_batch_private.prepared_request.program_id        = program_id_5;
+    char function_name_5[28]                                     = "transfer_private_to_public_2";
+    datas_token_batch_private.prepared_request.function_name_length = sizeof(function_name_5);
+    datas_token_batch_private.prepared_request.function_name        = function_name_5;
+    assert_int_equal(tx_parse(&datas_token_batch_private, &tx), 0);
 }
 
 int main()
