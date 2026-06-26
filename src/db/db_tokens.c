@@ -321,6 +321,50 @@ const function_parameters_t usdcx_stablecoin_aleo[NB_OF_USDCX_STABLECOIN_ALEO_FU
          = {0x1657b029b48ffc85, 0x9e6abe5afd4a732e, 0xad74be604f005b76, 0x0c72c1e5385b30d9}}}},
 };
 
+#define NB_OF_TEST_USDCX_STABLECOIN_ALEO_FUNCTIONS (5)
+const function_parameters_t test_usdcx_stablecoin_aleo[NB_OF_TEST_USDCX_STABLECOIN_ALEO_FUNCTIONS] = {
+    {.name        = "transfer_public",
+     .tx_type     = TX_TOKEN_TRANSFER_PUBLIC,
+     .input_count = 2,
+     .bhp_1024_hashes
+     = {{.big.u64
+         = {0xc6fd5bb07fdbaebf, 0x29f21b2d0bf6b8b2, 0x42d7a510c1837db7, 0x0af6e65d4dafe427}},
+        {.big.u64
+         = {0x38119084c4c9ab1e, 0xf156fa7f2c43c68b, 0x011f6e8d4c941fc5, 0x06960c5ab972f66b}}}},
+    {.name        = "transfer_private",
+     .tx_type     = TX_TOKEN_TRANSFER_PRIVATE,
+     .input_count = 4,
+     .bhp_1024_hashes
+     = {{.big.u64
+         = {0xacab459cbbba4057, 0xee905bacb7c3336e, 0xe0caec9dd8ed88b9, 0x059c68bd04c0d713}},
+        {.big.u64
+         = {0xecad8f222ca5fe36, 0x0e1d4d69632f69e3, 0x42adc5f202f9f0e0, 0x0bef4a7e56088ff2}}}},
+    {.name        = "transfer_public_to_private",
+     .tx_type     = TX_TOKEN_TRANSFER_PUBLIC_TO_PRIVATE,
+     .input_count = 2,
+     .bhp_1024_hashes
+     = {{.big.u64
+         = {0xe0ae709a73f08b44, 0xb3cd8ca80dbc5def, 0xf3011fd61c5c122e, 0x08f1c5bbcfaf8269}},
+        {.big.u64
+         = {0x4022dbec73adedbf, 0xf2bf8d3bf8b5cb7a, 0xce749a92e6c16848, 0x09260e3a528557d6}}}},
+    {.name        = "transfer_private_to_public",
+     .tx_type     = TX_TOKEN_TRANSFER_PRIVATE_TO_PUBLIC,
+     .input_count = 4,
+     .bhp_1024_hashes
+     = {{.big.u64
+         = {0x9516d7807a649f4e, 0x73cf19127e3eeb72, 0x9ddfb606b83f7008, 0x0730c12c4d8aa53c}},
+        {.big.u64
+         = {0x2015651c56999978, 0x332d51f8251b7943, 0xbbff73638e9b5998, 0x04343bf1976cca46}}}},
+    {.name        = "join",
+     .tx_type     = TX_TOKEN_JOIN,
+     .input_count = 2,
+     .bhp_1024_hashes
+     = {{.big.u64
+         = {0x70cec1f6f5fe9288, 0x157da20ca7375d8d, 0x9a7b2527af69f797, 0x0a9e5151571ca8fe}},
+        {.big.u64
+         = {0x9565c687dc97050f, 0x8309e78b8104785a, 0xe76e79cddf8d5261, 0x024d664989a99a20}}}},
+};
+
 #define NB_OF_LDG_USDCX_P_28_ALEO_FUNCTIONS (7)
 const function_parameters_t ldg_usdcx_p_28_aleo[NB_OF_LDG_USDCX_P_28_ALEO_FUNCTIONS] = {
     {.name        = "transfer_private_2",
@@ -594,6 +638,13 @@ const token_parameter_t token_parameters[NB_OF_TOKENS] = {
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_USDCX_STABLECOIN_ALEO_FUNCTIONS,
      .functions       = usdcx_stablecoin_aleo  },
+    {.program_id   = "test_usdcx_stablecoin.aleo",
+     .display_info = {.type = TOKEN_TYPE_ARC22, .ticker = "USDCx", .decimals = 6},
+     .token_id
+     = {.big.u64
+        = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
+     .nb_of_functions = NB_OF_TEST_USDCX_STABLECOIN_ALEO_FUNCTIONS,
+     .functions       = test_usdcx_stablecoin_aleo},
     {.program_id   = "ldg_usdcx_p_28.aleo",
      .display_info = {.type = TOKEN_TYPE_ARC22, .ticker = "USDCx", .decimals = 6},
      .token_id
