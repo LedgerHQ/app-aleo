@@ -320,9 +320,9 @@ static int parse_token_batch_transfer_private(sign_transaction_datas_t *data, tx
 {
     uint8_t inputs_count = data->prepared_request.inputs_count;
     int     status       = db_get_token_display_info(data->prepared_request.program_id,
-                                                     data->prepared_request.program_id_length,
-                                                     NULL,
-                                                     &tx->transfer.token_info);
+                                           data->prepared_request.program_id_length,
+                                           NULL,
+                                           &tx->transfer.token_info);
     if (status < 0) {
         return status;
     }
@@ -345,9 +345,9 @@ static int parse_token_batch_transfer_private_to_public(sign_transaction_datas_t
 {
     uint8_t inputs_count = data->prepared_request.inputs_count;
     int     status       = db_get_token_display_info(data->prepared_request.program_id,
-                                                     data->prepared_request.program_id_length,
-                                                     NULL,
-                                                     &tx->transfer.token_info);
+                                           data->prepared_request.program_id_length,
+                                           NULL,
+                                           &tx->transfer.token_info);
     if (status < 0) {
         return status;
     }

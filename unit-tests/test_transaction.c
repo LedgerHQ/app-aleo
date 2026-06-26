@@ -608,6 +608,8 @@ static void test_tx_token_parse(void **state)
     char function_name_5[28]                                     = "transfer_private_to_public_2";
     datas_token_batch_private.prepared_request.function_name_length = sizeof(function_name_5);
     datas_token_batch_private.prepared_request.function_name        = function_name_5;
+    datas_token_batch_private.prepared_request.inputs[2].type       = type_11;
+    datas_token_batch_private.prepared_request.inputs[3].type       = type_1;
     assert_int_equal(tx_parse(&datas_token_batch_private, &tx), 0);
 }
 
