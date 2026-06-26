@@ -58,6 +58,9 @@ static int parse_token_transfer_public_to_private(sign_transaction_datas_t *data
 static int parse_token_transfer_private(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_token_transfer_private_to_public(sign_transaction_datas_t *data, tx_t *tx);
 
+static int parse_token_batch_transfer_private(sign_transaction_datas_t *data, tx_t *tx);
+static int parse_token_batch_transfer_private_to_public(sign_transaction_datas_t *data, tx_t *tx);
+
 static int parse_fee_public(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx);
 
@@ -313,6 +316,56 @@ static int parse_token_transfer_private_to_public(sign_transaction_datas_t *data
     return status;
 }
 
+static int parse_token_batch_transfer_private(sign_transaction_datas_t *data, tx_t *tx)
+{
+    uint8_t inputs_count = data->prepared_request.inputs_count;
+    int     status       = db_get_token_display_info(data->prepared_request.program_id,
+                                                     data->prepared_request.program_id_length,
+                                                     NULL,
+                                                     &tx->transfer.token_info);
+    if (status < 0) {
+        return status;
+    }
+    if (tx->transfer.token_info->type == TOKEN_TYPE_ARC22) {
+        status = get_address(
+            &data->prepared_request.inputs[inputs_count - 3], true, tx->transfer.address_to);
+        if (status == 0) {
+            status = get_u128(
+                &data->prepared_request.inputs[inputs_count - 2], true, &tx->transfer.amount);
+        }
+    }
+    else {
+        return -1;
+    }
+
+    return status;
+}
+
+static int parse_token_batch_transfer_private_to_public(sign_transaction_datas_t *data, tx_t *tx)
+{
+    uint8_t inputs_count = data->prepared_request.inputs_count;
+    int     status       = db_get_token_display_info(data->prepared_request.program_id,
+                                                     data->prepared_request.program_id_length,
+                                                     NULL,
+                                                     &tx->transfer.token_info);
+    if (status < 0) {
+        return status;
+    }
+    if (tx->transfer.token_info->type == TOKEN_TYPE_ARC22) {
+        status = get_address(
+            &data->prepared_request.inputs[inputs_count - 3], false, tx->transfer.address_to);
+        if (status == 0) {
+            status = get_u128(
+                &data->prepared_request.inputs[inputs_count - 2], false, &tx->transfer.amount);
+        }
+    }
+    else {
+        return -1;
+    }
+
+    return status;
+}
+
 static int parse_fee_public(sign_transaction_datas_t *data, tx_t *tx)
 {
     int status = get_u64(&data->prepared_request.inputs[0], false, &tx->fee.base_fee);
@@ -395,6 +448,12 @@ int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
 
         case TX_TOKEN_TRANSFER_PRIVATE_TO_PUBLIC:
             return parse_token_transfer_private_to_public(data, tx);
+
+        case TX_TOKEN_TRANSFER_BATCH_PRIVATE:
+            return parse_token_batch_transfer_private(data, tx);
+
+        case TX_TOKEN_TRANSFER_BATCH_PRIVATE_TO_PUBLIC:
+            return parse_token_batch_transfer_private_to_public(data, tx);
 
         case TX_FEE_PUBLIC:
             return parse_fee_public(data, tx);

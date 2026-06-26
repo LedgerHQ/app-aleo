@@ -40,8 +40,8 @@
 // Buffer where the transaction amount string is written
 static char g_amount[MAX_AMOUNT_SIZE + 1 + MAX_TICKER_SIZE];
 static char g_amount_fees[MAX_AMOUNT_SIZE + 4];  // Ticker is ALEO for fees
-static char g_finish_title[26 + MAX_TICKER_SIZE];
-static char g_review_title[28 + MAX_TICKER_SIZE];
+static char g_finish_title[27 + 1 + MAX_TICKER_SIZE];
+static char g_review_title[29 + 1 + MAX_TICKER_SIZE];
 
 // The flow with the most pairs to display is the token signing flow with amount + dest + token
 static nbgl_contentTagValue_t     pairs[3];
@@ -92,14 +92,16 @@ int ui_display_transaction(void)
              || (G_context.tx.type == TX_TOKEN_TRANSFER_PRIVATE)) {
         review_subtitle = "Private transfer";
     }
-    else if (G_context.tx.type == TX_ALEO_TRANSFER_BATCH_PRIVATE) {
+    else if ((G_context.tx.type == TX_ALEO_TRANSFER_BATCH_PRIVATE)
+             || (G_context.tx.type == TX_TOKEN_TRANSFER_BATCH_PRIVATE)) {
         review_subtitle = "Private batch transfer";
     }
     else if ((G_context.tx.type == TX_ALEO_TRANSFER_PRIVATE_TO_PUBLIC)
              || (G_context.tx.type == TX_TOKEN_TRANSFER_PRIVATE_TO_PUBLIC)) {
         review_subtitle = "Transfer from private to public address";
     }
-    else if (G_context.tx.type == TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC) {
+    else if ((G_context.tx.type == TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC)
+             || (G_context.tx.type == TX_TOKEN_TRANSFER_BATCH_PRIVATE_TO_PUBLIC)) {
         review_subtitle = "Batch transfer from private to public address";
     }
     else if ((G_context.tx.type == TX_ALEO_TRANSFER_PUBLIC_TO_PRIVATE)
