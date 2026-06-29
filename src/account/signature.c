@@ -133,9 +133,8 @@ static int plaintext_to_field(uint8_t       *plaintext,
     }
     else {
         PRINTF("Plaintext type unsupported (%d)\n", plaintext_type[0]);
-        return -1;
     }
-    return 0;
+    return -1;
 }
 
 static int hash_public_input(prepared_request_t *request, uint8_t input_index)
@@ -208,11 +207,11 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
     if (status < 0) {
         return status;
     }
-    field_print_array(plaintext_fields, num_randomizers);
     num_randomizers = (uint8_t) status;
     if (num_randomizers >= PLAINTEXT_FIELDS_MAX_SIZE) {
         return -1;
     }
+    field_print_array(plaintext_fields, num_randomizers);
 
     // Compute randomizers
     _Static_assert(HASH_INPUT_MAX_LENGTH >= 10, "hash_input size won't fit");

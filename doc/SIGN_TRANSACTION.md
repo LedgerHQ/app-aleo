@@ -213,12 +213,12 @@ Serialized TLV data:
 #### U64
 | _Name_           | _Length_ | _Type_  | _Description_ |
 | -----            |    :--:  | -:      | -             |
-| `value`          |        8 |     u64 | int coded in 64 bits (big endian) |
+| `value`          |        8 |     u64 | int coded in 64 bits (little endian) |
 
 #### U128
 | _Name_           | _Length_ | _Type_  | _Description_ |
 | -----            |    :--:  | -:      | -             |
-| `value`          |        8 |    u128 | int coded in 128 bits (big endian) |
+| `value`          |        8 |    u128 | int coded in 128 bits (little endian) |
 
 #### Record
 | _Name_           | _Length_ | _Type_   | _Description_ |
