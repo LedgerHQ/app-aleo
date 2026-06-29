@@ -35,24 +35,25 @@ static void test_bits(void **state)
     assert_int_equal(bits_add(bit_buffer_in, 15, 150, bit_buffer_out, 73, 32 * 8), 0);
     assert_memory_equal(bit_buffer_out, buffer_exp, 32);
 
-    // bits_from_plaintext
-    uint8_t plaintext_type[2] = {0x01, 0x03};
-    assert_int_equal(bits_from_plaintext(bit_buffer_in, plaintext_type, 32 * 8, bit_buffer_out, 1),
-                     -1);
+    // bits_from_plaintext_literal
     assert_int_equal(
-        bits_from_plaintext(bit_buffer_in, plaintext_type, 32 * 8, bit_buffer_out, 256), -1);
-    plaintext_type[0] = 0x00;
+        bits_from_plaintext_literal(bit_buffer_in, 32 * 8, 0x01, bit_buffer_out, 1), -1);
     assert_int_equal(
-        bits_from_plaintext(bit_buffer_in, plaintext_type, 32 * 8, bit_buffer_out, 256), -1);
-    assert_int_equal(bits_from_plaintext(bit_buffer_in, plaintext_type, 231, bit_buffer_out, 17),
-                     -1);
-    assert_int_equal(bits_from_plaintext(bit_buffer_in, plaintext_type, 231, bit_buffer_out, 25),
-                     -1);
+        bits_from_plaintext_literal(bit_buffer_in, 32 * 8, 0x03, bit_buffer_out, 256),
+        -1);
+    assert_int_equal(
+        bits_from_plaintext_literal(bit_buffer_in, 32 * 8, 0x03, bit_buffer_out, 256),
+        -1);
+    assert_int_equal(
+        bits_from_plaintext_literal(bit_buffer_in, 231, 0x03, bit_buffer_out, 17), -1);
+    assert_int_equal(
+        bits_from_plaintext_literal(bit_buffer_in, 231, 0x03, bit_buffer_out, 25), -1);
     uint8_t buffer_exp2[32] = {0x0c, 0x00, 0x02, 0x58, 0x29, 0x95, 0xb5, 0xb8, 0xd0, 0xe3, 0xd1,
                                0xc9, 0x30, 0x95, 0x69, 0x45, 0x93, 0x53, 0x19, 0x47, 0x93, 0x53,
                                0x19, 0x63, 0x4c, 0x71, 0x3e, 0x1b, 0x00, 0x00, 0x00, 0x00};
     assert_int_equal(
-        bits_from_plaintext(bit_buffer_in, plaintext_type, 16 * 8, bit_buffer_out, 256), 0x9a);
+        bits_from_plaintext_literal(bit_buffer_in, 16 * 8, 0x03, bit_buffer_out, 256),
+        0x9a);
     assert_memory_equal(bit_buffer_out, buffer_exp2, 32);
 }
 

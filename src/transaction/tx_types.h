@@ -14,13 +14,14 @@ typedef enum {
 } input_id_e;
 
 typedef enum {
-    INPUT_VALUE_TYPE_PLAINTEXT = 0,
-    INPUT_VALUE_TYPE_RECORD    = 1,
-    INPUT_VALUE_TYPE_FUTURE    = 2,
+    INPUT_VALUE_TYPE_PLAINTEXT_LITERAL = 0,
+    INPUT_VALUE_TYPE_PLAINTEXT_STRUCT  = 1,
+    INPUT_VALUE_TYPE_PLAINTEXT_ARRAY   = 2,
 } input_value_type_e;
 
 typedef enum {
     PLAINTEXT_TYPE_LITERAL_ADDRESS = 0,
     PLAINTEXT_TYPE_LITERAL_FIELD   = 2,
     PLAINTEXT_TYPE_LITERAL_U64     = 12,
+    PLAINTEXT_TYPE_LITERAL_U128    = 13,
 } plaintext_type_literal_e;

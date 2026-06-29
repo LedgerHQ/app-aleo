@@ -32,9 +32,9 @@
 #include "nbgl_use_case.h"
 #include "signature.h"
 
-#define HASH_INPUT_MAX_LENGTH     (16)
+#define HASH_INPUT_MAX_LENGTH     (56)
 #define MESSAGE_MAX_LENGTH        (64)
-#define PLAINTEXT_FIELDS_MAX_SIZE (4)
+#define PLAINTEXT_FIELDS_MAX_SIZE (48)
 #define BIT_BUFFER_MAX_LENGTH     (128)
 
 const field_t SERIAL_NUMBER_DOMAIN = {
@@ -63,6 +63,80 @@ static int add_field_to_message(field_t *field)
     return 0;
 }
 
+static int plaintext_to_field(uint8_t       *plaintext,
+                              uint16_t       plaintext_length,
+                              const uint8_t *plaintext_type,
+                              uint8_t        plaintext_type_length,
+                              field_t       *output,
+                              uint16_t       output_length)
+{
+    if (plaintext_type_length < 1) {
+        return -1;
+    }
+
+    if (plaintext_type[0] == INPUT_VALUE_TYPE_PLAINTEXT_LITERAL) {
+        uint16_t bit_size = 0;
+
+        if (plaintext_type_length < 2) {
+            return -1;
+        }
+        uint8_t variant = plaintext_type[1];
+        switch (variant) {
+            case PLAINTEXT_TYPE_LITERAL_ADDRESS:
+            case PLAINTEXT_TYPE_LITERAL_FIELD:
+                PRINTF("PLAINTEXT_TYPE_LITERAL_ADDRESS/FIELD\n");
+                bit_size = FIELD_MODULUS_BITS;
+                break;
+            case PLAINTEXT_TYPE_LITERAL_U64:
+                PRINTF("PLAINTEXT_TYPE_LITERAL_U64\n");
+                bit_size = 64;
+                break;
+            case PLAINTEXT_TYPE_LITERAL_U128:
+                PRINTF("PLAINTEXT_TYPE_LITERAL_U128\n");
+                bit_size = 128;
+                break;
+            default:
+                return -1;
+                break;
+        }
+        if ((plaintext_length * 8) < bit_size) {
+            return -1;
+        }
+        int bit_length = bits_from_plaintext_literal(
+            plaintext, bit_size, variant, bit_buffer, BIT_BUFFER_MAX_LENGTH * 8);
+        if (bit_length < 0) {
+            return bit_length;
+        }
+        if (bit_length >= BIT_BUFFER_MAX_LENGTH * 8) {
+            return -1;
+        }
+        bits_add_single(bit_buffer, (uint16_t) bit_length, true);
+        bit_length += 1;
+        return field_from_bits(bit_buffer, (uint16_t) bit_length, output, output_length);
+    }
+    else if ((plaintext_type[0] == INPUT_VALUE_TYPE_PLAINTEXT_STRUCT)
+             || (plaintext_type[0] == INPUT_VALUE_TYPE_PLAINTEXT_ARRAY)) {
+        bigint_256_t s;
+        if ((plaintext_length == 0) || (plaintext_length % BN_LENGTH != 0)) {
+            return -1;
+        }
+        uint8_t num_of_fields = plaintext_length / BN_LENGTH;
+        if (num_of_fields > output_length) {
+            return -1;
+        }
+        for (uint8_t i = 0; i < num_of_fields; i++) {
+            bn_reverse(&plaintext[i * BN_LENGTH]);
+            bn_to_big_int(&plaintext[i * BN_LENGTH], &s);
+            field_from_big_int(&output[i], &s);
+        }
+        return num_of_fields;
+    }
+    else {
+        PRINTF("Plaintext type unsupported (%d)\n", plaintext_type[0]);
+    }
+    return -1;
+}
+
 static int hash_public_input(prepared_request_t *request, uint8_t input_index)
 {
     _Static_assert(HASH_INPUT_MAX_LENGTH >= 13, "hash_input size won't fit");
@@ -76,61 +150,18 @@ static int hash_public_input(prepared_request_t *request, uint8_t input_index)
     }
     memset(hash_input, 0, sizeof(hash_input));
     memcpy(&hash_input[hash_input_index++], &request->function_id, sizeof(field_t));
-    if (input->type[1] == INPUT_VALUE_TYPE_PLAINTEXT) {
-        if (input->type_length < 3) {
-            return -1;
-        }
-        if ((input->type[2] == PLAINTEXT_TYPE_LITERAL_ADDRESS)
-            || (input->type[2] == PLAINTEXT_TYPE_LITERAL_FIELD)) {
-            if ((input->value_length * 8) < FIELD_MODULUS_BITS) {
-                return -1;
-            }
-            PRINTF("PLAINTEXT_TYPE_LITERAL_ADDRESS/FIELD\n");
-            int bit_length = bits_from_plaintext(input->value,
-                                                 &input->type[1],
-                                                 FIELD_MODULUS_BITS,
-                                                 bit_buffer,
-                                                 BIT_BUFFER_MAX_LENGTH * 8);
-            if (bit_length < 0) {
-                return bit_length;
-            }
-            if (bit_length >= BIT_BUFFER_MAX_LENGTH * 8) {
-                return -1;
-            }
-            bits_add_single(bit_buffer, (uint16_t) bit_length, true);
-            bit_length += 1;
-            hash_input_index += field_from_bits(
-                bit_buffer, (uint16_t) bit_length, &hash_input[hash_input_index], 2);
-            field_print_array(&hash_input[hash_input_index - 2], 2);
-        }
-        else if (input->type[2] == PLAINTEXT_TYPE_LITERAL_U64) {
-            PRINTF("PLAINTEXT_TYPE_LITERAL_U64\n");
-            if ((input->value_length * 8) < 64) {
-                return -1;
-            }
-            int bit_length = bits_from_plaintext(
-                input->value, &input->type[1], 64, bit_buffer, BIT_BUFFER_MAX_LENGTH * 8);
-            if (bit_length < 0) {
-                return bit_length;
-            }
-            if (bit_length >= BIT_BUFFER_MAX_LENGTH * 8) {
-                return -1;
-            }
-            bits_add_single(bit_buffer, (uint16_t) bit_length, true);
-            bit_length += 1;
-            hash_input_index += field_from_bits(
-                bit_buffer, (uint16_t) bit_length, &hash_input[hash_input_index], 1);
-            field_print_array(&hash_input[hash_input_index - 1], 1);
-        }
-        else {
-            PRINTF("Public plaintext type unsupported (%d)\n", input->type[2]);
-            return -1;
-        }
+    status = plaintext_to_field(input->value,
+                                input->value_length,
+                                &input->type[1],
+                                input->type_length - 1,
+                                &hash_input[hash_input_index],
+                                HASH_INPUT_MAX_LENGTH - hash_input_index);
+    if (status < 0) {
+        return status;
     }
-    else {
-        PRINTF("Public input value type unsupported (%d)\n", input->type[1]);
-        return -1;
-    }
+    field_print_array(&hash_input[hash_input_index], status);
+    hash_input_index += status;
+
     memcpy(&hash_input[hash_input_index++], &request->tcm, sizeof(field_t));
     field_from_int(&hash_input[hash_input_index++], input_index);
     if ((status = hash_psd8(hash_input, hash_input_index, &hash)) < 0) {
@@ -167,61 +198,20 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
         return -1;
     }
 
-    if (input->type[1] == INPUT_VALUE_TYPE_PLAINTEXT) {
-        if (input->type_length < 3) {
-            return -1;
-        }
-        if ((input->type[2] == PLAINTEXT_TYPE_LITERAL_ADDRESS)
-            || (input->type[2] == PLAINTEXT_TYPE_LITERAL_FIELD)) {
-            PRINTF("PLAINTEXT_TYPE_LITERAL_ADDRESS/FIELD\n");
-            if ((input->value_length * 8) < FIELD_MODULUS_BITS) {
-                return -1;
-            }
-            int bit_length = bits_from_plaintext(input->value,
-                                                 &input->type[1],
-                                                 FIELD_MODULUS_BITS,
-                                                 bit_buffer,
-                                                 BIT_BUFFER_MAX_LENGTH * 8);
-            if (bit_length < 0) {
-                return bit_length;
-            }
-            if (bit_length >= BIT_BUFFER_MAX_LENGTH * 8) {
-                return -1;
-            }
-            bits_add_single(bit_buffer, (uint16_t) bit_length, true);
-            bit_length += 1;
-            num_randomizers = field_from_bits(
-                bit_buffer, (uint16_t) bit_length, plaintext_fields, PLAINTEXT_FIELDS_MAX_SIZE);
-        }
-        else if (input->type[2] == PLAINTEXT_TYPE_LITERAL_U64) {
-            PRINTF("PLAINTEXT_TYPE_LITERAL_U64\n");
-            if ((input->value_length * 8) < 64) {
-                return -1;
-            }
-            int bit_length = bits_from_plaintext(
-                input->value, &input->type[1], 64, bit_buffer, BIT_BUFFER_MAX_LENGTH * 8);
-            if (bit_length < 0) {
-                return bit_length;
-            }
-            if (bit_length >= BIT_BUFFER_MAX_LENGTH * 8) {
-                return -1;
-            }
-            bits_add_single(bit_buffer, (uint16_t) bit_length, true);
-            bit_length += 1;
-            num_randomizers = field_from_bits(
-                bit_buffer, (uint16_t) bit_length, plaintext_fields, PLAINTEXT_FIELDS_MAX_SIZE);
-        }
-        else {
-            PRINTF("Private plaintext type unsupported (%d)\n", input->type[2]);
-            return -1;
-        }
-        PRINTF("plaintext_fields : \n");
-        field_print_array(plaintext_fields, num_randomizers);
+    status = plaintext_to_field(input->value,
+                                input->value_length,
+                                &input->type[1],
+                                input->type_length - 1,
+                                plaintext_fields,
+                                PLAINTEXT_FIELDS_MAX_SIZE);
+    if (status < 0) {
+        return status;
     }
-    else {
-        PRINTF("Private input value type unsupported (%d)\n", input->type[1]);
+    num_randomizers = (uint8_t) status;
+    if (num_randomizers >= PLAINTEXT_FIELDS_MAX_SIZE) {
         return -1;
     }
+    field_print_array(plaintext_fields, num_randomizers);
 
     // Compute randomizers
     _Static_assert(HASH_INPUT_MAX_LENGTH >= 10, "hash_input size won't fit");
@@ -340,10 +330,10 @@ static int hash_external_record_input(prepared_request_t *request, uint8_t input
     bigint_256_t s;
     field_t      hash;
 
-    if ((input->value_length == 0) || (input->value_length % 32 != 0)) {
+    if ((input->value_length == 0) || (input->value_length % BN_LENGTH != 0)) {
         return -1;
     }
-    uint8_t num_fields = input->value_length / 32;
+    uint8_t num_fields = input->value_length / BN_LENGTH;
     if (num_fields
         > (HASH_INPUT_MAX_LENGTH - 11)) { /* 11 = 8 capacity + function_id + tvk + index */
         return -1;
@@ -356,8 +346,8 @@ static int hash_external_record_input(prepared_request_t *request, uint8_t input
     memcpy(&hash_input[hash_input_index++], &request->function_id, sizeof(field_t));
 
     for (uint8_t i = 0; i < num_fields; i++) {
-        bn_reverse(&input->value[i * sizeof(field_t)]);
-        bn_to_big_int(&input->value[i * sizeof(field_t)], &s);
+        bn_reverse(&input->value[i * BN_LENGTH]);
+        bn_to_big_int(&input->value[i * BN_LENGTH], &s);
         field_from_big_int(&hash_input[hash_input_index++], &s);
     }
 

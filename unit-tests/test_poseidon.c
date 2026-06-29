@@ -90,7 +90,30 @@ static void test_poseidon(void **state)
 
     // hash_many_psd8
     field_t rr[32];
-    assert_int_equal(hash_many_psd8(hash_input_1, 8, rr, 16), -1);
+    // Large output counts must succeed
+    // needs 41; this previously capped at SPONGE_STATE_SIZE (9) and returned -1.
+    assert_int_equal(hash_many_psd8(hash_input_1, 8, rr, 32), 0);
+    // The first rate window (outputs 0..7) must be byte-identical to a short squeeze, so the
+    // boundary-crossing logic did not disturb it.
+    assert_int_equal(rr[0].big.u64[0], 0x6316e0db4d0f89aa);
+    assert_int_equal(rr[0].big.u64[1], 0xe0ed66e1308f11af);
+    assert_int_equal(rr[0].big.u64[2], 0x345e2d481ff91bfa);
+    assert_int_equal(rr[0].big.u64[3], 0x00543b2611f68e96);
+
+    assert_int_equal(rr[8].big.u64[0], 0xfccf78045af41426);
+    assert_int_equal(rr[8].big.u64[1], 0x42c451370ae7edc4);
+    assert_int_equal(rr[8].big.u64[2], 0x97971672a5378e96);
+    assert_int_equal(rr[8].big.u64[3], 0x04853d9c16847ac4);
+    assert_int_equal(rr[15].big.u64[0], 0x19b74a4855cc984a);
+    assert_int_equal(rr[15].big.u64[1], 0x90450d52230b62d0);
+    assert_int_equal(rr[15].big.u64[2], 0x35970de0e9c1acd6);
+    assert_int_equal(rr[15].big.u64[3], 0x01c1f3541312d553);
+    assert_int_equal(rr[30].big.u64[0], 0xe5b820793ead2a89);
+    assert_int_equal(rr[30].big.u64[1], 0xe49684b8d7cf7366);
+    assert_int_equal(rr[30].big.u64[2], 0x81b414a919e1151f);
+    assert_int_equal(rr[30].big.u64[3], 0x98ddfe164f349d6);
+
+    assert_int_equal(hash_many_psd8(hash_input_1, 8, rr, 48), 0);
 
     assert_int_equal(hash_many_psd8(hash_input_1, 8, rr, 4), 0);
     assert_int_equal(rr[0].big.u64[0], 0x6316e0db4d0f89aa);
