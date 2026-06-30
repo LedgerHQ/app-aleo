@@ -15,5 +15,5 @@ typedef struct {
     const function_parameters_t *functions;
 } token_parameter_t;
 
-#define NB_OF_TOKENS (14)
+#define NB_OF_TOKENS (16)
 extern const token_parameter_t token_parameters[NB_OF_TOKENS];
