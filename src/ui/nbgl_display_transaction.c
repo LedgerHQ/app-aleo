@@ -53,39 +53,51 @@ static void review_transaction(bool confirm)
                  || (G_context.sign_transaction_datas.max_priority_fee != 0)) {
             G_context.fees_waiting_time_ms = 0;
             G_context.signing_state        = SIGNING_STATE_WAIT_FEES;
+            r_list_erase();
 #ifndef FUZZ
             nbgl_useCaseSpinner("Calculating fees");
 #endif  // FUZZ
         }
         else {
+            account_erase(&G_context.account);
+            r_list_erase();
             nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
             G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
         }
     }
     else {
+        account_erase(&G_context.account);
+        r_list_erase();
         nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
     }
 }
 
-static int display_review_transaction(void)
+// Flow used to display a clear-signed transaction
+int ui_display_transaction(void)
 {
     uint8_t     pair_index                   = 0;
     char        amount[50 + MAX_TICKER_SIZE] = {0};
     const char *review_subtitle              = NULL;
-    if (G_context.tx.transfer.type == TX_TRANSFER_PUBLIC) {
+    if (G_context.tx.type == TX_ALEO_TRANSFER_PUBLIC) {
         review_subtitle = "Public transfer";
     }
-    else if (G_context.tx.transfer.type == TX_TRANSFER_PRIVATE) {
+    else if (G_context.tx.type == TX_ALEO_TRANSFER_PRIVATE) {
         review_subtitle = "Private transfer";
     }
-    else if (G_context.tx.transfer.type == TX_TRANSFER_PUBLIC_TO_PRIVATE) {
-        review_subtitle = "Transfer from public to private address";
+    else if (G_context.tx.type == TX_ALEO_TRANSFER_BATCH_PRIVATE) {
+        review_subtitle = "Private batch transfer";
     }
-    else if (G_context.tx.transfer.type == TX_TRANSFER_PRIVATE_TO_PUBLIC) {
+    else if (G_context.tx.type == TX_ALEO_TRANSFER_PRIVATE_TO_PUBLIC) {
         review_subtitle = "Transfer from private to public address";
     }
+    else if (G_context.tx.type == TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC) {
+        review_subtitle = "Batch transfer from private to public address";
+    }
+    else if (G_context.tx.type == TX_ALEO_TRANSFER_PUBLIC_TO_PRIVATE) {
+        review_subtitle = "Transfer from public to private address";
+    }
     else {
-        return io_send_sw(SWO_INCORRECT_DATA);
+        return -1;
     }
 
     // Format amount
@@ -93,15 +105,16 @@ static int display_review_transaction(void)
     explicit_bzero(g_amount, sizeof(g_amount));
     if (!format_fpu64(
             amount, sizeof(amount), G_context.tx.transfer.amount, EXPONENT_SMALLEST_UNIT)) {
-        return io_send_sw(SWO_INCORRECT_DATA);
+        return -1;
     }
     snprintf(g_amount, sizeof(g_amount), "%.*s ALEO", (int) strlen(amount), amount);
 
-    uint64_t total_fees = G_context.sign_transaction_datas.max_base_fee
-                          + G_context.sign_transaction_datas.max_priority_fee;
+    uint64_t max_base_fee     = (uint64_t) G_context.sign_transaction_datas.max_base_fee;
+    uint64_t max_priority_fee = (uint64_t) G_context.sign_transaction_datas.max_priority_fee;
+    uint64_t total_fees       = max_base_fee + max_priority_fee;
     explicit_bzero(g_amount_2, sizeof(g_amount_2));
     if (!format_fpu64(amount, sizeof(amount), total_fees, EXPONENT_SMALLEST_UNIT)) {
-        return io_send_sw(SWO_INCORRECT_DATA);
+        return -1;
     }
     snprintf(g_amount_2, sizeof(g_amount_2), "%.*s ALEO", (int) strlen(amount), amount);
 
@@ -111,8 +124,13 @@ static int display_review_transaction(void)
     pair_index++;
 
     // To address
-    pairs[pair_index].item  = "To";
-    pairs[pair_index].value = G_context.tx.transfer.address_to;
+    pairs[pair_index].item = "To";
+    if (strlen(G_context.tx.transfer.address_to) > 0) {
+        pairs[pair_index].value = G_context.tx.transfer.address_to;
+    }
+    else {
+        pairs[pair_index].value = G_context.account.address_str;
+    }
     pair_index++;
 
     // Fees
@@ -143,31 +161,6 @@ static int display_review_transaction(void)
                        "Sign transaction",
                        review_transaction);
 #endif  // HAVE_SE_TOUCH
-
-    return 0;
-}
-
-// Flow used to display a clear-signed transaction
-int ui_display_transaction(void)
-{
-    if (memcmp(G_context.sign_transaction_datas.fee_program_id,
-               "credits.aleo",
-               G_context.sign_transaction_datas.fee_program_id_length)) {
-        // We currently don't support other token than ALEO
-        return -1;
-    }
-
-    if (G_context.tx.type == TX_TRANSFER) {
-        return display_review_transaction();
-    }
-    else if (G_context.tx.type == TX_FEE) {
-        validate_transaction(true);
-        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
-        G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
-    }
-    else {
-        return -1;
-    }
 
     return 0;
 }

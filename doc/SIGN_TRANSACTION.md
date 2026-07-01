@@ -126,6 +126,7 @@ Serialized TLV data:
 |                                 ||| 0x01 : [public](#public-type)  |
 |                                 ||| 0x02 : [private](#private-type)  |
 |                                 ||| 0x03 : [record](#record-type) |
+|                                 ||| 0x04 : [external_record](#external-record-type) |
 
 #### Constant type
 
@@ -155,6 +156,11 @@ Serialized TLV data:
 | `value type`     |     1    |      u8 | 0x03 |
 | `identifier`     | variable |   bytes | [identifier](#identifier) |
 
+#### External record type
+
+| _Name_           | _Length_ | _Type_  | _Description_ |
+| -----            |    :--:  | -:      | -             |
+| `value type`     |     1    |      u8 | 0x04 |
 
 #### Plaintext type
 | _Name_           | _Length_ | _Type_  | _Description_ |
@@ -215,6 +221,11 @@ Serialized TLV data:
 | `commitment`     |       32 |   field  | pre computed [commitment](https://github.com/ProvableHQ/snarkVM/blob/staging/console/program/src/request/sign.rs#L186) of the record |
 | `h.x`            |       32 |   field  | pre computed [H generator](https://github.com/ProvableHQ/snarkVM/blob/staging/console/program/src/request/sign.rs#L189) x coordinate |
 | `h.y`            |       32 |   field  | pre computed [H generator](https://github.com/ProvableHQ/snarkVM/blob/staging/console/program/src/request/sign.rs#L189) y coordinate |
+
+#### External record
+| _Name_           | _Length_ | _Type_   | _Description_ |
+| -----            |    :--:  | -:       | -             |
+| `record_fields`  |   N × 32 |  field[] | `record.to_fields()` — N little-endian 256-bit field elements pre-computed by the host from the record plaintext ([snarkVM ref](https://github.com/ProvableHQ/snarkVM/blob/staging/console/program/src/request/sign.rs#L156)). N must satisfy N × 32 ≤ 128 (`INPUT_VALUE_MAX_LEN`). |
 
 ### Input example
 
@@ -338,3 +349,88 @@ Serialized TLV data:
 | `response`  |     32   |  scalar | The signature's response |
 | `pk_sig`    |     32   |   field | Compute key's signature public key x coordinate |
 | `pr_sig`    |     32   |   field | Compute key's signature public randomizer x coordinate |
+
+---
+
+## GET TVK
+
+### Overview
+
+The `GET_TVK` command pre-computes Transition View Keys (TVKs) before initiating a signing flow.
+This allows the host to obtain TVKs for building transaction data (e.g. encrypting records) prior to submitting the sign transaction request.
+
+The command operates in two modes:
+- **Seed mode** (`P1=0x00`): Derives the account from the BIP32 path, initializes the internal `r_list`, computes `r[0]`, and returns the corresponding TVK. This must be called first.
+- **Derived mode** (`P1=0x01`): Computes `r[index]` from the previously seeded `r_list` and returns the corresponding TVK. Indices must be requested sequentially (1, 2, 3, ...).
+
+The `r_list` has a maximum capacity of 32 entries and expires after 5 seconds of inactivity.
+
+The device must be in `SIGNING_STATE_WAIT_INTENT` state; otherwise the command is rejected.
+
+### GET TVK SEED
+
+#### Description
+
+_Initializes the r\_list from a BIP32 derivation path, computes r\[0\], and returns its TVK._
+
+#### Command
+
+| _CLA_ | _INS_ | _P1_ | _P2_ |   _Lc_   | _CData_  |
+| ----- | :---: | ---: | ---- | :------: | -------: |
+| E0    | 08    | 00   | 00   | variable | variable |
+
+#### Input data (CData)
+
+| _Description_                                    | _Length_ | _Type_ |
+| ------------------------------------------------ | :------: |  ----: |
+| Number of BIP 32 derivations to perform (max 10) |    1     |     u8 |
+| First derivation index (big endian)               |    4     |    u32 |
+| ...                                              |    4     |    u32 |
+| Last derivation index (big endian)               |    4     |    u32 |
+
+#### Output data (RData)
+
+| _Description_ | _Length_ | _Type_ |
+| ------------- | :------: |  ----: |
+| TVK length    |    1     |     u8 |
+| TVK           |   32     |  field |
+
+### GET TVK DERIVED
+
+#### Description
+
+_Computes r\[index\] from the previously seeded r\_list and returns its TVK. The index must equal the current r\_list count (sequential access only)._
+
+#### Command
+
+| _CLA_ | _INS_ | _P1_ | _P2_ |   _Lc_   | _CData_  |
+| ----- | :---: | ---: | ---- | :------: | -------: |
+| E0    | 08    | 01   | 00   | variable | variable |
+
+#### Input data (CData)
+
+| _Description_                                    | _Length_ | _Type_ |
+| ------------------------------------------------ | :------: |  ----: |
+| Number of BIP 32 derivations to perform (max 10) |    1     |     u8 |
+| First derivation index (big endian)               |    4     |    u32 |
+| ...                                              |    4     |    u32 |
+| Last derivation index (big endian)               |    4     |    u32 |
+| r\_list index                                    |    1     |     u8 |
+
+#### Output data (RData)
+
+| _Description_ | _Length_ | _Type_ |
+| ------------- | :------: |  ----: |
+| TVK length    |    1     |     u8 |
+| TVK           |   32     |  field |
+
+### Status words
+
+| _SW_   | _Description_ |
+| ------ | ------------- |
+| 0x9000 | Success |
+| 0x6985 | Conditions not satisfied (wrong signing state) |
+| 0x6A80 | Incorrect data (invalid index, r\_list not initialized, computation error) |
+| 0x6A86 | Incorrect P1/P2 (P1 is neither 0x00 nor 0x01) |
+| 0x6A87 | Wrong data length (empty data or malformed BIP32 path) |
+| 0xB001 | BIP32 path derivation failure |

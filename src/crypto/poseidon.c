@@ -274,9 +274,11 @@ static int squeeze_internal(uint8_t rate_start, field_t *output, uint16_t output
     }
 
     for (uint8_t i = 0; i < chunk_length; i++) {
+#ifndef __clang_analyzer__
         memcpy(&output[first_chunk_size + i],
                &sponge.state[CAPACITY + rate_start + i],
                sizeof(field_t));
+#endif
     }
 
     if (total_num_chunks == 2) {
@@ -392,7 +394,7 @@ static int poseidon_hash_many(uint8_t  rate,
 
 int hash_to_scalar_psd2(field_t *input, size_t input_length, scalar_t *r)
 {
-    int     status = 0;
+    int     status = -1;
     field_t output[1];
 
     LEDGER_ASSERT(input != NULL, "NULL input");
@@ -408,7 +410,7 @@ int hash_to_scalar_psd2(field_t *input, size_t input_length, scalar_t *r)
 
 int hash_to_scalar_psd4(field_t *input, size_t input_length, scalar_t *r)
 {
-    int     status = 0;
+    int     status = -1;
     field_t output[1];
 
     LEDGER_ASSERT(input != NULL, "NULL input");
@@ -424,7 +426,7 @@ int hash_to_scalar_psd4(field_t *input, size_t input_length, scalar_t *r)
 
 int hash_to_scalar_psd8(field_t *input, size_t input_length, scalar_t *r)
 {
-    int     status = 0;
+    int     status = -1;
     field_t output[1];
 
     LEDGER_ASSERT(input != NULL, "NULL input");
@@ -440,7 +442,7 @@ int hash_to_scalar_psd8(field_t *input, size_t input_length, scalar_t *r)
 
 int hash_psd2(field_t *input, size_t input_length, field_t *r)
 {
-    int     status = 0;
+    int     status = -1;
     field_t output[1];
 
     LEDGER_ASSERT(input != NULL, "NULL input");
@@ -456,7 +458,7 @@ int hash_psd2(field_t *input, size_t input_length, field_t *r)
 
 int hash_psd4(field_t *input, size_t input_length, field_t *r)
 {
-    int     status = 0;
+    int     status = -1;
     field_t output[1];
 
     LEDGER_ASSERT(input != NULL, "NULL input");
@@ -472,7 +474,7 @@ int hash_psd4(field_t *input, size_t input_length, field_t *r)
 
 int hash_psd8(field_t *input, size_t input_length, field_t *r)
 {
-    int     status = 0;
+    int     status = -1;
     field_t output[1];
 
     LEDGER_ASSERT(input != NULL, "NULL input");

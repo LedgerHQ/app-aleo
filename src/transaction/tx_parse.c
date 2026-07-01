@@ -26,6 +26,8 @@
 
 #include "bech32.h"
 #include "account.h"
+
+#include "db_program_function.h"
 #include "tx_types.h"
 #include "tx.h"
 
@@ -33,8 +35,6 @@
 #define U64_VALUE_LENGTH     sizeof(uint64_t)
 #define ADDRESS_TYPE_LENGTH  (3)
 #define ADDRESS_VALUE_LENGTH sizeof(field_t)
-
-#define NB_OF_PROGRAMS (6)
 
 typedef struct {
     const char *string;
@@ -47,62 +47,17 @@ typedef struct {
 static int get_u64(input_t *input, bool is_private, uint64_t *value);
 static int get_address(input_t *input, bool is_private, char address[ADDRESS_LEN + 1]);
 
-static int parse_transfer_public(sign_transaction_datas_t *data, tx_t *tx);
-static int parse_transfer_private(sign_transaction_datas_t *data, tx_t *tx);
-static int parse_transfer_public_to_private(sign_transaction_datas_t *data, tx_t *tx);
-static int parse_transfer_private_to_public(sign_transaction_datas_t *data, tx_t *tx);
+static int parse_aleo_transfer_public(sign_transaction_datas_t *data, tx_t *tx);
+static int parse_aleo_transfer_private(sign_transaction_datas_t *data, tx_t *tx);
+static int parse_aleo_batch_transfer_private(sign_transaction_datas_t *data, tx_t *tx);
+static int parse_aleo_transfer_public_to_private(sign_transaction_datas_t *data, tx_t *tx);
+static int parse_aleo_batch_transfer_public_to_private(sign_transaction_datas_t *data, tx_t *tx);
+static int parse_aleo_transfer_private_to_public(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_fee_public(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx);
 
-static const program_infos_t program_infos[NB_OF_PROGRAMS] = {
-    {
-     .string        = "transfer_public",
-     .string_length = 15,
-     .tx_type       = TX_TRANSFER,
-     .input_count   = 2,
-     .parse_fn      = parse_transfer_public,
-     },
-    {
-     .string        = "transfer_private",
-     .string_length = 16,
-     .tx_type       = TX_TRANSFER,
-     .input_count   = 3,
-     .parse_fn      = parse_transfer_private,
-     },
-    {
-     .string        = "transfer_public_to_private",
-     .string_length = 26,
-     .tx_type       = TX_TRANSFER,
-     .input_count   = 2,
-     .parse_fn      = parse_transfer_public_to_private,
-     },
-    {
-     .string        = "transfer_private_to_public",
-     .string_length = 26,
-     .tx_type       = TX_TRANSFER,
-     .input_count   = 3,
-     .parse_fn      = parse_transfer_private_to_public,
-     },
-    {
-     .string        = "fee_public",
-     .string_length = 10,
-     .tx_type       = TX_FEE,
-     .input_count   = 3,
-     .parse_fn      = parse_fee_public,
-     },
-    {
-     .string        = "fee_private",
-     .string_length = 11,
-     .tx_type       = TX_FEE,
-     .input_count   = 4,
-     .parse_fn      = parse_fee_private,
-     },
-};
-
 static int get_u64(input_t *input, bool is_private, uint64_t *value)
 {
-    int status = 0;
-
     if ((input->type_length != U64_TYPE_LENGTH) || (input->value_length != U64_VALUE_LENGTH)) {
         return -1;
     }
@@ -122,12 +77,12 @@ static int get_u64(input_t *input, bool is_private, uint64_t *value)
         *value += input->value[U64_VALUE_LENGTH - 1 - i];
     }
 
-    return status;
+    return 0;
 }
 
 static int get_address(input_t *input, bool is_private, char address[ADDRESS_LEN + 1])
 {
-    int status = 0;
+    int status = -1;
 
     if ((input->type_length != ADDRESS_TYPE_LENGTH)
         || (input->value_length != ADDRESS_VALUE_LENGTH)) {
@@ -158,9 +113,8 @@ static int get_address(input_t *input, bool is_private, char address[ADDRESS_LEN
     return status;
 }
 
-static int parse_transfer_public(sign_transaction_datas_t *data, tx_t *tx)
+static int parse_aleo_transfer_public(sign_transaction_datas_t *data, tx_t *tx)
 {
-    tx->transfer.type = TX_TRANSFER_PUBLIC;
     int status = get_address(&data->prepared_request.inputs[0], false, tx->transfer.address_to);
     if (status == 0) {
         status = get_u64(&data->prepared_request.inputs[1], false, &tx->transfer.amount);
@@ -169,9 +123,8 @@ static int parse_transfer_public(sign_transaction_datas_t *data, tx_t *tx)
     return status;
 }
 
-static int parse_transfer_private(sign_transaction_datas_t *data, tx_t *tx)
+static int parse_aleo_transfer_private(sign_transaction_datas_t *data, tx_t *tx)
 {
-    tx->transfer.type = TX_TRANSFER_PRIVATE;
     int status = get_address(&data->prepared_request.inputs[1], true, tx->transfer.address_to);
     if (status == 0) {
         status = get_u64(&data->prepared_request.inputs[2], true, &tx->transfer.amount);
@@ -180,9 +133,21 @@ static int parse_transfer_private(sign_transaction_datas_t *data, tx_t *tx)
     return status;
 }
 
-static int parse_transfer_public_to_private(sign_transaction_datas_t *data, tx_t *tx)
+static int parse_aleo_batch_transfer_private(sign_transaction_datas_t *data, tx_t *tx)
 {
-    tx->transfer.type = TX_TRANSFER_PUBLIC_TO_PRIVATE;
+    uint8_t inputs_count = data->prepared_request.inputs_count;
+    int     status       = get_address(
+        &data->prepared_request.inputs[inputs_count - 2], true, tx->transfer.address_to);
+    if (status == 0) {
+        status
+            = get_u64(&data->prepared_request.inputs[inputs_count - 1], true, &tx->transfer.amount);
+    }
+
+    return status;
+}
+
+static int parse_aleo_transfer_public_to_private(sign_transaction_datas_t *data, tx_t *tx)
+{
     int status = get_address(&data->prepared_request.inputs[0], true, tx->transfer.address_to);
     if (status == 0) {
         status = get_u64(&data->prepared_request.inputs[1], false, &tx->transfer.amount);
@@ -191,9 +156,18 @@ static int parse_transfer_public_to_private(sign_transaction_datas_t *data, tx_t
     return status;
 }
 
-static int parse_transfer_private_to_public(sign_transaction_datas_t *data, tx_t *tx)
+static int parse_aleo_batch_transfer_public_to_private(sign_transaction_datas_t *data, tx_t *tx)
 {
-    tx->transfer.type = TX_TRANSFER_PRIVATE_TO_PUBLIC;
+    uint8_t inputs_count = data->prepared_request.inputs_count;
+    int     status
+        = get_u64(&data->prepared_request.inputs[inputs_count - 1], false, &tx->transfer.amount);
+    memset(tx->transfer.address_to, 0, sizeof(tx->transfer.address_to));
+
+    return status;
+}
+
+static int parse_aleo_transfer_private_to_public(sign_transaction_datas_t *data, tx_t *tx)
+{
     int status = get_address(&data->prepared_request.inputs[1], false, tx->transfer.address_to);
     if (status == 0) {
         status = get_u64(&data->prepared_request.inputs[2], false, &tx->transfer.amount);
@@ -204,8 +178,7 @@ static int parse_transfer_private_to_public(sign_transaction_datas_t *data, tx_t
 
 static int parse_fee_public(sign_transaction_datas_t *data, tx_t *tx)
 {
-    tx->fee.type = TX_FEE_PUBLIC;
-    int status   = get_u64(&data->prepared_request.inputs[0], false, &tx->fee.base_fee);
+    int status = get_u64(&data->prepared_request.inputs[0], false, &tx->fee.base_fee);
     if (status == 0) {
         status = get_u64(&data->prepared_request.inputs[1], false, &tx->fee.priority_fee);
     }
@@ -215,8 +188,7 @@ static int parse_fee_public(sign_transaction_datas_t *data, tx_t *tx)
 
 static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx)
 {
-    tx->fee.type = TX_FEE_PRIVATE;
-    int status   = get_u64(&data->prepared_request.inputs[1], false, &tx->fee.base_fee);
+    int status = get_u64(&data->prepared_request.inputs[1], false, &tx->fee.base_fee);
     if (status == 0) {
         status = get_u64(&data->prepared_request.inputs[2], false, &tx->fee.priority_fee);
     }
@@ -229,42 +201,91 @@ int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
     LEDGER_ASSERT(data != NULL, "NULL data");
     LEDGER_ASSERT(tx != NULL, "NULL tx");
 
+    size_t                 index         = 0;
+    size_t                 program_index = 0;
+    function_parameters_t *functions     = NULL;
+
+    explicit_bzero(tx, sizeof(tx_t));
+
     if (!data->prepared_request.program_id) {
         return -1;
     }
     if (!data->prepared_request.function_name) {
         return -1;
     }
-    if (memcmp(data->prepared_request.program_id,
-               "credits.aleo",
-               data->prepared_request.program_id_length)) {
-        // Unknown transaction
-        return -1;
-    }
-    tx->type = TX_UNKNOWN;
-    for (uint8_t i = 0; i < NB_OF_PROGRAMS; i++) {
-        if (data->prepared_request.function_name_length != program_infos[i].string_length) {
+
+    // Find program
+    for (index = 0; index < NB_OF_PROGRAMS; index++) {
+        if (data->prepared_request.program_id_length
+            != strlen(PIC(program_parameters[index].program_id))) {
             continue;
         }
-
-        if (!memcmp(data->prepared_request.function_name,
-                    PIC(program_infos[i].string),
-                    data->prepared_request.function_name_length)) {
-            tx->type = program_infos[i].tx_type;
-            if (program_infos[i].input_count != data->prepared_request.inputs_count) {
-                return -1;
-            }
-            int (*parse_fn)(sign_transaction_datas_t *, tx_t *) = PIC(program_infos[i].parse_fn);
-            if (parse_fn(data, tx) < 0) {
-                return -1;
-            }
-            break;
+        if (memcmp(data->prepared_request.program_id,
+                   PIC(program_parameters[index].program_id),
+                   data->prepared_request.program_id_length)) {
+            continue;
         }
+        break;
     }
 
-    if (tx->type == TX_UNKNOWN) {
+    if (index >= NB_OF_PROGRAMS) {
         return -1;
     }
 
-    return 0;
+    // Find program's function
+    program_index = index;
+    functions     = PIC(program_parameters[program_index].functions);
+
+    for (index = 0; index < program_parameters[program_index].nb_of_functions; index++) {
+        if (data->prepared_request.function_name_length != strlen(PIC(functions[index].string))) {
+            continue;
+        }
+        if (memcmp(data->prepared_request.function_name,
+                   PIC(functions[index].string),
+                   data->prepared_request.function_name_length)) {
+            continue;
+        }
+        break;
+    }
+
+    if (index >= program_parameters[program_index].nb_of_functions) {
+        return -1;
+    }
+
+    if (functions[index].input_count != data->prepared_request.inputs_count) {
+        return -1;
+    }
+
+    tx->type = functions[index].tx_type;
+
+    switch (tx->type) {
+        case TX_ALEO_TRANSFER_PUBLIC:
+            return parse_aleo_transfer_public(data, tx);
+
+        case TX_ALEO_TRANSFER_PRIVATE:
+            return parse_aleo_transfer_private(data, tx);
+
+        case TX_ALEO_TRANSFER_BATCH_PRIVATE:
+            return parse_aleo_batch_transfer_private(data, tx);
+
+        case TX_ALEO_TRANSFER_PUBLIC_TO_PRIVATE:
+            return parse_aleo_transfer_public_to_private(data, tx);
+
+        case TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC:
+            return parse_aleo_batch_transfer_public_to_private(data, tx);
+
+        case TX_ALEO_TRANSFER_PRIVATE_TO_PUBLIC:
+            return parse_aleo_transfer_private_to_public(data, tx);
+
+        case TX_FEE_PUBLIC:
+            return parse_fee_public(data, tx);
+
+        case TX_FEE_PRIVATE:
+            return parse_fee_private(data, tx);
+
+        default:
+            break;
+    }
+
+    return -1;
 }

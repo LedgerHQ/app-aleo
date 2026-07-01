@@ -20,5 +20,6 @@
  *
  */
 int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool next_chunk);
+int handler_get_tvk(buffer_t *cdata, uint8_t mode);
 
 void sign_transaction_init(void);

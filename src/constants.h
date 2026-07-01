@@ -53,7 +53,7 @@
 /**
  * Maximum number of inputs for a single signature.
  */
-#define MAX_NB_OF_INPUTS (8)
+#define MAX_NB_OF_INPUTS (16)
 
 /**
  * Maximum number of records for a single signature.
@@ -84,3 +84,18 @@
  * Maximum length of input type.
  */
 #define INPUT_TYPE_MAX_LEN (128)
+
+/**
+ * OS big number length.
+ */
+#define BN_LENGTH (32)
+
+/**
+ * Maximum length of the R list used to compute TVK.
+ */
+#define R_LIST_MAX_LENGTH (32)
+
+/**
+ * R_list keep maximum time validity in ms.
+ */
+#define R_LIST_MAX_VALIDITY_TIME_MS (5 * 1000)

@@ -28,7 +28,7 @@
 #include "sw.h"
 #include "types.h"
 
-int handler_get_version()
+int handler_get_version(void)
 {
     _Static_assert(APPVERSION_LEN == 3, "Length of (MAJOR || MINOR || PATCH) must be 3!");
     _Static_assert(MAJOR_VERSION >= 0 && MAJOR_VERSION <= UINT8_MAX,
@@ -39,7 +39,7 @@ int handler_get_version()
                    "PATCH version must be between 0 and 255!");
 
     return io_send_response_pointer(
-        (const uint8_t *) &(uint8_t[APPVERSION_LEN]){
+        (const uint8_t *) &(uint8_t[APPVERSION_LEN]) {
             (uint8_t) MAJOR_VERSION, (uint8_t) MINOR_VERSION, (uint8_t) PATCH_VERSION},
         APPVERSION_LEN,
         SWO_SUCCESS);
