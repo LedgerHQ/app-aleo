@@ -105,9 +105,14 @@ if __name__ == "__main__":
 				function['hashes'].append(digest)
 
 				if network_id == 1:
+					# Testnet
 					print('         = {{0x{:016x}, 0x{:016x}, 0x{:016x}, 0x{:016x}}}}}}}}},'.format(digest.value.value[0], digest.value.value[1], digest.value.value[2], digest.value.value[3]), file=c_file)
 				else:
-					print('         = {{0x{:016x}, 0x{:016x}, 0x{:016x}, 0x{:016x}}}}},'.format(digest.value.value[0], digest.value.value[1], digest.value.value[2], digest.value.value[3]), file=c_file)
+					# Mainnet
+					if token['mainnet_availability']:
+						print('         = {{0x{:016x}, 0x{:016x}, 0x{:016x}, 0x{:016x}}}}},'.format(digest.value.value[0], digest.value.value[1], digest.value.value[2], digest.value.value[3]), file=c_file)
+					else:
+						print('         = {{0x{:016x}, 0x{:016x}, 0x{:016x}, 0x{:016x}}}}},'.format(0, 0, 0, 0), file=c_file)
 
 		print('};', file=c_file)
 		print('', file=c_file)

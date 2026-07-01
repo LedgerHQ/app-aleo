@@ -47,6 +47,16 @@ int bhp_1024_hash_function_id(prepared_request_t *request)
         return status;
     }
 
+    if (request->network_id >= sizeof(function_parameters->bhp_1024_hashes)) {
+        return -1;
+    }
+
+    if (!memcmp(&FIELD_ZERO,
+                PIC(&function_parameters->bhp_1024_hashes[request->network_id]),
+                sizeof(field_t))) {
+        return -1;
+    }
+
     memcpy(&request->function_id,
            PIC(&function_parameters->bhp_1024_hashes[request->network_id]),
            sizeof(field_t));
