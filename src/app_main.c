@@ -21,6 +21,7 @@
 #include "os.h"
 #include "ux.h"
 #include "swap.h"
+#include "swap_error_code_helpers.h"
 
 #include "types.h"
 #include "globals.h"
@@ -55,14 +56,10 @@ void app_main(void)
     io_init();
     time_ms = 0;
 
-#ifdef HAVE_SWAP
     // When called in swap context as a library, we don't want to show the menu
     if (!G_called_from_swap) {
-#endif
         ui_menu_main();
-#ifdef HAVE_SWAP
     }
-#endif
 
     // Reset context
     explicit_bzero(&G_context, sizeof(G_context));
@@ -117,7 +114,15 @@ void app_ticker_event_callback(void)
             account_erase(&G_context.account);
             r_list_erase();
 #ifndef FUZZ
-            nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
+            if (!G_called_from_swap) {
+                nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
+            }
+            else {
+                send_swap_error_simple(
+                    SW_SWAP_FAIL, SWAP_EC_ERROR_INTERNAL, SWAP_ERROR_CODE);
+                // unreachable
+                os_sched_exit(0);
+            }
 #endif  // FUZZ
         }
     }
@@ -127,7 +132,15 @@ void app_ticker_event_callback(void)
         if (G_context.r_list_alive_remaining_time_ms < 100) {
             G_context.r_list_alive_remaining_time_ms = 0;
             r_list_erase();
-            ui_menu_main();
+            if (!G_called_from_swap) {
+                ui_menu_main();
+            }
+            else {
+                send_swap_error_simple(
+                    SW_SWAP_FAIL, SWAP_EC_ERROR_INTERNAL, SWAP_ERROR_CODE);
+                // unreachable
+                os_sched_exit(0);
+            }
         }
     }
 }

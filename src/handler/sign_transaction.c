@@ -22,6 +22,7 @@
 
 #include "os.h"
 #include "cx.h"
+#include "swap.h"
 #include "ledger_assert.h"
 #include "nbgl_use_case.h"
 #include "menu.h"
@@ -74,7 +75,9 @@ static int sign_root_tx(buffer_t *cdata)
         account_erase(&G_context.account);
         r_list_erase();
 #ifndef FUZZ
-        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
+        if (!G_called_from_swap) {
+            nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
+        }
 #endif  // FUZZ
         return io_send_sw(SW_DISPLAY_BIP32_PATH_FAIL);
     }
@@ -191,15 +194,19 @@ static int sign_nested_call_tx(buffer_t *cdata)
             G_context.fees_waiting_time_ms = 0;
             G_context.signing_state        = SIGNING_STATE_WAIT_FEES;
 #ifndef FUZZ
-            nbgl_useCaseSpinner("Calculating fees");
+            if (!G_called_from_swap) {
+                nbgl_useCaseSpinner("Calculating fees");
+            }
 #endif  // FUZZ
         }
         else {
-#ifndef FUZZ
             account_erase(&G_context.account);
-            nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
-            G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
+#ifndef FUZZ
+            if (!G_called_from_swap) {
+                nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
+            }
 #endif  // FUZZ
+            G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
         }
     }
 
@@ -289,7 +296,11 @@ static int sign_fee_tx(buffer_t *cdata)
     validate_transaction(true);
     account_erase(&G_context.account);
     r_list_erase();
-    nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
+#ifndef FUZZ
+    if (!G_called_from_swap) {
+        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
+    }
+#endif  // FUZZ
     G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
     status                  = 0;
 
