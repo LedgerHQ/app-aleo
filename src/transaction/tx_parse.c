@@ -416,6 +416,16 @@ int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
         return -1;
     }
 
+    if (data->prepared_request.network_id >= sizeof(function_parameters->bhp_1024_hashes)) {
+        return -1;
+    }
+
+    if (!memcmp(&FIELD_ZERO,
+                PIC(&function_parameters->bhp_1024_hashes[data->prepared_request.network_id]),
+                sizeof(field_t))) {
+        return -1;
+    }
+
     tx->type = function_parameters->tx_type;
 
     switch (tx->type) {
