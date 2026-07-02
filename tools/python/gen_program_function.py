@@ -31,7 +31,7 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 
 	# Sanity checks
-	if args.file == None:
+	if args.file is None:
 		exit(-1)
 
 	json_file = open(args.file)

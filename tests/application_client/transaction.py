@@ -95,7 +95,7 @@ class Transaction():
         else:
             t = Transaction.TlvTypes(0)
 
-        l = int(tlv[offset:offset+2], base=16)
+        l = int(tlv[offset:offset+2], base=16) # noqa: E741
         offset += 2
 
         v = tlv[offset:offset+2*l]

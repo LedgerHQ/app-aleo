@@ -89,8 +89,6 @@ class BECH32M():
 
 	def decode(hrp: list[int], data: list[int], input: list[int]) -> bool:
 		chk = 1
-		have_lower = False
-		have_upper = False
 		if len(input) < 8 or len(input) > 90:
 			return False
 		
@@ -107,11 +105,11 @@ class BECH32M():
 			if ch < 33 or ch > 126:
 				return False
 			if ch >= 97 and ch < 122:
-				have_lower = True
+				pass
 			if ch >= 65 and ch <= 90:
-				have_upper = True
+				pass
 			hrp.append(ch)
-			chk = BECH32M.polymod_step(chk) ^ (ch >> 5);
+			chk = BECH32M.polymod_step(chk) ^ (ch >> 5)
 		chk = BECH32M.polymod_step(chk)
 		for index in range(0, hrp_len):
 			chk = BECH32M.polymod_step(chk) ^ (input[index] & 0x1f)
@@ -123,9 +121,9 @@ class BECH32M():
 			else:
 				v = BECH32M.CHARSET_REVERSED[ch]
 			if ch >= 97 and ch < 122:
-				have_lower = True
+				pass
 			if ch >= 65 and ch < 90:
-				have_upper = True
+				pass
 			if v == -1:
 				return False
 			chk = BECH32M.polymod_step(chk) ^ v

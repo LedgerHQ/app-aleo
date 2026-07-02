@@ -62,7 +62,7 @@ class PoseidonGrainLFSR():
 	def it_next(self):
 		if self.it_current_bit < self.it_num_bits:
 			new_bit = self.next_bit()
-			while new_bit == False:
+			while not new_bit:
 				self.next_bit()
 				new_bit = self.next_bit()
 			self.it_current_bit += 1
@@ -113,13 +113,13 @@ class PoseidonDefault():
 					f = Field()
 					f.from_big_int(val)
 					output.append(f)
-					break;
+					break
 		return output
 
 
 	def get_field_elements_mod_p(self, num_elems):
 		output = []
-		num_bits = Field.MODULUS_BITS;
+		num_bits = Field.MODULUS_BITS
 		for i in range(0, num_elems):
 			bits   = []
 			self.lfsr.it_init(num_bits)

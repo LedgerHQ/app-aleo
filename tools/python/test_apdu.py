@@ -18,7 +18,7 @@ if __name__ == "__main__":
 	parser.add_argument("--dry-run", help="just print apdus", action='store_true')
 	args = parser.parse_args()
 
-	if args.file == None:
+	if args.file is None:
 		exit(-1)
 
 	json_file = open(args.file)
@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
 	tx = Transaction()
 
-	if args.dry_run == False:
+	if not args.dry_run:
 		dongle = getDongle(True)
 
 	for cmd in cmds:

@@ -63,7 +63,7 @@ class BHP():
 		bhp_buffer = []
 		for input_block_index in range(0, input_nb_of_block):
 			if input_block_index == 0:
-				if sum == None:
+				if sum is None:
 					bhp_buffer += self.buffer_to_boolean(self.F.DOMAIN, self.F.DOMAIN_SIZE_IN_BITS)
 				bhp_buffer += self.buffer_to_boolean(input, input_total_bit_len)
 
@@ -73,7 +73,7 @@ class BHP():
 			for index in range(0, self.BHP_CHUNK_SIZE-(len(bhp_buffer) % self.BHP_CHUNK_SIZE)):
 				bhp_buffer.append(False)
 
-		if sum == None:
+		if sum is None:
 			one = Field(0)
 			one.from_big_int(BigInteger256(1))
 			sum = Group(Field(0), one)

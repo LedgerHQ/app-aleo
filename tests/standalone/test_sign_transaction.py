@@ -13,7 +13,7 @@ def check_response(received: dict, expected: dict) -> bool:
     for key in expected.keys():
         if key not in received.keys():
             return False
-        if type(received[key]) != type(expected[key]):
+        if type(received[key]) is not type(expected[key]):
             return False
         if isinstance(received[key], list):
             index = 0
@@ -22,7 +22,7 @@ def check_response(received: dict, expected: dict) -> bool:
                     return False
                 index += 1
         elif isinstance(received[key], dict):
-            if check_response(received[key], expected[key]) == False:
+            if not check_response(received[key], expected[key]):
                 return False
         elif received[key] != expected[key]:
             print("Error " + str(received[key]) + " != " + str(expected[key]))
@@ -850,7 +850,7 @@ def test_sign_transaction_get_tvk_timeout(backend: BackendInterface, scenario_na
     client = CommandSender(backend)
 
     tx_datas = {"type"  : "get_tvk", "path"  : "m/44'/683'/0'/0'", "index" : 0}
-    response = client.get_tvk(tx_datas=tx_datas).data
+    client.get_tvk(tx_datas=tx_datas).data
 
     if scenario_navigator.device.is_nano:
         instruction = NavInsID.LEFT_CLICK
