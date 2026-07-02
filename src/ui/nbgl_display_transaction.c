@@ -20,6 +20,7 @@
 #include <string.h>   // memset
 
 #include "os.h"
+#include "swap.h"
 #include "glyphs.h"
 #include "nbgl_use_case.h"
 #include "io.h"
@@ -34,8 +35,6 @@
 #include "types.h"
 #include "menu.h"
 #include "tokens.h"
-
-#define MAX_AMOUNT_SIZE (50)  // 50 chars is comfortable for amount formatting
 
 // Buffer where the transaction amount string is written
 static char g_amount[MAX_AMOUNT_SIZE + 1 + MAX_TICKER_SIZE];
@@ -60,20 +59,30 @@ static void review_transaction(bool confirm)
             G_context.signing_state        = SIGNING_STATE_WAIT_FEES;
             r_list_erase();
 #ifndef FUZZ
-            nbgl_useCaseSpinner("Calculating fees");
+            if (!G_called_from_swap) {
+                nbgl_useCaseSpinner("Calculating fees");
+            }
 #endif  // FUZZ
         }
         else {
             account_erase(&G_context.account);
             r_list_erase();
-            nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
+#ifndef FUZZ
+            if (!G_called_from_swap) {
+                nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
+            }
+#endif  // FUZZ
             G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
         }
     }
     else {
         account_erase(&G_context.account);
         r_list_erase();
-        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
+#ifndef FUZZ
+        if (!G_called_from_swap) {
+            nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
+        }
+#endif  // FUZZ
     }
 }
 
@@ -173,6 +182,11 @@ int ui_display_transaction(void)
              sizeof(g_finish_title),
              "Sign transaction to send %s?",
              G_context.tx.transfer.token_info->ticker);
+
+    if (G_called_from_swap) {
+        review_transaction(swap_check_validity(&G_context.tx.transfer, total_fees));
+        return 0;
+    }
 
 #ifdef HAVE_SE_TOUCH
     nbgl_useCaseReview(TYPE_TRANSACTION,

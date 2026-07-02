@@ -78,7 +78,7 @@ VARIANT_VALUES = ALEO
 
 # Enabling DEBUG flag will enable PRINTF and disable optimizations
 #DEBUG_OVER_USB = 1
-#DEBUG = 1
+DEBUG = 1
 # Force specific private key for dev purpose only
 #TEST_PRIVATE_KEY = APrivateKey1zkp5J89jFEgyDwNTzqxpxgLog5swheeyboJv3tQSUBGFZNY
 #DEFINES += TEST_PRIVATE_KEY=\"$(TEST_PRIVATE_KEY)\"
@@ -120,9 +120,9 @@ ifeq ($(APPNAME), "Aleo")
 #   - ENABLE_TESTING_SWAP:  will lead to the enabling of the swap related C code of the standard_app
 #                           ONLY works on Speculos, not on device
 # Testing only SWAP flag
-# ENABLE_TESTING_SWAP = 1
+#ENABLE_TESTING_SWAP = 1
 # Production enabled SWAP flag
-# ENABLE_SWAP = 1
+ENABLE_SWAP = 1
 endif
 # --8<-- [end:variables]
 

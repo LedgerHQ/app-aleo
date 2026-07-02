@@ -20,6 +20,7 @@
 #include <stdbool.h>  // bool
 
 #include "os.h"
+#include "swap.h"
 #include "ledger_assert.h"
 #include "globals.h"
 #include "group.h"
@@ -409,6 +410,10 @@ static void display_progression(uint8_t step)
     const char *text         = NULL;
     uint8_t     current_step = step;
     uint8_t     total_step   = (1 + G_context.nested_call_count) * 5;
+
+    if (G_called_from_swap) {
+        return;
+    }
 
     if (G_context.signing_state == SIGNING_STATE_FEES) {
         text = "Signing transaction";
