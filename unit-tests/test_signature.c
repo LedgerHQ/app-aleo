@@ -12,6 +12,9 @@
 #include "signature.h"
 
 global_ctx_t G_context;
+bool         G_called_from_swap    = false;
+bool         G_swap_response_ready = false;
+uint8_t     *G_swap_signing_return_value_address;
 
 static void prepare_random_ok(uint8_t *random_bn)
 {
@@ -462,7 +465,7 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    request_batch_private.inputs[0].value_length = (12+34)*32;
+    request_batch_private.inputs[0].value_length = (12 + 34) * 32;
     assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), -1);
     request_batch_private.inputs[0].value_length = 96;
 
