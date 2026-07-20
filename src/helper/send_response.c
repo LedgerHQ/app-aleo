@@ -265,7 +265,7 @@ int helper_send_response_sign_transaction(void)
         // Signing fees
         G_swap_response_ready = true;
     }
-    else if ((G_context.signing_state == SIGNING_STATE_INTENT) && (G_context.nested_call_count != 0)
+    else if ((G_context.signing_state == SIGNING_STATE_INTENT) && (G_context.nested_call_count == 0)
              && (G_context.sign_transaction_datas.max_base_fee == 0)
              && (G_context.sign_transaction_datas.max_priority_fee == 0)) {
         // No nested calls & no fees to sign
