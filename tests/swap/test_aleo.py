@@ -77,8 +77,23 @@ class GenericAleoTests(ExchangeTestRunner):
             rapdu = client.get_async_response()
 
 
+class ZeroFeeAleoTests(GenericAleoTests):
+    # A swap whose on-device transaction carries no fee to sign: the transfer is signed as a
+    # single root intent (max_base_fee = max_priority_fee = 0, nested_call_count = 0) and no
+    # separate fee APDU follows. This reproduces the real Changelly swap shape, where the app
+    # must return to Exchange right after the root signature.
+    valid_fees_1 = 0
+    valid_fees_2 = 0
+
+
 class TestsAleo:
 
     @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES)
     def test_aleo(self, backend, exchange_navigation_helper, test_to_run):
         GenericAleoTests(backend, exchange_navigation_helper).run_test(test_to_run)
+
+    # Regression: a root-only swap (no fee-signing step) must hand control back to Exchange
+    # instead of hanging on "Loading transaction". Without the fix this test times out because
+    # the app never calls os_lib_end() after signing the terminal root request.
+    def test_aleo_swap_zero_fee(self, backend, exchange_navigation_helper):
+        ZeroFeeAleoTests(backend, exchange_navigation_helper).run_test("swap_valid_1")
