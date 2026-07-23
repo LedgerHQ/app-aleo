@@ -34,7 +34,7 @@ void swap_handle_get_printable_amount(get_printable_amount_parameters_t *params)
 
     /// Convert params->amount into uint64_t
     u128_t raw_amount = {0};
-    if (!swap_str_to_u128((const char*)params->amount, params->amount_length, &raw_amount)) {
+    if (!swap_str_to_u128((const char *) params->amount, params->amount_length, &raw_amount)) {
         PRINTF("Amount is too big\n");
         return;
     }
