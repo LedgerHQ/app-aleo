@@ -34,6 +34,20 @@ def forge_public_fee(base_fee: int, priority_fee: int, execution_id: str, progra
 
     return data
 
+def forge_arc22_token_public_transfer(max_base_fee: int, max_priority_fee: int, address_to: str,
+                                      amount: int, program_name: str, program_checksum: str = '') -> dict:
+
+    data = {'type' : 'intent',
+            'max_base_fee' : max_base_fee, 'max_priority_fee' : max_priority_fee,
+            'fee_program_id' : 'credits.aleo', 'fee_function_name' : 'fee_public'}
+    data['request'] = {'network_id' : 'mainnet', 'program_id' : program_name, 'function_name' : 'transfer_public'}
+    data['request']['inputs'] = [{'type' : 'address.public', 'value' : address_to},
+                                 {'type' : 'u128.public',    'value' : amount}]
+    data['request']['nested_call_count'] = 0
+    data['request']['program_checksum']  = program_checksum
+
+    return data
+
 
 class GenericAleoTests(ExchangeTestRunner):
     # The coin configuration of our currency. Replace by your own
@@ -43,7 +57,7 @@ class GenericAleoTests(ExchangeTestRunner):
     # A memo to use associated with the destination address if applicable.
     valid_destination_memo_1 = ""
     # A second valid template address of a supposed trade partner.
-    valid_destination_2 = "9fc3da866e7dF3a1c57ade1a97c9f00a70f010c8"
+    valid_destination_2 = "aleo1ktwldl75earvxjur7devnqvdccjeuqa6807078klkg0a0l6ayq8qu9xzg4"
     # A second memo to use associated with the destination address if applicable.
     valid_destination_memo_2 = ""
     # The address of the Speculos seed on the ALEO_PATH.
@@ -61,7 +75,11 @@ class GenericAleoTests(ExchangeTestRunner):
     fake_refund_memo = "bla"
     fake_payout = "abcdabcd"
     fake_payout_memo = "bla"
-    
+
+    wrong_fees_error_code = 0xc000
+    wrong_destination_error_code = 0xc000
+    wrong_amount_error_code = 0xc000
+
     def perform_final_tx(self, destination, send_amount, fees, memo):
         client = CommandSender(self.backend)
         tx_datas = forge_public_transfer(0, fees, destination, send_amount)
@@ -85,6 +103,46 @@ class ZeroFeeAleoTests(GenericAleoTests):
     valid_fees_1 = 0
     valid_fees_2 = 0
 
+class USADTokenTests(GenericAleoTests):
+    currency_configuration = cal.ALEO_USAD_CURRENCY_CONFIGURATION
+
+    def perform_final_tx(self, destination, send_amount, fees, memo):
+        client = CommandSender(self.backend)
+        tx_datas = forge_arc22_token_public_transfer(0, fees, destination, send_amount, "usad_stablecoin.aleo")
+        tx_datas['path'] = "m/44'/683'/0'/0'"
+        with client.sign_transaction(tx_datas=tx_datas):
+            pass
+        rapdu = client.get_async_response()
+
+        if fees != 0:
+            tx_datas = forge_public_fee(0, fees, "7266375125414209082394925781071362722506946030314916664133746682226945366259field")
+            with client.sign_transaction(tx_datas=tx_datas):
+                pass
+            rapdu = client.get_async_response()
+
+class ZeroFeeUSADTokenTests(USADTokenTests):
+    valid_fees_1 = 0
+    valid_fees_2 = 0
+
+class FAKETokenTests(USADTokenTests):
+    currency_configuration = cal.ALEO_FAKE_CURRENCY_CONFIGURATION
+
+class FAKETokenTests2(GenericAleoTests):
+    currency_configuration = cal.ALEO_USAD_CURRENCY_CONFIGURATION
+
+    def perform_final_tx(self, destination, send_amount, fees, memo):
+        client = CommandSender(self.backend)
+        tx_datas = forge_arc22_token_public_transfer(0, fees, destination, send_amount, "fake_stablecoin.aleo")
+        tx_datas['path'] = "m/44'/683'/0'/0'"
+        with client.sign_transaction(tx_datas=tx_datas):
+            pass
+        rapdu = client.get_async_response()
+
+        if fees != 0:
+            tx_datas = forge_public_fee(0, fees, "7266375125414209082394925781071362722506946030314916664133746682226945366259field")
+            with client.sign_transaction(tx_datas=tx_datas):
+                pass
+            rapdu = client.get_async_response()
 
 class TestsAleo:
 
@@ -97,3 +155,18 @@ class TestsAleo:
     # the app never calls os_lib_end() after signing the terminal root request.
     def test_aleo_swap_zero_fee(self, backend, exchange_navigation_helper):
         ZeroFeeAleoTests(backend, exchange_navigation_helper).run_test("swap_valid_1")
+
+    def test_aleo_swap_usad(self, backend, exchange_navigation_helper):
+        USADTokenTests(backend, exchange_navigation_helper).run_test("swap_valid_1")
+
+    def test_aleo_swap_usad_zero_fee(self, backend, exchange_navigation_helper):
+        ZeroFeeUSADTokenTests(backend, exchange_navigation_helper).run_test("swap_valid_1")
+
+    def test_aleo_swap_fake(self, backend, exchange_navigation_helper):
+        with pytest.raises(ExceptionRAPDU) as e:
+            FAKETokenTests(backend, exchange_navigation_helper).run_test("swap_valid_1")
+        assert e.value.status in [0xc000]
+
+        with pytest.raises(ExceptionRAPDU) as e:
+            FAKETokenTests2(backend, exchange_navigation_helper).run_test("swap_valid_1")
+        assert e.value.status in [0xc000, 0x6a80]
