@@ -332,6 +332,8 @@ int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool next_chunk)
 
     LEDGER_ASSERT(cdata != NULL, "NULL cdata");
 
+    G_swap_response_ready = true;
+
     if (!cdata->size) {
         // Reject empty data
         return io_send_sw(SWO_WRONG_DATA_LENGTH);
