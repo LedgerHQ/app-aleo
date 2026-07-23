@@ -31,7 +31,7 @@ bool swap_str_to_u128(const char *in, size_t in_len, u128_t *out)
 
     for (size_t i = 0; i < in_len; i++) {
         high = (high << 8) | (low >> 56);
-        low  = (low << 8) | (uint64_t)in[i];
+        low  = (low << 8) | (uint64_t) in[i];
     }
 
     out->low  = low;

@@ -69,15 +69,15 @@ static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
     uint8_t      seed_bn[BN_LENGTH];
     bigint_256_t seed_big_int;
     bolos_err_t  error = sys_hdkey_derive(HDKEY_DERIVE_MODE_BLS12377_ALEO,
-                                          CX_CURVE_BLS12_377_G1,
-                                          path,
-                                          path_len,
-                                          seed_bn,
-                                          BN_LENGTH,
-                                          NULL,
-                                          0,
-                                          NULL,
-                                          0);
+                                         CX_CURVE_BLS12_377_G1,
+                                         path,
+                                         path_len,
+                                         seed_bn,
+                                         BN_LENGTH,
+                                         NULL,
+                                         0,
+                                         NULL,
+                                         0);
     if (error != SWO_OK) {
         return -1;
     }
