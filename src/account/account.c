@@ -32,10 +32,10 @@
 
 #include "account.h"
 
-#define HASH_INPUT_MAX_LENGTH (8)
+/*#define HASH_INPUT_MAX_LENGTH (8)
 
-static field_t hash_input[HASH_INPUT_MAX_LENGTH];
-static char    text_buffer[32];
+static field_t hash_input[HASH_INPUT_MAX_LENGTH];*/
+static char text_buffer[32];
 
 const field_t ACCOUNT_SK_SIG_DOMAIN = {
     .big.u64 = {0xc9a73b0068afb54b, 0x95d2050edfd00d2d, 0x30b27b31e4cc8dc3, 0x127ef5e8bbf7590e}
@@ -92,8 +92,9 @@ static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
 
 static int private_key_from_seed(const field_t *seed, scalar_t *sk_sig, scalar_t *r_sig)
 {
-    _Static_assert(HASH_INPUT_MAX_LENGTH >= 4, "hash_input size won't fit");
-    int status = -1;
+    //_Static_assert(HASH_INPUT_MAX_LENGTH >= 4, "hash_input size won't fit");
+    int     status = -1;
+    field_t hash_input[4];
 
     // Compute sk_sig
     memset(hash_input, 0, sizeof(hash_input));
@@ -101,7 +102,7 @@ static int private_key_from_seed(const field_t *seed, scalar_t *sk_sig, scalar_t
     memcpy(&hash_input[3], seed, sizeof(field_t));
     status = hash_to_scalar_psd2(hash_input, 2 + 2, sk_sig);
     if (status < 0) {
-        return -1;
+        goto end;
     }
     PRINTF("sk_sig : ");
     scalar_println(sk_sig);
@@ -112,11 +113,13 @@ static int private_key_from_seed(const field_t *seed, scalar_t *sk_sig, scalar_t
     memcpy(&hash_input[3], seed, sizeof(field_t));
     status = hash_to_scalar_psd2(hash_input, 2 + 2, r_sig);
     if (status < 0) {
-        return -1;
+        goto end;
     }
     PRINTF("r_sig : ");
     scalar_println(r_sig);
 
+end:
+    explicit_bzero(hash_input, sizeof(hash_input));
     return status;
 }
 
@@ -146,15 +149,16 @@ static int view_key_from_private_and_compute_key(const private_key_t *private_ke
                                                  compute_key_t       *compute_key,
                                                  scalar_t            *view_key)
 {
-    _Static_assert(HASH_INPUT_MAX_LENGTH >= 6, "hash_input size won't fit");
-    int status = -1;
+    //_Static_assert(HASH_INPUT_MAX_LENGTH >= 6, "hash_input size won't fit");
+    int     status = -1;
+    field_t hash_input[6];
 
     memset(hash_input, 0, sizeof(hash_input));
     memcpy(&hash_input[4], &compute_key->pk_sig.x, sizeof(field_t));
     memcpy(&hash_input[5], &compute_key->pr_sig.x, sizeof(field_t));
     status = hash_to_scalar_psd4(hash_input, 4 + 2, &compute_key->sk_prf);
     if (status < 0) {
-        return -1;
+        goto end;
     }
     PRINTF("sk_prf : ");
     scalar_println(&compute_key->sk_prf);
@@ -165,6 +169,8 @@ static int view_key_from_private_and_compute_key(const private_key_t *private_ke
     PRINTF("view_key : ");
     scalar_println(view_key);
 
+end:
+    explicit_bzero(hash_input, sizeof(hash_input));
     return status;
 }
 
@@ -182,8 +188,9 @@ static int address_from_view_key(const scalar_t *view_key, group_t *address)
 
 static int graph_key_from_view_key(const scalar_t *view_key, field_t *graph_key)
 {
-    _Static_assert(HASH_INPUT_MAX_LENGTH >= 7, "hash_input size won't fit");
+    //_Static_assert(HASH_INPUT_MAX_LENGTH >= 7, "hash_input size won't fit");
     int     status = -1;
+    field_t hash_input[7];
     field_t f_view_key;
     scalar_to_field(view_key, &f_view_key);
 
@@ -195,6 +202,7 @@ static int graph_key_from_view_key(const scalar_t *view_key, field_t *graph_key)
     PRINTF("graph key : ");
     field_println(graph_key);
 
+    explicit_bzero(hash_input, sizeof(hash_input));
     return status;
 }
 
@@ -257,7 +265,6 @@ int account_get_address_string(const uint32_t *path,
     PRINTF("%s\n", address);
 
 end:
-    explicit_bzero(hash_input, sizeof(hash_input));
     explicit_bzero(&account, sizeof(account_t));
 
     return status;
@@ -311,7 +318,6 @@ int account_get_view_key_string(const uint32_t *path,
     PRINTF("%s\n", viewkey);
 
 end:
-    explicit_bzero(hash_input, sizeof(hash_input));
     explicit_bzero(&account, sizeof(account_t));
 
     return status;
@@ -375,7 +381,6 @@ int account_generate_keys(const uint32_t *path, uint8_t path_len, account_t *acc
     return 0;
 
 error:
-    explicit_bzero(hash_input, sizeof(hash_input));
     explicit_bzero(account, sizeof(account_t));
     return status;
 }
@@ -389,6 +394,7 @@ int r_list_set(account_t *account, uint8_t index)
 {
     int       status = -1;
     field_t   nonce;
+    field_t   hash_input[8];
     scalar_t *r = NULL;
 
     LEDGER_ASSERT(account != NULL, "NULL account");
@@ -408,7 +414,7 @@ int r_list_set(account_t *account, uint8_t index)
         r = &G_context.r_list.array[index];
 
         // Compute a `r0` as `hash_to_scalar_psd4(domain || sk_sig || nonce)`
-        _Static_assert(HASH_INPUT_MAX_LENGTH >= 7, "hash_input size won't fit");
+        //_Static_assert(HASH_INPUT_MAX_LENGTH >= 7, "hash_input size won't fit");
         memset(hash_input, 0, sizeof(hash_input));
         memcpy(&hash_input[4], &LEDGER_APP_ALEO_DOMAIN, sizeof(field_t));
         scalar_to_field(&account->private_key.sk_sig, &hash_input[5]);
@@ -440,7 +446,7 @@ int r_list_set(account_t *account, uint8_t index)
         }
 
         // Compute a `rx` as `hash_to_scalar_psd4(domain || sk_sig || nonce || index)`
-        _Static_assert(HASH_INPUT_MAX_LENGTH >= 8, "hash_input size won't fit");
+        //_Static_assert(HASH_INPUT_MAX_LENGTH >= 8, "hash_input size won't fit");
         memset(hash_input, 0, sizeof(hash_input));
         memcpy(&hash_input[4], &LEDGER_APP_ALEO_DOMAIN, sizeof(field_t));
         scalar_to_field(&account->private_key.sk_sig, &hash_input[5]);

@@ -21,6 +21,7 @@
 
 #include "buffer.h"
 
+#include "swap.h"
 #include "ledger_assert.h"
 #include "send_response.h"
 #include "constants.h"
@@ -259,6 +260,44 @@ int helper_send_response_sign_transaction(void)
     write_u16_be(response_buffer, offset, SWO_SUCCESS);  // 2 bytes
     offset += 2;
 
+    G_swap_response_ready = false;
+    if (G_context.signing_state == SIGNING_STATE_FEES) {
+        // Signing fees
+        G_swap_response_ready = true;
+    }
+    else if ((G_context.signing_state == SIGNING_STATE_INTENT) && (G_context.nested_call_count == 0)
+             && (G_context.sign_transaction_datas.max_base_fee == 0)
+             && (G_context.sign_transaction_datas.max_priority_fee == 0)) {
+        // No nested calls & no fees to sign
+        G_swap_response_ready = true;
+    }
+    else if ((G_context.signing_state == SIGNING_STATE_NESTED_CALL)
+             && ((G_context.nested_call_offset + 1) >= G_context.nested_call_count)
+             && (G_context.sign_transaction_datas.max_base_fee == 0)
+             && (G_context.sign_transaction_datas.max_priority_fee == 0)) {
+        // No more nested calls & no fees to sign
+        G_swap_response_ready = true;
+    }
+
+    // If we are in swap mode and have validated a TX, we send it and immediately quit
+    if (G_called_from_swap && G_swap_response_ready) {
+        PRINTF("Swap answer is processed. Send it\n");
+
+        if (io_legacy_apdu_tx(response_buffer, offset) >= 0) {
+            *G_swap_signing_return_value_address = 1;
+            PRINTF("Returning to Exchange with status %d\n", *G_swap_signing_return_value_address);
+            PRINTF("os_lib_end\n");
+            os_lib_end();
+        }
+        else {
+            PRINTF("Unrecoverable\n");
+#ifndef USE_OS_IO_STACK
+            os_io_stop();
+#endif  // USE_OS_IO_STACK
+            os_sched_exit(-1);
+        }
+    }
+
     return io_legacy_apdu_tx(response_buffer, offset);
 }
 
@@ -278,8 +317,5 @@ int helper_send_response_get_tvk(field_t *tvk)
     bn_reverse(&response_buffer[offset]);
     offset += 32;
 
-    write_u16_be(response_buffer, offset, SWO_SUCCESS);  // 2 bytes
-    offset += 2;
-
-    return io_legacy_apdu_tx(response_buffer, offset);
+    return io_send_response_pointer(response_buffer, offset, SWO_SUCCESS);
 }
