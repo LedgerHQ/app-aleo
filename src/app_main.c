@@ -118,8 +118,7 @@ void app_ticker_event_callback(void)
                 nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
             }
             else {
-                send_swap_error_simple(
-                    SW_SWAP_FAIL, SWAP_EC_ERROR_INTERNAL, SWAP_ERROR_CODE);
+                send_swap_error_simple(SW_SWAP_FAIL, SWAP_EC_ERROR_INTERNAL, SWAP_ERROR_CODE);
                 // unreachable
                 os_sched_exit(0);
             }
@@ -136,8 +135,7 @@ void app_ticker_event_callback(void)
                 ui_menu_main();
             }
             else {
-                send_swap_error_simple(
-                    SW_SWAP_FAIL, SWAP_EC_ERROR_INTERNAL, SWAP_ERROR_CODE);
+                send_swap_error_simple(SW_SWAP_FAIL, SWAP_EC_ERROR_INTERNAL, SWAP_ERROR_CODE);
                 // unreachable
                 os_sched_exit(0);
             }
