@@ -127,6 +127,7 @@ Serialized TLV data:
 |                                 ||| 0x02 : [private](#private-type)  |
 |                                 ||| 0x03 : [record](#record-type) |
 |                                 ||| 0x04 : [external_record](#external-record-type) |
+|                                 ||| 0x06 : [dynamic_record](#dynamic-record-type) |
 
 #### Constant type
 
@@ -161,6 +162,12 @@ Serialized TLV data:
 | _Name_           | _Length_ | _Type_  | _Description_ |
 | -----            |    :--:  | -:      | -             |
 | `value type`     |     1    |      u8 | 0x04 |
+
+#### Dynamic record type
+
+| _Name_           | _Length_ | _Type_  | _Description_ |
+| -----            |    :--:  | -:      | -             |
+| `value type`     |     1    |      u8 | 0x06 |
 
 #### Plaintext type
 | _Name_           | _Length_ | _Type_  | _Description_ |
@@ -231,6 +238,11 @@ Serialized TLV data:
 | _Name_           | _Length_ | _Type_   | _Description_ |
 | -----            |    :--:  | -:       | -             |
 | `record_fields`  |   N × 32 |  field[] | `record.to_fields()` — N little-endian 256-bit field elements pre-computed by the host from the record plaintext ([snarkVM ref](https://github.com/ProvableHQ/snarkVM/blob/staging/console/program/src/request/sign.rs#L156)). N must satisfy N × 32 ≤ 128 (`INPUT_VALUE_MAX_LEN`). |
+
+#### Dynamic record
+| _Name_           | _Length_ | _Type_   | _Description_ |
+| -----            |    :--:  | -:       | -             |
+| `record_fields`  |   N × 32 |  field[] | `DynamicRecord::from_record(record).to_fields()` — N little-endian 256-bit field elements pre-computed by the host. Used for a `dynamic.record`-typed input (Aleo's `call.dynamic`, e.g. a generic multi-token batcher resolving its callee at runtime): a fixed-size `owner \|\| root \|\| nonce \|\| version` encoding (`root` is a Merkle root the host computes over the record's data entries), not the full record plaintext ([snarkVM ref](https://github.com/ProvableHQ/snarkVM/blob/staging/console/program/src/request/input_id/mod.rs#L181)). Hashed identically to [external_record](#external-record) — the device treats both as an opaque field array. N must satisfy N × 32 ≤ 128 (`INPUT_VALUE_MAX_LEN`). |
 
 ### Input example
 

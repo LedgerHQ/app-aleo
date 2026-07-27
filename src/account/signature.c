@@ -393,6 +393,15 @@ static int prepare_inputs(account_t *account, prepared_request_t *request)
                 status = hash_external_record_input(request, input_index);
                 break;
 
+            case INPUT_ID_DYNAMIC_RECORD:
+                // Hashed identically to INPUT_ID_EXTERNAL_RECORD: `hash_psd8(function_id ||
+                // fields || tvk || index)` over a host-supplied, opaque field array. The only
+                // difference is what the host packed into those fields (a DynamicRecord's
+                // owner/root/nonce/version, vs. a full record) -- irrelevant here since this
+                // function never interprets the fields, only hashes them.
+                status = hash_external_record_input(request, input_index);
+                break;
+
             default:
                 status = -1;
                 break;

@@ -41,6 +41,13 @@
 static const token_display_info_t aleo_display_info
     = {.type = TOKEN_TYPE_ALEO, .ticker = "ALEO", .decimals = 6};
 
+// Placeholder for the ARC-20 generic dynamic-dispatch batcher (`mm1_ldg_arc20_p_28.aleo`):
+// the target token program is resolved at runtime (an `identifier.private` input), so its
+// ticker and decimals are not known at whitelist time. Rather than guess a scaling that could
+// be wrong for a token this wasn't whitelisted for, the amount is shown unscaled (no ticker).
+static const token_display_info_t arc20_dynamic_display_info
+    = {.type = TOKEN_TYPE_ARC20, .ticker = "", .decimals = 0};
+
 static int get_u64(input_t *input, bool is_private, uint64_t *value);
 static int get_u128(input_t *input, bool is_private, u128_t *value);
 static int get_address(input_t *input, bool is_private, char address[ADDRESS_LEN + 1]);
@@ -60,6 +67,7 @@ static int parse_token_transfer_private_to_public(sign_transaction_datas_t *data
 
 static int parse_token_batch_transfer_private(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_token_batch_transfer_private_to_public(sign_transaction_datas_t *data, tx_t *tx);
+static int parse_token_batch_transfer_private_dynamic(sign_transaction_datas_t *data, tx_t *tx);
 
 static int parse_fee_public(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx);
@@ -235,7 +243,8 @@ static int parse_token_transfer_public(sign_transaction_datas_t *data, tx_t *tx)
         return status;
     }
 
-    if (tx->transfer.token_info->type == TOKEN_TYPE_ARC22) {
+    if ((tx->transfer.token_info->type == TOKEN_TYPE_ARC22)
+        || (tx->transfer.token_info->type == TOKEN_TYPE_ARC20)) {
         status = get_address(&data->prepared_request.inputs[0], false, tx->transfer.address_to);
         if (status == 0) {
             status = get_u128(&data->prepared_request.inputs[1], false, &tx->transfer.amount);
@@ -258,7 +267,8 @@ static int parse_token_transfer_public_to_private(sign_transaction_datas_t *data
         return status;
     }
 
-    if (tx->transfer.token_info->type == TOKEN_TYPE_ARC22) {
+    if ((tx->transfer.token_info->type == TOKEN_TYPE_ARC22)
+        || (tx->transfer.token_info->type == TOKEN_TYPE_ARC20)) {
         status = get_address(&data->prepared_request.inputs[0], true, tx->transfer.address_to);
         if (status == 0) {
             status = get_u128(&data->prepared_request.inputs[1], false, &tx->transfer.amount);
@@ -281,9 +291,17 @@ static int parse_token_transfer_private(sign_transaction_datas_t *data, tx_t *tx
         return status;
     }
     if (tx->transfer.token_info->type == TOKEN_TYPE_ARC22) {
+        // ARC22 `transfer_private`: address.private || u128.private || Token.record || proof
         status = get_address(&data->prepared_request.inputs[0], true, tx->transfer.address_to);
         if (status == 0) {
             status = get_u128(&data->prepared_request.inputs[1], true, &tx->transfer.amount);
+        }
+    }
+    else if (tx->transfer.token_info->type == TOKEN_TYPE_ARC20) {
+        // ARC20 `transfer_private`: Token.record || address.private || u128.private
+        status = get_address(&data->prepared_request.inputs[1], true, tx->transfer.address_to);
+        if (status == 0) {
+            status = get_u128(&data->prepared_request.inputs[2], true, &tx->transfer.amount);
         }
     }
     else {
@@ -304,9 +322,17 @@ static int parse_token_transfer_private_to_public(sign_transaction_datas_t *data
     }
 
     if (tx->transfer.token_info->type == TOKEN_TYPE_ARC22) {
+        // ARC22 `transfer_private_to_public`: address.public || u128.public || Token.record || proof
         status = get_address(&data->prepared_request.inputs[0], false, tx->transfer.address_to);
         if (status == 0) {
             status = get_u128(&data->prepared_request.inputs[1], false, &tx->transfer.amount);
+        }
+    }
+    else if (tx->transfer.token_info->type == TOKEN_TYPE_ARC20) {
+        // ARC20 `transfer_private_to_public`: Token.record || address.public || u128.public
+        status = get_address(&data->prepared_request.inputs[1], false, tx->transfer.address_to);
+        if (status == 0) {
+            status = get_u128(&data->prepared_request.inputs[2], false, &tx->transfer.amount);
         }
     }
     else {
@@ -361,6 +387,25 @@ static int parse_token_batch_transfer_private_to_public(sign_transaction_datas_t
     }
     else {
         return -1;
+    }
+
+    return status;
+}
+
+// `mm1_ldg_arc20_p_28.aleo transfer_private_N`: `identifier.private` (target program) ||
+// N x `dynamic.record` || `address.private` || `u128.private`. Unlike
+// `parse_token_batch_transfer_private`, the target token isn't known at whitelist time (it's
+// resolved on-chain at call.dynamic time), so there is no `db_tokens.c` entry to look up by
+// program_id -- this always uses the ticker-less placeholder.
+static int parse_token_batch_transfer_private_dynamic(sign_transaction_datas_t *data, tx_t *tx)
+{
+    uint8_t inputs_count    = data->prepared_request.inputs_count;
+    tx->transfer.token_info = PIC(&arc20_dynamic_display_info);
+    int status
+        = get_address(&data->prepared_request.inputs[inputs_count - 2], true, tx->transfer.address_to);
+    if (status == 0) {
+        status = get_u128(
+            &data->prepared_request.inputs[inputs_count - 1], true, &tx->transfer.amount);
     }
 
     return status;
@@ -451,6 +496,9 @@ int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
 
         case TX_TOKEN_TRANSFER_BATCH_PRIVATE:
             return parse_token_batch_transfer_private(data, tx);
+
+        case TX_TOKEN_TRANSFER_BATCH_PRIVATE_DYNAMIC:
+            return parse_token_batch_transfer_private_dynamic(data, tx);
 
         case TX_TOKEN_TRANSFER_BATCH_PRIVATE_TO_PUBLIC:
             return parse_token_batch_transfer_private_to_public(data, tx);

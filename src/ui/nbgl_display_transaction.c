@@ -105,6 +105,11 @@ int ui_display_transaction(void)
              || (G_context.tx.type == TX_TOKEN_TRANSFER_BATCH_PRIVATE)) {
         review_subtitle = "Private batch transfer";
     }
+    else if (G_context.tx.type == TX_TOKEN_TRANSFER_BATCH_PRIVATE_DYNAMIC) {
+        // Target token resolved at call.dynamic time; amount is shown unscaled (see
+        // arc20_dynamic_display_info in tx_parse.c).
+        review_subtitle = "Private batch transfer (raw token units)";
+    }
     else if ((G_context.tx.type == TX_ALEO_TRANSFER_PRIVATE_TO_PUBLIC)
              || (G_context.tx.type == TX_TOKEN_TRANSFER_PRIVATE_TO_PUBLIC)) {
         review_subtitle = "Transfer from private to public address";

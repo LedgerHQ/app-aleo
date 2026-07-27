@@ -11,6 +11,7 @@ typedef enum {
     INPUT_ID_RECORD          = 3,
     INPUT_ID_EXTERNAL_RECORD = 4,
     INPUT_ID_FUTURE          = 5,
+    INPUT_ID_DYNAMIC_RECORD  = 6,
 } input_id_e;
 
 typedef enum {

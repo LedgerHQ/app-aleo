@@ -317,26 +317,89 @@ const function_parameters_t ldg_p2p_1114_aleo[NB_OF_LDG_P2P_1114_ALEO_FUNCTIONS]
          = {0x6df5a23c6941d2c8, 0x2bba7da140a71fc8, 0x8b60f455805ab5d9, 0x0305bd8e7d3e4633}}}},
 };
 
+#define NB_OF_MM1_LDG_ARC20_P_28_ALEO_FUNCTIONS (7)
+const function_parameters_t mm1_ldg_arc20_p_28_aleo[NB_OF_MM1_LDG_ARC20_P_28_ALEO_FUNCTIONS] = {
+    {.name        = "transfer_private_2",
+     .tx_type     = TX_TOKEN_TRANSFER_BATCH_PRIVATE_DYNAMIC,
+     .input_count = 5,
+     .bhp_1024_hashes
+     = {{.big.u64
+         = {0x7e0b7d2f542d4bb0, 0xf064e6ae3e2a69a1, 0xef1a4293b3ed3684, 0x077d873a8e8ab720}},
+        {.big.u64
+         = {0xfc7df47f46546ed0, 0x9a1253ddef6f1db8, 0x0d1c4480dad21cf2, 0x0c8ae03d06f7e122}}}},
+    {.name        = "transfer_private_3",
+     .tx_type     = TX_TOKEN_TRANSFER_BATCH_PRIVATE_DYNAMIC,
+     .input_count = 6,
+     .bhp_1024_hashes
+     = {{.big.u64
+         = {0xddd77d3e24477ace, 0x1a183abc13fb0e65, 0x1dc23b881bbcfb3c, 0x09fa540c68edace8}},
+        {.big.u64
+         = {0xbdf5957cd1c07d53, 0xd913985dda6e2936, 0x3b3bff24a522ae53, 0x0298bab4a7f22a5c}}}},
+    {.name        = "transfer_private_4",
+     .tx_type     = TX_TOKEN_TRANSFER_BATCH_PRIVATE_DYNAMIC,
+     .input_count = 7,
+     .bhp_1024_hashes
+     = {{.big.u64
+         = {0x757251d9527dd520, 0xdc6db7d8a18de35a, 0xfa154aee54d74c47, 0x06d95969e1390cc5}},
+        {.big.u64
+         = {0x5ccf3d4c13d820bf, 0xa8e5f7e0a46b3751, 0xe126ad528895c955, 0x047af97e7375a1b6}}}},
+    {.name        = "transfer_private_5",
+     .tx_type     = TX_TOKEN_TRANSFER_BATCH_PRIVATE_DYNAMIC,
+     .input_count = 8,
+     .bhp_1024_hashes
+     = {{.big.u64
+         = {0x9ae3dcb35198dac0, 0xc4960a6defac9d35, 0x64093944b18531c5, 0x02be454669878706}},
+        {.big.u64
+         = {0x8cd0bff57336ea3c, 0x52cbb729fba1676c, 0xabf876fdb455b607, 0x082e82191265c91f}}}},
+    {.name        = "transfer_private_6",
+     .tx_type     = TX_TOKEN_TRANSFER_BATCH_PRIVATE_DYNAMIC,
+     .input_count = 9,
+     .bhp_1024_hashes
+     = {{.big.u64
+         = {0x2a4ae61324ca6b7b, 0x3dbb45d04d851937, 0x983dac52589c53e4, 0x0dbec6d96ac8d8a4}},
+        {.big.u64
+         = {0xed22285574236392, 0x9f727db6f5414039, 0x85783687a1653ff9, 0x03721c285053c7d3}}}},
+    {.name        = "transfer_private_7",
+     .tx_type     = TX_TOKEN_TRANSFER_BATCH_PRIVATE_DYNAMIC,
+     .input_count = 10,
+     .bhp_1024_hashes
+     = {{.big.u64
+         = {0x8941a3fe9e80e5d6, 0x2fb04050dde22c87, 0xcab2de8662188997, 0x090dd1ba336874ca}},
+        {.big.u64
+         = {0xcf729fa72a25c552, 0x36ddd34491597057, 0xc3f741e229e828e2, 0x11e3e588610a2b12}}}},
+    {.name        = "transfer_private_8",
+     .tx_type     = TX_TOKEN_TRANSFER_BATCH_PRIVATE_DYNAMIC,
+     .input_count = 11,
+     .bhp_1024_hashes
+     = {{.big.u64
+         = {0x9f09b20b6141e6ac, 0x43c68a928bc26d8c, 0x3e86e170af96c7c0, 0x0eba2a6c4950b721}},
+        {.big.u64
+         = {0xbede506cb04604ae, 0x67c07b3e6f83f8b1, 0xa9bd1c3b48a9ef67, 0x11398cdfff1ed8c6}}}},
+};
+
 const program_parameter_t program_parameters[NB_OF_PROGRAMS] = {
     {.program_id      = "credits.aleo",
      .nb_of_functions = NB_OF_CREDITS_ALEO_FUNCTIONS,
-     .functions       = credits_aleo     },
+     .functions       = credits_aleo           },
     {.program_id      = "ldg_p_28.aleo",
      .nb_of_functions = NB_OF_LDG_P_28_ALEO_FUNCTIONS,
-     .functions       = ldg_p_28_aleo    },
+     .functions       = ldg_p_28_aleo          },
     {.program_id      = "ldg_p_910.aleo",
      .nb_of_functions = NB_OF_LDG_P_910_ALEO_FUNCTIONS,
-     .functions       = ldg_p_910_aleo   },
+     .functions       = ldg_p_910_aleo         },
     {.program_id      = "ldg_p_1114.aleo",
      .nb_of_functions = NB_OF_LDG_P_1114_ALEO_FUNCTIONS,
-     .functions       = ldg_p_1114_aleo  },
+     .functions       = ldg_p_1114_aleo        },
     {.program_id      = "ldg_p2p_28.aleo",
      .nb_of_functions = NB_OF_LDG_P2P_28_ALEO_FUNCTIONS,
-     .functions       = ldg_p2p_28_aleo  },
+     .functions       = ldg_p2p_28_aleo        },
     {.program_id      = "ldg_p2p_910.aleo",
      .nb_of_functions = NB_OF_LDG_P2P_910_ALEO_FUNCTIONS,
-     .functions       = ldg_p2p_910_aleo },
+     .functions       = ldg_p2p_910_aleo       },
     {.program_id      = "ldg_p2p_1114.aleo",
      .nb_of_functions = NB_OF_LDG_P2P_1114_ALEO_FUNCTIONS,
-     .functions       = ldg_p2p_1114_aleo},
+     .functions       = ldg_p2p_1114_aleo      },
+    {.program_id      = "mm1_ldg_arc20_p_28.aleo",
+     .nb_of_functions = NB_OF_MM1_LDG_ARC20_P_28_ALEO_FUNCTIONS,
+     .functions       = mm1_ldg_arc20_p_28_aleo},
 };

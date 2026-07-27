@@ -507,6 +507,35 @@ static void test_signature(void **state)
     check_scalar(&request_batch_private.challenge, &challenge_11);
     check_scalar(&request_batch_private.response, &response_11);
 
+    // A "\x06" (INPUT_ID_DYNAMIC_RECORD) input must hash identically to a "\x04"
+    // (INPUT_ID_EXTERNAL_RECORD) input given the same field bytes: both route to
+    // hash_external_record_input(), which never interprets the fields, only hashes them.
+    request_batch_private.inputs[0].type = (uint8_t *) "\x06";
+    request_batch_private.inputs[1].type = (uint8_t *) "\x06";
+    memcpy(hash_record, hash_record_c, 96);
+    request_batch_private.gammas_count = 0;
+    prepare_random_ok(random_bn);
+    prepare_scalar_mult_ok();
+    prepare_scalar_mult_ok();
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), 0);
+    assert_int_equal(request_batch_private.gammas_count, 0);
+    check_scalar(&request_batch_private.r, &r_11);
+    check_field(&request_batch_private.tvk, &tvk_11);
+    check_group(&request_batch_private.tpk, &tpk_11);
+    check_field(&request_batch_private.tcm, &tcm_11);
+    check_scalar(&request_batch_private.challenge, &challenge_11);
+    check_scalar(&request_batch_private.response, &response_11);
+
+    // Same negative test as INPUT_ID_EXTERNAL_RECORD: malformed value_length is rejected.
+    memcpy(hash_record, hash_record_c, 96);
+    prepare_random_ok(random_bn);
+    prepare_scalar_mult_ok();
+    request_batch_private.inputs[0].value_length = 95;
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), -1);
+    request_batch_private.inputs[0].value_length = 96;
+    request_batch_private.inputs[0].type          = (uint8_t *) "\x04";
+    request_batch_private.inputs[1].type          = (uint8_t *) "\x04";
+
     r_list_erase();
     field_t pre_tvk_0;
     field_t pre_tvk_1;
