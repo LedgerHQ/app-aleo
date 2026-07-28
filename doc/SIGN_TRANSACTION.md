@@ -197,6 +197,7 @@ Serialized TLV data:
 |                                     ||| 0x0e : scalar |
 |                                     ||| 0x0f : signature |
 |                                     ||| 0x10 : string |
+|                                     ||| 0x11 : [identifier](#identifier-literal) |
 
 #### Identifier
 | _Name_           | _Length_ | _Type_  | _Description_ |
@@ -238,6 +239,11 @@ Serialized TLV data:
 | _Name_           | _Length_ | _Type_   | _Description_ |
 | -----            |    :--:  | -:       | -             |
 | `record_fields`  |   N × 32 |  field[] | `record.to_fields()` — N little-endian 256-bit field elements pre-computed by the host from the record plaintext ([snarkVM ref](https://github.com/ProvableHQ/snarkVM/blob/staging/console/program/src/request/sign.rs#L156)). N must satisfy N × 32 ≤ 128 (`INPUT_VALUE_MAX_LEN`). |
+
+#### Identifier literal
+| _Name_           | _Length_ | _Type_   | _Description_ |
+| -----            |    :--:  | -:       | -             |
+| `value`          |       31 |  bytes[] | ASCII name, **null-padded to 31 bytes** (snarkVM `IdentifierLiteral`: `SIZE_IN_BYTES = Field::SIZE_IN_DATA_BITS / 8 = 31`, hashed over all `SIZE_IN_BITS` = 248 bits). Not the `length \|\| content` form `Literal::to_bytes_le` emits — the host must send the padded array so the device can hash the 248 bits directly. Used by `call.dynamic` programs to name their callee at runtime (the ARC-20 generic batcher's first input is the target token's program name, e.g. `arc20_eth`). |
 
 #### Dynamic record
 | _Name_           | _Length_ | _Type_   | _Description_ |

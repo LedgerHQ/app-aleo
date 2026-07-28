@@ -96,6 +96,12 @@ static int plaintext_to_field(uint8_t       *plaintext,
                 PRINTF("PLAINTEXT_TYPE_LITERAL_U128\n");
                 bit_size = 128;
                 break;
+            case PLAINTEXT_TYPE_LITERAL_IDENTIFIER:
+                // Fixed 31-byte null-padded name (`call.dynamic` callee selector); its 248 bits
+                // are hashed as-is, exactly like snarkVM's `IdentifierLiteral::to_bits_le`.
+                PRINTF("PLAINTEXT_TYPE_LITERAL_IDENTIFIER\n");
+                bit_size = IDENTIFIER_LITERAL_BITS;
+                break;
             default:
                 return -1;
                 break;

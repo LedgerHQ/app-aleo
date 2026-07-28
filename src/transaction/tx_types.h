@@ -25,4 +25,14 @@ typedef enum {
     PLAINTEXT_TYPE_LITERAL_FIELD   = 2,
     PLAINTEXT_TYPE_LITERAL_U64     = 12,
     PLAINTEXT_TYPE_LITERAL_U128    = 13,
+    // The `identifier` literal (snarkVM `LiteralType::Identifier`): a fixed 31-byte null-padded
+    // ASCII name, used by `call.dynamic` programs to select their callee at runtime (the ARC-20
+    // generic batcher takes the target token's program name as its first input).
+    PLAINTEXT_TYPE_LITERAL_IDENTIFIER = 17,
 } plaintext_type_literal_e;
+
+// Size of an `identifier` literal, in bits and bytes. snarkVM's `IdentifierLiteral` is a fixed
+// `Field::SIZE_IN_DATA_BITS / 8` = 31-byte null-padded array, hashed over all
+// `SIZE_IN_BITS` = 248 bits (byte-derived, unlike address/field which use FIELD_MODULUS_BITS).
+#define IDENTIFIER_LITERAL_VALUE_LENGTH (31)
+#define IDENTIFIER_LITERAL_BITS         (IDENTIFIER_LITERAL_VALUE_LENGTH * 8)

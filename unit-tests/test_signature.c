@@ -10,6 +10,7 @@
 #include "os.h"
 #include "account.h"
 #include "signature.h"
+#include "tx_types.h"
 
 global_ctx_t G_context;
 bool         G_called_from_swap    = false;
@@ -527,14 +528,49 @@ static void test_signature(void **state)
     check_scalar(&request_batch_private.response, &response_11);
 
     // Same negative test as INPUT_ID_EXTERNAL_RECORD: malformed value_length is rejected.
+    // Two scalar mults are consumed before prepare_inputs() runs (tpk = r*G, tvk = r*signer).
     memcpy(hash_record, hash_record_c, 96);
     prepare_random_ok(random_bn);
+    prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
     request_batch_private.inputs[0].value_length = 95;
     assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), -1);
     request_batch_private.inputs[0].value_length = 96;
-    request_batch_private.inputs[0].type          = (uint8_t *) "\x04";
-    request_batch_private.inputs[1].type          = (uint8_t *) "\x04";
+    request_batch_private.inputs[0].type         = (uint8_t *) "\x04";
+    request_batch_private.inputs[1].type         = (uint8_t *) "\x04";
+
+    // A private `identifier` literal (type "\x02\x00\x11", the `call.dynamic` callee selector of
+    // the ARC-20 generic batcher) must hash like any other fixed-width literal: 31 null-padded
+    // bytes, 248 bits. Before identifier support the device rejected the whole root intent (SW
+    // 0x6a80) *after* the user approved it, since plaintext_to_field() fell to its default case.
+    static const uint8_t identifier_value[IDENTIFIER_LITERAL_VALUE_LENGTH] = "arc20_eth";
+    input_t              saved_input             = request_batch_private.inputs[2];
+    request_batch_private.inputs[2].value        = (uint8_t *) identifier_value;
+    request_batch_private.inputs[2].value_length = IDENTIFIER_LITERAL_VALUE_LENGTH;
+    request_batch_private.inputs[2].type_length  = 3;
+    request_batch_private.inputs[2].type         = (uint8_t *) "\x02\x00\x11";
+
+    memcpy(hash_record, hash_record_c, 96);
+    request_batch_private.gammas_count = 0;
+    prepare_random_ok(random_bn);
+    prepare_scalar_mult_ok();
+    prepare_scalar_mult_ok();
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), 0);
+    // r/tvk/tpk/tcm don't depend on the inputs; only the challenge/response do.
+    check_scalar(&request_batch_private.r, &r_11);
+    check_field(&request_batch_private.tvk, &tvk_11);
+    check_group(&request_batch_private.tpk, &tpk_11);
+    check_field(&request_batch_private.tcm, &tcm_11);
+
+    // A truncated identifier can't cover the 248 hashed bits and must be rejected.
+    memcpy(hash_record, hash_record_c, 96);
+    prepare_random_ok(random_bn);
+    prepare_scalar_mult_ok();
+    prepare_scalar_mult_ok();
+    request_batch_private.inputs[2].value_length = IDENTIFIER_LITERAL_VALUE_LENGTH - 1;
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), -1);
+
+    request_batch_private.inputs[2] = saved_input;
 
     r_list_erase();
     field_t pre_tvk_0;
