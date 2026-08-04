@@ -299,6 +299,7 @@ int big_int_random(bigint_256_t *a, const bigint_256_t *modulus)
     bn_to_big_int(bn, a);
 
 end:
+    explicit_bzero(bn, sizeof(bn));
     if (cx_bn_unlock() != CX_OK) {
         return -1;
     }
