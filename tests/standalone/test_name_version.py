@@ -5,6 +5,7 @@ from application_client.response_unpacker import unpack_get_app_and_version_resp
 
 from .utils import verify_version, verify_name
 
+
 # Test a specific APDU asking BOLOS (and not the app) the name and version of the current app
 def test_get_app_and_version(backend: BackendInterface) -> None:
     # Use the app interface instead of raw interface

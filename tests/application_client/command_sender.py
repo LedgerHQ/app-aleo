@@ -12,6 +12,7 @@ MAX_APDU_LEN: int = 255
 
 CLA: int = 0xE0
 
+
 class P1(IntEnum):
     # Parameter 1 for APDU get without confirmation.
     P1_GET_WITHOUT_CONFIRMATION = 0x00
@@ -24,22 +25,25 @@ class P1(IntEnum):
     # Parameter 1 for APDU sign mode fee.
     P1_SIGN_MODE_FEE = 0x02
 
+
 class P2(IntEnum):
     # Parameter 2 for APDU begin chunk.
     P2_BEGIN = 0x00
     # Parameter 2 for APDU next chunk.
     P2_CONTINUE = 0x01
 
+
 class InsType(IntEnum):
-    CMD_GET_VERSION      = 0x03
-    CMD_GET_APP_NAME     = 0x04
-    CMD_GET_ADDRESS      = 0x05
+    CMD_GET_VERSION = 0x03
+    CMD_GET_APP_NAME = 0x04
+    CMD_GET_ADDRESS = 0x05
     CMD_SIGN_TRANSACTION = 0x06
-    CMD_GET_VIEW_KEY     = 0x07
-    CMD_GET_TVK          = 0x08
+    CMD_GET_VIEW_KEY = 0x07
+    CMD_GET_TVK = 0x08
+
 
 class Errors(IntEnum):
-    SW_DISPLAY_BIP32_PATH_FAIL   = 0xb001
+    SW_DISPLAY_BIP32_PATH_FAIL = 0xB001
     """
     SWO_WRONG_DATA_LENGTH        = 0x6a87
     SWO_INVALID_CLA              = 0x6e00
@@ -55,65 +59,62 @@ class Errors(IntEnum):
 
 
 def split_message(message: bytes, max_size: int) -> List[bytes]:
-    return [message[x:x + max_size] for x in range(0, len(message), max_size)]
+    return [message[x : x + max_size] for x in range(0, len(message), max_size)]
 
 
 class CommandSender:
     def __init__(self, backend: BackendInterface) -> None:
         self.backend = backend
 
-
     def get_app_and_version(self) -> RAPDU:
-        return self.backend.exchange(cla=0xB0,  # specific CLA for BOLOS
-                                     ins=0x01,  # specific INS for get_app_and_version
-                                     p1=0x00,
-                                     p2=0x00,
-                                     data=b"")
-
+        return self.backend.exchange(
+            cla=0xB0,  # specific CLA for BOLOS
+            ins=0x01,  # specific INS for get_app_and_version
+            p1=0x00,
+            p2=0x00,
+            data=b"",
+        )
 
     def get_version(self) -> RAPDU:
-        return self.backend.exchange(cla=CLA,
-                                     ins=InsType.CMD_GET_VERSION,
-                                     p1=0x00,
-                                     p2=0x00,
-                                     data=b"")
-
+        return self.backend.exchange(
+            cla=CLA, ins=InsType.CMD_GET_VERSION, p1=0x00, p2=0x00, data=b""
+        )
 
     def get_app_name(self) -> RAPDU:
-        return self.backend.exchange(cla=CLA,
-                                     ins=InsType.CMD_GET_APP_NAME,
-                                     p1=0x00,
-                                     p2=0x00,
-                                     data=b"")
-
+        return self.backend.exchange(
+            cla=CLA, ins=InsType.CMD_GET_APP_NAME, p1=0x00, p2=0x00, data=b""
+        )
 
     def get_address_without_confirmation(self, path: str) -> RAPDU:
-        return self.backend.exchange(cla=CLA,
-                                     ins=InsType.CMD_GET_ADDRESS,
-                                     p1=P1.P1_GET_WITHOUT_CONFIRMATION,
-                                     p2=0x00,
-                                     data=pack_derivation_path(path))
-
+        return self.backend.exchange(
+            cla=CLA,
+            ins=InsType.CMD_GET_ADDRESS,
+            p1=P1.P1_GET_WITHOUT_CONFIRMATION,
+            p2=0x00,
+            data=pack_derivation_path(path),
+        )
 
     @contextmanager
     def get_address_with_confirmation(self, path: str) -> Generator[None, None, None]:
-        with self.backend.exchange_async(cla=CLA,
-                                         ins=InsType.CMD_GET_ADDRESS,
-                                         p1=P1.P1_GET_WITH_CONFIRMATION,
-                                         p2=0x00,
-                                         data=pack_derivation_path(path)) as response:
+        with self.backend.exchange_async(
+            cla=CLA,
+            ins=InsType.CMD_GET_ADDRESS,
+            p1=P1.P1_GET_WITH_CONFIRMATION,
+            p2=0x00,
+            data=pack_derivation_path(path),
+        ) as response:
             yield response
-
 
     @contextmanager
     def get_view_key(self, path: str) -> Generator[None, None, None]:
-        with self.backend.exchange_async(cla=CLA,
-                                         ins=InsType.CMD_GET_VIEW_KEY,
-                                         p1=P1.P1_GET_WITH_CONFIRMATION,
-                                         p2=0x00,
-                                         data=pack_derivation_path(path)) as response:
+        with self.backend.exchange_async(
+            cla=CLA,
+            ins=InsType.CMD_GET_VIEW_KEY,
+            p1=P1.P1_GET_WITH_CONFIRMATION,
+            p2=0x00,
+            data=pack_derivation_path(path),
+        ) as response:
             yield response
-
 
     def get_tvk(self, tx_datas: dict) -> RAPDU:
         tx = Transaction()
@@ -121,19 +122,14 @@ class CommandSender:
         if len(apdus) != 0:
             for item in apdus[:-1]:
                 apdu = bytes.fromhex(item)
-                self.backend.exchange(cla=apdu[0],
-                                      ins=apdu[1],
-                                      p1=apdu[2],
-                                      p2=apdu[3],
-                                      data=apdu[5:])
+                self.backend.exchange(
+                    cla=apdu[0], ins=apdu[1], p1=apdu[2], p2=apdu[3], data=apdu[5:]
+                )
             apdu = bytes.fromhex(apdus[-1])
-            return self.backend.exchange(cla=apdu[0],
-                                         ins=apdu[1],
-                                         p1=apdu[2],
-                                         p2=apdu[3],
-                                         data=apdu[5:])
+            return self.backend.exchange(
+                cla=apdu[0], ins=apdu[1], p1=apdu[2], p2=apdu[3], data=apdu[5:]
+            )
         return RAPDU(0x0000, b"")
-
 
     @contextmanager
     def sign_transaction(self, tx_datas: dict) -> Generator[None, None, None]:
@@ -143,19 +139,14 @@ class CommandSender:
             return
         for item in apdus[:-1]:
             apdu = bytes.fromhex(item)
-            self.backend.exchange(cla=apdu[0],
-                                  ins=apdu[1],
-                                  p1=apdu[2],
-                                  p2=apdu[3],
-                                  data=apdu[5:])
+            self.backend.exchange(
+                cla=apdu[0], ins=apdu[1], p1=apdu[2], p2=apdu[3], data=apdu[5:]
+            )
         apdu = bytes.fromhex(apdus[-1])
-        with self.backend.exchange_async(cla=apdu[0],
-                                         ins=apdu[1],
-                                         p1=apdu[2],
-                                         p2=apdu[3],
-                                         data=apdu[5:]) as response:
+        with self.backend.exchange_async(
+            cla=apdu[0], ins=apdu[1], p1=apdu[2], p2=apdu[3], data=apdu[5:]
+        ) as response:
             yield response
-
 
     # Retrieve the last asynchronous response from the backend
     def get_async_response(self) -> Optional[RAPDU]:
