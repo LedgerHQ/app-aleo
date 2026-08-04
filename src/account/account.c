@@ -101,7 +101,7 @@ static int private_key_from_seed(const field_t *seed, scalar_t *sk_sig, scalar_t
     memcpy(&hash_input[3], seed, sizeof(field_t));
     status = hash_to_scalar_psd2(hash_input, 2 + 2, sk_sig);
     if (status < 0) {
-        return -1;
+        goto end;
     }
     PRINTF("sk_sig : ");
     scalar_println(sk_sig);
@@ -112,11 +112,13 @@ static int private_key_from_seed(const field_t *seed, scalar_t *sk_sig, scalar_t
     memcpy(&hash_input[3], seed, sizeof(field_t));
     status = hash_to_scalar_psd2(hash_input, 2 + 2, r_sig);
     if (status < 0) {
-        return -1;
+        goto end;
     }
     PRINTF("r_sig : ");
     scalar_println(r_sig);
 
+end:
+    explicit_bzero(hash_input, sizeof(hash_input));
     return status;
 }
 
@@ -127,18 +129,20 @@ static int compute_key_from_private_key(const private_key_t *private_key,
 
     status = group_g_scalar_multiply(&private_key->sk_sig, &compute_key->pk_sig);
     if (status < 0) {
-        return -1;
+        goto end;
     }
     PRINTF("pk_sig : ");
     group_println(&compute_key->pk_sig);
 
     status = group_g_scalar_multiply(&private_key->r_sig, &compute_key->pr_sig);
     if (status < 0) {
-        return -1;
+        goto end;
     }
     PRINTF("pr_sig : ");
     group_println(&compute_key->pr_sig);
 
+end:
+    explicit_bzero(hash_input, sizeof(hash_input));
     return status;
 }
 
@@ -199,6 +203,7 @@ static int graph_key_from_view_key(const scalar_t *view_key, field_t *graph_key)
     field_println(graph_key);
 
 end:
+    explicit_bzero(hash_input, sizeof(hash_input));
     return status;
 }
 

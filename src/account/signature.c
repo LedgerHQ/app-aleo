@@ -146,7 +146,8 @@ static int hash_public_input(prepared_request_t *request, uint8_t input_index)
     field_t  hash;
 
     if (input->type_length < 2) {
-        return -1;
+        status = -1;
+        goto end;
     }
     memset(hash_input, 0, sizeof(hash_input));
     memcpy(&hash_input[hash_input_index++], &request->function_id, sizeof(field_t));
@@ -157,7 +158,7 @@ static int hash_public_input(prepared_request_t *request, uint8_t input_index)
                                 &hash_input[hash_input_index],
                                 HASH_INPUT_MAX_LENGTH - hash_input_index);
     if (status < 0) {
-        return status;
+        goto end;
     }
     field_print_array(&hash_input[hash_input_index], status);
     hash_input_index += status;
@@ -165,12 +166,16 @@ static int hash_public_input(prepared_request_t *request, uint8_t input_index)
     memcpy(&hash_input[hash_input_index++], &request->tcm, sizeof(field_t));
     field_from_int(&hash_input[hash_input_index++], input_index);
     if ((status = hash_psd8(hash_input, hash_input_index, &hash)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("hash : ");
     field_println(&hash);
 
-    return add_field_to_message(&hash);
+    status = add_field_to_message(&hash);
+
+end:
+    explicit_bzero(hash_input, sizeof(hash_input));
+    return status;
 }
 
 static int hash_private_input(prepared_request_t *request, uint8_t input_index)
@@ -189,13 +194,14 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
     memcpy(&hash_input[5], &request->tvk, sizeof(field_t));
     field_from_int(&hash_input[6], input_index);
     if ((status = hash_psd4(hash_input, 4 + 3, &input_view_key)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("input_view_key : ");
     field_println(&input_view_key);
 
     if (input->type_length < 2) {
-        return -1;
+        status = -1;
+        goto end;
     }
 
     status = plaintext_to_field(input->value,
@@ -205,11 +211,12 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
                                 plaintext_fields,
                                 PLAINTEXT_FIELDS_MAX_SIZE);
     if (status < 0) {
-        return status;
+        goto end;
     }
     num_randomizers = (uint8_t) status;
     if (num_randomizers >= PLAINTEXT_FIELDS_MAX_SIZE) {
-        return -1;
+        status = -1;
+        goto end;
     }
     field_print_array(plaintext_fields, num_randomizers);
 
@@ -219,7 +226,7 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
     memcpy(&hash_input[8], &ENCRYPTION_DOMAIN, sizeof(field_t));
     memcpy(&hash_input[9], &input_view_key, sizeof(field_t));
     if ((status = hash_many_psd8(hash_input, 10, randomizer_fields, num_randomizers)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("randomizer_fields : \n");
     field_print_array(randomizer_fields, num_randomizers);
@@ -239,12 +246,16 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
 
     // Hash the ciphertext to a field element
     if ((status = hash_psd8(hash_input, hash_input_index, &hash)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("hash : ");
     field_println(&hash);
 
-    return add_field_to_message(&hash);
+    status = add_field_to_message(&hash);
+
+end:
+    explicit_bzero(hash_input, sizeof(hash_input));
+    return status;
 }
 
 static int hash_record_input(account_t *account, prepared_request_t *request, uint8_t input_index)
@@ -258,10 +269,12 @@ static int hash_record_input(account_t *account, prepared_request_t *request, ui
     field_t      tag;
 
     if (request->gammas_count >= MAX_NB_OF_RECORDS) {
-        return -1;
+        status = -1;
+        goto end;
     }
     if (input->value_length < (3 * sizeof(field_t))) {
-        return -1;
+        status = -1;
+        goto end;
     }
 
     // Extract 'commitment'
@@ -281,17 +294,17 @@ static int hash_record_input(account_t *account, prepared_request_t *request, ui
     bn_to_big_int(&input->value[2 * sizeof(field_t)], &s);
     field_from_big_int(&h.y, &s);
     if ((status = add_field_to_message(&h.x)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("h : ");
     group_println(&h);
 
     // Compute `h_r` as `r * h`
     if ((status = group_scalar_multiply(&h, &request->r, &h_r)) < 0) {
-        return status;
+        goto end;
     }
     if ((status = add_field_to_message(&h_r.x)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("h_r : ");
     group_println(&h_r);
@@ -300,10 +313,10 @@ static int hash_record_input(account_t *account, prepared_request_t *request, ui
     if ((status = group_scalar_multiply(
              &h, &account->private_key.sk_sig, &request->gammas[request->gammas_count]))
         < 0) {
-        return status;
+        goto end;
     }
     if ((status = add_field_to_message(&request->gammas[request->gammas_count].x)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("gamma : ");
     group_println(&request->gammas[request->gammas_count]);
@@ -315,11 +328,16 @@ static int hash_record_input(account_t *account, prepared_request_t *request, ui
     memcpy(&hash_input[2], &account->graph_key, sizeof(field_t));
     memcpy(&hash_input[3], &commitment, sizeof(field_t));
     if ((status = hash_psd2(hash_input, 2 + 2, &tag)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("tag : ");
     field_println(&tag);
-    return add_field_to_message(&tag);
+
+    status = add_field_to_message(&tag);
+
+end:
+    explicit_bzero(hash_input, sizeof(hash_input));
+    return status;
 }
 
 static int hash_external_record_input(prepared_request_t *request, uint8_t input_index)
@@ -331,12 +349,14 @@ static int hash_external_record_input(prepared_request_t *request, uint8_t input
     field_t      hash;
 
     if ((input->value_length == 0) || (input->value_length % BN_LENGTH != 0)) {
-        return -1;
+        status = -1;
+        goto end;
     }
     uint8_t num_fields = input->value_length / BN_LENGTH;
     if (num_fields
         > (HASH_INPUT_MAX_LENGTH - 11)) { /* 11 = 8 capacity + function_id + tvk + index */
-        return -1;
+        status = -1;
+        goto end;
     }
 
     _Static_assert(HASH_INPUT_MAX_LENGTH >= 14, "hash_input size won't fit for external record");
@@ -355,12 +375,16 @@ static int hash_external_record_input(prepared_request_t *request, uint8_t input
     field_from_int(&hash_input[hash_input_index++], input_index);
 
     if ((status = hash_psd8(hash_input, hash_input_index, &hash)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("external_record_hash : ");
     field_println(&hash);
 
-    return add_field_to_message(&hash);
+    status = add_field_to_message(&hash);
+
+end:
+    explicit_bzero(hash_input, sizeof(hash_input));
+    return status;
 }
 
 static int prepare_inputs(account_t *account, prepared_request_t *request)
