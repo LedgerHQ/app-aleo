@@ -372,6 +372,7 @@ int account_generate_keys(const uint32_t *path, uint8_t path_len, account_t *acc
         goto error;
     }
 
+    explicit_bzero(hash_input, sizeof(hash_input));
     return 0;
 
 error:
