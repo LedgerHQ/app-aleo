@@ -192,9 +192,13 @@ static int graph_key_from_view_key(const scalar_t *view_key, field_t *graph_key)
     memcpy(&hash_input[5], &f_view_key, sizeof(field_t));
     memset(&hash_input[6], 0, sizeof(field_t));
     status = hash_psd4(hash_input, 4 + 3, graph_key);
+    if (status < 0) {
+        goto end;
+    }
     PRINTF("graph key : ");
     field_println(graph_key);
 
+end:
     return status;
 }
 
