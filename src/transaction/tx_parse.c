@@ -420,15 +420,19 @@ int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
 
     switch (tx->type) {
         case TX_ALEO_TRANSFER_PUBLIC:
+            G_context.r_list.count = 0;
             return parse_aleo_transfer_public(data, tx);
 
         case TX_ALEO_TRANSFER_PUBLIC_TO_PRIVATE:
+            G_context.r_list.count = 0;
             return parse_aleo_transfer_public_to_private(data, tx);
 
         case TX_ALEO_TRANSFER_PRIVATE:
+            G_context.r_list.count = 0;
             return parse_aleo_transfer_private(data, tx);
 
         case TX_ALEO_TRANSFER_PRIVATE_TO_PUBLIC:
+            G_context.r_list.count = 0;
             return parse_aleo_transfer_private_to_public(data, tx);
 
         case TX_ALEO_TRANSFER_BATCH_PRIVATE:
@@ -438,15 +442,19 @@ int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
             return parse_aleo_batch_transfer_private_to_public(data, tx);
 
         case TX_TOKEN_TRANSFER_PUBLIC:
+            G_context.r_list.count = 0;
             return parse_token_transfer_public(data, tx);
 
         case TX_TOKEN_TRANSFER_PUBLIC_TO_PRIVATE:
+            G_context.r_list.count = 0;
             return parse_token_transfer_public_to_private(data, tx);
 
         case TX_TOKEN_TRANSFER_PRIVATE:
+            G_context.r_list.count = 0;
             return parse_token_transfer_private(data, tx);
 
         case TX_TOKEN_TRANSFER_PRIVATE_TO_PUBLIC:
+            G_context.r_list.count = 0;
             return parse_token_transfer_private_to_public(data, tx);
 
         case TX_TOKEN_TRANSFER_BATCH_PRIVATE:
@@ -456,9 +464,11 @@ int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
             return parse_token_batch_transfer_private_to_public(data, tx);
 
         case TX_FEE_PUBLIC:
+            G_context.r_list.count = 0;
             return parse_fee_public(data, tx);
 
         case TX_FEE_PRIVATE:
+            G_context.r_list.count = 0;
             return parse_fee_private(data, tx);
 
         default:
