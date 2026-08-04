@@ -38,7 +38,7 @@ class BECH32M:
         val = 0
         bits = 0
         max_v = (1 << output_bits) - 1
-        for input_offset in range(0, len(input)):
+        for input_offset in range(len(input)):
             val = (val << input_bits) | input[input_offset]
             bits += input_bits
             while bits >= output_bits:
@@ -75,16 +75,16 @@ class BECH32M:
 
         output.append(49)
 
-        for i in range(0, len(data)):
+        for i in range(len(data)):
             if data[i] >> 5:
                 return False
             chk = BECH32M.polymod_step(chk) ^ data[i]
             output.append(ord(BECH32M.CHARSET[data[i]]))
 
-        for i in range(0, 6):
+        for i in range(6):
             chk = BECH32M.polymod_step(chk)
         chk ^= BECH32M.final_constant(is_m_encoding)
-        for i in range(0, 6):
+        for i in range(6):
             output.append(ord(BECH32M.CHARSET[(chk >> ((5 - i) * 5)) & 0x1F]))
 
         return True
@@ -102,7 +102,7 @@ class BECH32M:
         if 1 + data_offset >= len(input) or data_offset < 6:
             return False
 
-        for index in range(0, hrp_len):
+        for index in range(hrp_len):
             ch = input[index]
             if ch < 33 or ch > 126:
                 return False
@@ -113,7 +113,7 @@ class BECH32M:
             hrp.append(ch)
             chk = BECH32M.polymod_step(chk) ^ (ch >> 5)
         chk = BECH32M.polymod_step(chk)
-        for index in range(0, hrp_len):
+        for index in range(hrp_len):
             chk = BECH32M.polymod_step(chk) ^ (input[index] & 0x1F)
         index = hrp_len + 1
         while index < len(input):

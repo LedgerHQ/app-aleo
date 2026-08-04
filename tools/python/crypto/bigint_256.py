@@ -22,17 +22,13 @@ class BigInteger256:
         return self.value != other.value
 
     def __lt__(self, other):
-        if self.to_int() < other.to_int():
-            return True
-        return False
+        return self.to_int() < other.to_int()
 
     def __gt__(self, other):
-        if self.to_int() > other.to_int():
-            return True
-        return False
+        return self.to_int() > other.to_int()
 
     def from_int(self, num: int = 0):
-        for i in range(0, 4):
+        for i in range(4):
             self.value[i] = num & 0xFFFFFFFFFFFFFFFF
             num = num >> 64
 
@@ -59,7 +55,7 @@ class BigInteger256:
 
     def div2(self):
         t = 0
-        for i in reversed(range(0, 4)):
+        for i in reversed(range(4)):
             t2 = self.value[i] << 63
             t2 = t2 % 0x10000000000000000
             self.value[i] >>= 1
@@ -121,7 +117,7 @@ class BigInteger256:
     def print_u64(self):
         str = ""
         for x in self.value:
-            str += "{:016x} ".format(x)
+            str += f"{x:016x} "
         print(str, end="")
 
     def println_u64(self):

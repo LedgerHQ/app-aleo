@@ -2,52 +2,50 @@ from algorithms.poseidon_default import PoseidonDefault
 
 if __name__ == "__main__":
     c_file = open("poseidon_parameters.c", "w")
-    print("", file=c_file)
+    print(file=c_file)
     print("#include <stdint.h>   // uint*_t", file=c_file)
     print("#include <stddef.h>   // size_t", file=c_file)
     print("#include <stdbool.h>  // bool", file=c_file)
     print("#include <string.h>   // memmove", file=c_file)
-    print("", file=c_file)
+    print(file=c_file)
     print('#include "poseidon_parameters.h"', file=c_file)
-    print("", file=c_file)
+    print(file=c_file)
 
     for rate in [2, 4, 8]:
         pos = PoseidonDefault(rate)
         ark, mds = pos.find_poseidon_ark_and_mds()
 
         print(
-            "const field_t ark_rate_{:d}[{:d}] = {{".format(
-                rate, len(ark) * len(ark[0])
-            ),
+            f"const field_t ark_rate_{rate:d}[{len(ark) * len(ark[0]):d}] = {{",
             file=c_file,
         )
         for x in ark:
             for y in x:
                 str = "    {" + ".big.u64 = " + "{"
                 for u in y.value.value:
-                    str += "0x{:016x}, ".format(u)
+                    str += f"0x{u:016x}, "
                 str = str[:-1]
                 str += "}},"
                 print(str, file=c_file)
-            print("", file=c_file)
+            print(file=c_file)
         print("};", file=c_file)
-        print("", file=c_file)
+        print(file=c_file)
 
         print(
-            "const field_t mds_rate_{:d}[{:d}]={{".format(rate, len(mds) * len(mds[0])),
+            f"const field_t mds_rate_{rate:d}[{len(mds) * len(mds[0]):d}]={{",
             file=c_file,
         )
         for x in mds:
             for y in x:
                 str = "    {" + ".big.u64 = " + "{"
                 for u in y.value.value:
-                    str += "0x{:016x}, ".format(u)
+                    str += f"0x{u:016x}, "
                 str = str[:-1]
                 str += "}},"
                 print(str, file=c_file)
-            print("", file=c_file)
+            print(file=c_file)
         print("};", file=c_file)
-        print("", file=c_file)
+        print(file=c_file)
 
     print(
         "\

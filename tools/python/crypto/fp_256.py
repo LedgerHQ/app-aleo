@@ -1,6 +1,6 @@
-from crypto.bigint_256 import BigInteger256 as BigInteger
-
 from typing import NamedTuple
+
+from crypto.bigint_256 import BigInteger256 as BigInteger
 
 
 class Fp256Parameters(NamedTuple):
@@ -16,9 +16,7 @@ class Fp256Parameters(NamedTuple):
 class Fp256:
     def __init__(self, F, val=None):
         self.F = F
-        if type(val) is BigInteger:
-            self.value = BigInteger(val)
-        elif type(val) is int:
+        if type(val) is BigInteger or type(val) is int:
             self.value = BigInteger(val)
         else:
             self.value = BigInteger(0)
@@ -242,7 +240,7 @@ class Fp256:
 
     def pow(self, alpha):
         r = Fp256(self.F, self.value.to_int())
-        for i in range(0, alpha - 1):
+        for i in range(alpha - 1):
             self.mul_assign(r)
 
     def sum_of_products(self, b):
@@ -250,7 +248,7 @@ class Fp256:
         sum.from_big_int(0)
         print("sum " + str(sum.to_big_int().to_int()))
         print("a " + str(self.to_big_int().to_int()))
-        for i in range(0, len(b)):
+        for i in range(len(b)):
             print("b " + str(b[i].to_big_int().to_int()))
             r = Fp256(self.F, self.value.to_int())
             r.mul_assign(b[i])
@@ -261,7 +259,7 @@ class Fp256:
         v = self.value.to_int().to_bytes(32, "big")
         str = ""
         for x in v:
-            str += "{:02x} ".format(x)
+            str += f"{x:02x} "
         print(str)
 
     def print(self):

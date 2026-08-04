@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
-
 from enum import Enum
 from itertools import islice
-from typing import Tuple, Dict, Any
+from typing import Any, ClassVar
+
 from .bech32m import BECH32M
 from .bigint_256 import BigInteger256
 
@@ -31,7 +30,7 @@ class Transaction:
         GAMMAS_COUNT = 0xC1
         GAMMAS = 0xC2
 
-    literal_type_from_string = {
+    literal_type_from_string: ClassVar[dict[str, str]] = {
         "address": "00",
         "boolean": "01",
         "field": "02",
@@ -77,7 +76,7 @@ class Transaction:
         return val
 
     @staticmethod
-    def extract_tlv(tlv: str) -> Tuple[TlvTypes, int, str, int]:
+    def extract_tlv(tlv: str) -> tuple[TlvTypes, int, str, int]:
         offset = 0
         element = int(tlv[offset : offset + 2], base=16)
         offset += 2
@@ -92,7 +91,7 @@ class Transaction:
         else:
             t = Transaction.TlvTypes(0)
 
-        l = int(tlv[offset : offset + 2], base=16)  # noqa: E741
+        l = int(tlv[offset : offset + 2], base=16)
         offset += 2
 
         v = tlv[offset : offset + 2 * l]
@@ -109,7 +108,7 @@ class Transaction:
     def gen_apdu_array(cla: str, ins: str, p1: str, cmd: str) -> list[str]:
         batch_index = 0
         apdus = []
-        for item in Transaction.gen_chunks(cmd, 255 * 2):
+        for batch_index, item in enumerate(Transaction.gen_chunks(cmd, 255 * 2)):
             chunk = "".join(item)
             if batch_index == 0:
                 apdu = cla + ins + p1 + "00"
@@ -118,7 +117,6 @@ class Transaction:
             apdu += f"{(len(chunk) // 2):02x}"
             apdu += chunk
             apdus.append(apdu)
-            batch_index += 1
         return apdus
 
     @staticmethod
@@ -334,7 +332,7 @@ class Transaction:
         return []
 
     def unpack_response(self, response: str):
-        unpacked: Dict[str, Any] = {}
+        unpacked: dict[str, Any] = {}
         offset = 0
         index = 0
         while offset < len(response):
@@ -360,7 +358,7 @@ class Transaction:
         return unpacked
 
     def unpack_get_tvk_response(self, response: str):
-        unpacked: Dict[str, Any] = {}
+        unpacked: dict[str, Any] = {}
         if len(response) >= 33 * 2:
             unpacked["tvk"] = response[2 : 33 * 2]
         return unpacked

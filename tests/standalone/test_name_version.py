@@ -1,9 +1,8 @@
-from ragger.backend.interface import BackendInterface
-
 from application_client.command_sender import CommandSender
 from application_client.response_unpacker import unpack_get_app_and_version_response
+from ragger.backend.interface import BackendInterface
 
-from .utils import verify_version, verify_name
+from .utils import verify_name, verify_version
 
 
 # Test a specific APDU asking BOLOS (and not the app) the name and version of the current app

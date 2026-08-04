@@ -1,12 +1,11 @@
-from enum import IntEnum
-from typing import Generator, List, Optional
+from collections.abc import Generator
 from contextlib import contextmanager
+from enum import IntEnum
 
-from ragger.backend.interface import BackendInterface, RAPDU
+from ragger.backend.interface import RAPDU, BackendInterface
 from ragger.bip import pack_derivation_path
 
 from .transaction import Transaction
-
 
 MAX_APDU_LEN: int = 255
 
@@ -58,7 +57,7 @@ class Errors(IntEnum):
     """
 
 
-def split_message(message: bytes, max_size: int) -> List[bytes]:
+def split_message(message: bytes, max_size: int) -> list[bytes]:
     return [message[x : x + max_size] for x in range(0, len(message), max_size)]
 
 
@@ -149,5 +148,5 @@ class CommandSender:
             yield response
 
     # Retrieve the last asynchronous response from the backend
-    def get_async_response(self) -> Optional[RAPDU]:
+    def get_async_response(self) -> RAPDU | None:
         return self.backend.last_async_response

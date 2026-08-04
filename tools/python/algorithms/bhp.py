@@ -1,10 +1,9 @@
 import json
+from typing import NamedTuple
 
 from crypto.bigint_256 import BigInteger256
 from crypto.field import Field
 from crypto.group import Group
-
-from typing import NamedTuple
 
 
 class BHPParameters(NamedTuple):
@@ -43,7 +42,7 @@ class BHP:
 
     def buffer_to_boolean(self, buffer, buffer_bit_len):
         result = []
-        for bit_index in range(0, buffer_bit_len):
+        for bit_index in range(buffer_bit_len):
             if buffer[bit_index // 8] & (1 << (bit_index % 8)):
                 result.append(True)
             else:
@@ -63,7 +62,7 @@ class BHP:
         input_nb_of_block = input_nb_of_block // self.F.MAX_BITS_PER_ITERATION
 
         bhp_buffer = []
-        for input_block_index in range(0, input_nb_of_block):
+        for input_block_index in range(input_nb_of_block):
             if input_block_index == 0:
                 if sum is None:
                     bhp_buffer += self.buffer_to_boolean(
@@ -75,7 +74,7 @@ class BHP:
         input_total_bit_len -= input_start
         if len(bhp_buffer) % self.BHP_CHUNK_SIZE:
             for index in range(
-                0, self.BHP_CHUNK_SIZE - (len(bhp_buffer) % self.BHP_CHUNK_SIZE)
+                self.BHP_CHUNK_SIZE - (len(bhp_buffer) % self.BHP_CHUNK_SIZE)
             ):
                 bhp_buffer.append(False)
 
@@ -89,7 +88,7 @@ class BHP:
 
         for index in range(0, len(bhp_buffer), self.BHP_CHUNK_SIZE):
             base_offset = 0
-            for i in range(0, self.BHP_CHUNK_SIZE):
+            for i in range(self.BHP_CHUNK_SIZE):
                 if bhp_buffer[index + i]:
                     base_offset += 1 << i
             # print(base_offset)
@@ -160,11 +159,11 @@ class BHP:
         print(len(buff))
         print(buff)
         val = 0
-        for i in range(0, 253):
+        for i in range(253):
             if buff[i]:
                 val += 128
             if i % 8 == 7:
-                print("{:02x}".format(val))
+                print(f"{val:02x}")
                 val = 0
             else:
                 val >>= 1

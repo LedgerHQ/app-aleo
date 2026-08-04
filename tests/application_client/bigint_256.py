@@ -1,6 +1,3 @@
-from typing import Tuple
-
-
 class BigInteger256:
     def __init__(self, value):
 
@@ -25,17 +22,13 @@ class BigInteger256:
         return self.value != other.value
 
     def __lt__(self, other):
-        if self.to_int() < other.to_int():
-            return True
-        return False
+        return self.to_int() < other.to_int()
 
     def __gt__(self, other):
-        if self.to_int() > other.to_int():
-            return True
-        return False
+        return self.to_int() > other.to_int()
 
     def from_int(self, num: int = 0):
-        for i in range(0, 4):
+        for i in range(4):
             self.value[i] = num & 0xFFFFFFFFFFFFFFFF
             num = num >> 64
 
@@ -62,7 +55,7 @@ class BigInteger256:
 
     def div2(self):
         t = 0
-        for i in reversed(range(0, 4)):
+        for i in reversed(range(4)):
             t2 = self.value[i] << 63
             t2 = t2 % 0x10000000000000000
             self.value[i] >>= 1
@@ -70,7 +63,7 @@ class BigInteger256:
             t = t2
 
     @staticmethod
-    def add_carry_u64(c: int, a: int, b: int) -> Tuple[int, int]:
+    def add_carry_u64(c: int, a: int, b: int) -> tuple[int, int]:
         val = c + a + b
         carry = val >> 64
         return val % 0x10000000000000000, carry
@@ -92,7 +85,7 @@ class BigInteger256:
         return carry != 0
 
     @staticmethod
-    def subborrow_u64(c: int, a: int, b: int) -> Tuple[int, int]:
+    def subborrow_u64(c: int, a: int, b: int) -> tuple[int, int]:
         borrow = 0
         if a >= (b + c):
             val = a - (b + c)

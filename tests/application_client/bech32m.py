@@ -1,8 +1,11 @@
+from typing import ClassVar
+
+
 class BECH32M:
     CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 
     # fmt: off
-    CHARSET_REVERSED = [
+    CHARSET_REVERSED: ClassVar[list[int]] = [
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 15, -1, 10, 17,
         21, 20, 26, 30, 7,  5,  -1, -1, -1, -1, -1, -1, -1, 29, -1, 24, 13, 25, 9,  8,  23, -1, 18, 22, 31, 27,
@@ -85,10 +88,10 @@ class BECH32M:
             chk = BECH32M.polymod_step(chk) ^ item
             output.append(ord(BECH32M.CHARSET[item]))
 
-        for i in range(0, 6):
+        for i in range(6):
             chk = BECH32M.polymod_step(chk)
         chk ^= BECH32M.final_constant(is_m_encoding)
-        for i in range(0, 6):
+        for i in range(6):
             output.append(ord(BECH32M.CHARSET[(chk >> ((5 - i) * 5)) & 0x1F]))
 
         return True
@@ -110,14 +113,14 @@ class BECH32M:
         if 1 + data_offset >= len(input_data) or data_offset < 6:
             return False
 
-        for index in range(0, hrp_len):
+        for index in range(hrp_len):
             ch = input_data[index]
             if ch < 33 or ch > 126:
                 return False
             hrp.append(ch)
             chk = BECH32M.polymod_step(chk) ^ (ch >> 5)
         chk = BECH32M.polymod_step(chk)
-        for index in range(0, hrp_len):
+        for index in range(hrp_len):
             chk = BECH32M.polymod_step(chk) ^ (input_data[index] & 0x1F)
         index = hrp_len + 1
         while index < len(input_data):

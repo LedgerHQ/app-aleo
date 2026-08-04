@@ -2,15 +2,12 @@
 
 import argparse
 import json
-
 import sys
 
 from ledgerblue.comm import getDongle
-from ledgerblue.commTCP import getDongle as getDongleTCP
 
 sys.path.append("../../")
 from tests.application_client.transaction import Transaction
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -44,7 +41,7 @@ if __name__ == "__main__":
             print("get_tvk : {:d}".format(cmd["index"]))
         for apdu in apdus:
             if args.dry_run:
-                print("echo {} | python3 -m ledgerblue.runScript --apdu".format(apdu))
+                print(f"echo {apdu} | python3 -m ledgerblue.runScript --apdu")
             else:
                 result = dongle.exchange(bytes.fromhex(apdu))
         print()
