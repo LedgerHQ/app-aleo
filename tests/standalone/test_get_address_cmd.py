@@ -1,11 +1,9 @@
 import pytest
-
-from ragger.error import ExceptionRAPDU, StatusWords
-from ragger.backend.interface import BackendInterface
-from ragger.navigator.navigation_scenario import NavigateWithScenario
-
 from application_client.command_sender import CommandSender
 from application_client.response_unpacker import unpack_get_address_response
+from ragger.backend.interface import BackendInterface
+from ragger.error import ExceptionRAPDU, StatusWords
+from ragger.navigator.navigation_scenario import NavigateWithScenario
 
 
 # In this test we check that the CMD_GET_ADDRESS works in non-confirmation mode

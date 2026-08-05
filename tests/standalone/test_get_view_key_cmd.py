@@ -1,11 +1,9 @@
 import pytest
-
-from ragger.error import ExceptionRAPDU, StatusWords
-from ragger.backend.interface import BackendInterface
-from ragger.navigator.navigation_scenario import NavigateWithScenario
-
 from application_client.command_sender import CommandSender
 from application_client.response_unpacker import unpack_get_view_key_response
+from ragger.backend.interface import BackendInterface
+from ragger.error import ExceptionRAPDU, StatusWords
+from ragger.navigator.navigation_scenario import NavigateWithScenario
 
 
 # In this test we check that the CMD_GET_VIEW_KEY works in confirmation mode
@@ -33,9 +31,8 @@ def test_get_view_key_confirm_refused(
     client = CommandSender(backend)
     path = "m/44'/683'/0'/0'"
 
-    with pytest.raises(ExceptionRAPDU) as e:
-        with client.get_view_key(path=path):
-            scenario_navigator.address_review_reject()
+    with pytest.raises(ExceptionRAPDU) as e, client.get_view_key(path=path):
+        scenario_navigator.address_review_reject()
 
     # Assert that we have received a refusal
     assert e.value.status == StatusWords.SWO_PERMISSION_DENIED

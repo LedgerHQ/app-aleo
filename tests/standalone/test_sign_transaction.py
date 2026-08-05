@@ -1,20 +1,18 @@
 import pytest
-
-from ragger.error import ExceptionRAPDU, StatusWords
-from ragger.backend.interface import BackendInterface
-from ragger.navigator.navigation_scenario import NavigateWithScenario
-from ragger.navigator import NavInsID
-
 from application_client.command_sender import CommandSender, InsType
 from application_client.response_unpacker import (
-    unpack_sign_transaction_response,
     unpack_get_tvk_response,
+    unpack_sign_transaction_response,
 )
+from ragger.backend.interface import BackendInterface
+from ragger.error import ExceptionRAPDU, StatusWords
+from ragger.navigator import NavInsID
+from ragger.navigator.navigation_scenario import NavigateWithScenario
 
 
 def check_response(received: dict, expected: dict) -> bool:
-    for key in expected.keys():
-        if key not in received.keys():
+    for key in expected:
+        if key not in received:
             return False
         if type(received[key]) is not type(expected[key]):
             return False
@@ -157,6 +155,199 @@ def forge_nested_call_private_transfer(
         {"type": "credits.record", "value": record},
         {"type": "address.private", "value": address_to},
         {"type": "u64.private", "value": amount},
+    ]
+    data["request"]["nested_call_count"] = 0
+    data["request"]["program_checksum"] = program_checksum
+
+    return data
+
+
+def forge_arc22_token_public_transfer(
+    max_base_fee: int,
+    max_priority_fee: int,
+    address_to: str,
+    amount: int,
+    program_name: str,
+    program_checksum: str = "",
+) -> dict:
+
+    data = {
+        "type": "intent",
+        "max_base_fee": max_base_fee,
+        "max_priority_fee": max_priority_fee,
+        "fee_program_id": "credits.aleo",
+        "fee_function_name": "fee_public",
+    }
+    data["request"] = {
+        "network_id": "mainnet",
+        "program_id": program_name,
+        "function_name": "transfer_public",
+    }
+    data["request"]["inputs"] = [
+        {"type": "address.public", "value": address_to},
+        {"type": "u128.public", "value": amount},
+    ]
+    data["request"]["nested_call_count"] = 0
+    data["request"]["program_checksum"] = program_checksum
+
+    return data
+
+
+def forge_arc22_token_private_transfer(
+    max_base_fee: int,
+    max_priority_fee: int,
+    record: list[str],
+    address_to: str,
+    amount: int,
+    program_name: str,
+    merkle_proof: list[str],
+    program_checksum: str = "",
+) -> dict:
+
+    data = {
+        "type": "intent",
+        "max_base_fee": max_base_fee,
+        "max_priority_fee": max_priority_fee,
+        "fee_program_id": "credits.aleo",
+        "fee_function_name": "fee_private",
+    }
+    data["request"] = {
+        "network_id": "mainnet",
+        "program_id": program_name,
+        "function_name": "transfer_private",
+    }
+    data["request"]["inputs"] = [
+        {"type": "address.private", "value": address_to},
+        {"type": "u128.private", "value": amount},
+        {"type": "token.record", "value": record},
+        {"type": "merkle_proof", "value": merkle_proof},
+    ]
+    data["request"]["nested_call_count"] = 0
+    data["request"]["program_checksum"] = program_checksum
+
+    return data
+
+
+def forge_arc22_token_batch_private_transfer(
+    max_base_fee: int,
+    max_priority_fee: int,
+    external_record: list[str],
+    address_to: str,
+    amount: int,
+    program_name: str,
+    merkle_proof: list[str],
+    program_checksum: str = "",
+) -> dict:
+    data = {
+        "type": "intent",
+        "max_base_fee": max_base_fee,
+        "max_priority_fee": max_priority_fee,
+        "fee_program_id": "credits.aleo",
+        "fee_function_name": "fee_private",
+    }
+    data["request"] = {
+        "network_id": "mainnet",
+        "program_id": program_name,
+        "function_name": "transfer_private_2",
+    }
+    data["request"]["inputs"] = [
+        {"type": "external_record", "value": external_record[0]},
+        {"type": "external_record", "value": external_record[1]},
+        {"type": "address.private", "value": address_to},
+        {"type": "u128.private", "value": amount},
+        {"type": "merkle_proof", "value": merkle_proof},
+    ]
+    data["request"]["nested_call_count"] = 2
+    data["request"]["program_checksum"] = program_checksum
+
+    return data
+
+
+def forge_arc22_token_private_to_public_transfer(
+    max_base_fee: int,
+    max_priority_fee: int,
+    record: list[str],
+    address_to: str,
+    amount: int,
+    program_name: str,
+    merkle_proof: list[str],
+    program_checksum: str = "",
+) -> dict:
+
+    data = {
+        "type": "intent",
+        "max_base_fee": max_base_fee,
+        "max_priority_fee": max_priority_fee,
+        "fee_program_id": "credits.aleo",
+        "fee_function_name": "fee_private",
+    }
+    data["request"] = {
+        "network_id": "mainnet",
+        "program_id": program_name,
+        "function_name": "transfer_private_to_public",
+    }
+    data["request"]["inputs"] = [
+        {"type": "address.public", "value": address_to},
+        {"type": "u128.public", "value": amount},
+        {"type": "token.record", "value": record},
+        {"type": "merkle_proof", "value": merkle_proof},
+    ]
+    data["request"]["nested_call_count"] = 0
+    data["request"]["program_checksum"] = program_checksum
+
+    return data
+
+
+def forge_arc22_token_public_to_private_transfer(
+    max_base_fee: int,
+    max_priority_fee: int,
+    address_to: str,
+    amount: int,
+    program_name: str,
+    program_checksum: str = "",
+) -> dict:
+
+    data = {
+        "type": "intent",
+        "max_base_fee": max_base_fee,
+        "max_priority_fee": max_priority_fee,
+        "fee_program_id": "credits.aleo",
+        "fee_function_name": "fee_public",
+    }
+    data["request"] = {
+        "network_id": "mainnet",
+        "program_id": program_name,
+        "function_name": "transfer_public_to_private",
+    }
+    data["request"]["inputs"] = [
+        {"type": "address.private", "value": address_to},
+        {"type": "u128.public", "value": amount},
+    ]
+    data["request"]["nested_call_count"] = 0
+    data["request"]["program_checksum"] = program_checksum
+
+    return data
+
+
+def forge_nested_call_arc22_token_private_transfer(
+    record: list[str],
+    address_to: str,
+    amount: int,
+    program_name: str,
+    merkle_proof: list[str],
+    program_checksum: str = "",
+) -> dict:
+    data = {"type": "nested_call"}
+    data["request"] = {
+        "network_id": "mainnet",
+        "program_id": program_name,
+        "function_name": "transfer_private",
+    }
+    data["request"]["inputs"] = [
+        {"type": "address.private", "value": address_to},
+        {"type": "u128.private", "value": amount},
+        {"type": "token.record", "value": record},
+        {"type": "merkle_proof", "value": merkle_proof},
     ]
     data["request"]["nested_call_count"] = 0
     data["request"]["program_checksum"] = program_checksum

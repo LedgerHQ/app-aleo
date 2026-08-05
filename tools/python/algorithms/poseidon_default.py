@@ -42,7 +42,7 @@ class PoseidonGrainLFSR:
 
         self.head = 0
 
-        for i in range(0, 160):
+        for i in range(160):
             self.next_bit()
 
     def next_bit(self):
@@ -102,11 +102,11 @@ class PoseidonDefault:
 
     def get_field_elements_rejection_sampling(self, num_elements):
         output = []
-        for i in range(0, num_elements):
+        for i in range(num_elements):
             while True:
                 bits = []
                 self.lfsr.it_init(Field.MODULUS_BITS)
-                for j in range(0, Field.MODULUS_BITS):
+                for j in range(Field.MODULUS_BITS):
                     bits.append(self.lfsr.it_next())
                 val = self.lfsr.bits_to_int(bits)
                 if val < Field.MODULUS.to_int():
@@ -119,10 +119,10 @@ class PoseidonDefault:
     def get_field_elements_mod_p(self, num_elems):
         output = []
         num_bits = Field.MODULUS_BITS
-        for i in range(0, num_elems):
+        for i in range(num_elems):
             bits = []
             self.lfsr.it_init(num_bits)
-            for j in range(0, Field.MODULUS_BITS):
+            for j in range(Field.MODULUS_BITS):
                 bits.append(self.lfsr.it_next())
             val = self.lfsr.bits_to_int(bits)
             val = val.to_bytes(32, byteorder="big")
@@ -145,7 +145,7 @@ class PoseidonDefault:
         tmp.mul_assign(coeff)
 
         index = 0
-        for index in reversed(range(0, len(v))):
+        for index in reversed(range(len(v))):
             f = v[index]
             if index == 0:
                 s = Field(Field.R)
@@ -166,7 +166,7 @@ class PoseidonDefault:
             self.partial_rounds,
         )
         ark = []
-        for i in range(0, self.full_rounds + self.partial_rounds):
+        for i in range(self.full_rounds + self.partial_rounds):
             output = self.get_field_elements_rejection_sampling(self.rate + 1)
             ark.append(output)
 
@@ -187,7 +187,7 @@ class PoseidonDefault:
         self.serial_batch_inversion_and_mul(mds_flattened, Field(Field.R.to_int()))
         mds = []
         tmp = []
-        for i in range(0, len(mds_flattened)):
+        for i in range(len(mds_flattened)):
             tmp.append(mds_flattened[i])
             if i % (self.rate + 1) == self.rate:
                 mds.append(tmp)

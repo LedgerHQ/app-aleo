@@ -1,7 +1,6 @@
-from ragger.backend.interface import BackendInterface
-
 from application_client.command_sender import CommandSender
 from application_client.response_unpacker import unpack_get_version_response
+from ragger.backend.interface import BackendInterface
 
 from .utils import verify_version
 
