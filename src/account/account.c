@@ -143,7 +143,6 @@ static int compute_key_from_private_key(const private_key_t *private_key,
     group_println(&compute_key->pr_sig);
 
 end:
-    explicit_bzero(hash_input, sizeof(hash_input));
     return status;
 }
 
@@ -384,7 +383,6 @@ int account_generate_keys(const uint32_t *path, uint8_t path_len, account_t *acc
         goto error;
     }
 
-    explicit_bzero(hash_input, sizeof(hash_input));
     return 0;
 
 error:
