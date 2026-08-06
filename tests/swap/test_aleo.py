@@ -162,11 +162,12 @@ class TestsAleo:
     def test_aleo_swap_usad_zero_fee(self, backend, exchange_navigation_helper):
         ZeroFeeUSADTokenTests(backend, exchange_navigation_helper).run_test("swap_valid_1")
 
-    def test_aleo_swap_fake(self, backend, exchange_navigation_helper):
+    def test_aleo_swap_fake_1(self, backend, exchange_navigation_helper):
         with pytest.raises(ExceptionRAPDU) as e:
             FAKETokenTests(backend, exchange_navigation_helper).run_test("swap_valid_1")
         assert e.value.status in [0xc000]
 
+    def test_aleo_swap_fake_2(self, backend, exchange_navigation_helper):
         with pytest.raises(ExceptionRAPDU) as e:
             FAKETokenTests2(backend, exchange_navigation_helper).run_test("swap_valid_1")
         assert e.value.status in [0xc000, 0x6a80]
