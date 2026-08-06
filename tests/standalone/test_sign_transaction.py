@@ -125,11 +125,13 @@ def forge_batch_private_transfer(
     return data
 
 
-def forge_nested_call_join(r0: list[str], r1: list[str], program_checksum: str = ""):
+def forge_nested_call_join(
+    r0: list[str], r1: list[str], program_id: str, program_checksum: str = ""
+):
     data = {"type": "nested_call"}
     data["request"] = {
         "network_id": "mainnet",
-        "program_id": "credits.aleo",
+        "program_id": program_id,
         "function_name": "join",
     }
     data["request"]["inputs"] = [
@@ -779,6 +781,7 @@ def test_sign_transaction_transfer_batch_private(
     tx_datas = forge_nested_call_join(
         record,
         record,
+        "credits.aleo",
         "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
     )
     with client.sign_transaction(tx_datas=tx_datas):
@@ -937,6 +940,7 @@ def test_sign_transaction_transfer_batch_private_zero_fees(
     tx_datas = forge_nested_call_join(
         record,
         record,
+        "credits.aleo",
         "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
     )
     with client.sign_transaction(tx_datas=tx_datas):
@@ -1057,6 +1061,7 @@ def test_sign_transaction_transfer_batch_private_timeout(
     tx_datas = forge_nested_call_join(
         record,
         record,
+        "credits.aleo",
         "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
     )
     with client.sign_transaction(tx_datas=tx_datas):
@@ -1147,6 +1152,7 @@ def test_sign_transaction_transfer_batch_private_wrong_nc(
     tx_datas = forge_nested_call_join(
         record,
         record,
+        "credits.aleo",
         "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
     )
     with client.sign_transaction(tx_datas=tx_datas):
@@ -1188,6 +1194,7 @@ def test_sign_transaction_transfer_batch_private_wrong_nc(
     tx_datas = forge_nested_call_join(
         record,
         record,
+        "credits.aleo",
         "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
     )
     with client.sign_transaction(tx_datas=tx_datas):
@@ -1286,6 +1293,7 @@ def test_sign_transaction_transfer_batch_private_wrong_tvk(
     tx_datas = forge_nested_call_join(
         record,
         record,
+        "credits.aleo",
         "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
     )
     with client.sign_transaction(tx_datas=tx_datas):
@@ -1428,3 +1436,473 @@ def test_sign_transaction_get_tvk_timeout(
         screen_change_before_first_instruction=False,
         screen_change_after_last_instruction=True,
     )
+
+
+def test_sign_transaction_token_arc22_unknown(
+    backend: BackendInterface, scenario_navigator: NavigateWithScenario
+) -> None:
+    client = CommandSender(backend)
+    tx_datas = forge_arc22_token_public_transfer(
+        500,
+        100,
+        "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe",
+        1000,
+        "dummy_stablecoin.aleo",
+    )
+    tx_datas["path"] = "m/44'/683'/0'/0'"
+
+    with pytest.raises(ExceptionRAPDU) as e:
+        with client.sign_transaction(tx_datas=tx_datas):
+            if scenario_navigator.device.is_nano:
+                instruction = NavInsID.BOTH_CLICK
+            else:
+                instruction = NavInsID.USE_CASE_REVIEW_TAP
+            scenario_navigator.navigator.navigate_until_text(
+                navigate_instruction=instruction,
+                validation_instructions=None,
+                text="Transaction rejected",
+                timeout=3,
+                screen_change_before_first_instruction=False,
+                screen_change_after_last_instruction=True,
+            )
+
+    assert e.value.status == StatusWords.SWO_INCORRECT_DATA
+
+
+def test_sign_transaction_token_arc22_transfer_public(
+    backend: BackendInterface, scenario_navigator: NavigateWithScenario
+) -> None:
+    client = CommandSender(backend)
+    tx_datas = forge_arc22_token_public_transfer(
+        500,
+        100,
+        "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe",
+        1000,
+        "usad_stablecoin.aleo",
+    )
+    tx_datas["path"] = "m/44'/683'/0'/0'"
+    with client.sign_transaction(tx_datas=tx_datas):
+        scenario_navigator.review_approve_with_spinner("Calculating fees")
+
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {
+        "structure_type": 42,
+        "version": 1,
+        "signature": {
+            "pk_sig": "1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e",
+            "pr_sig": "3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310",
+        },
+        "gammas_count": 0,
+    }
+    assert check_response(unpacked, expected)
+
+    tx_datas = forge_public_fee(
+        500,
+        100,
+        "7266375125414209082394925781071362722506946030314916664133746682226945366259field",
+    )
+    with client.sign_transaction(tx_datas=tx_datas):
+        if scenario_navigator.device.is_nano:
+            instruction = NavInsID.BOTH_CLICK
+        else:
+            instruction = NavInsID.USE_CASE_REVIEW_TAP
+        scenario_navigator.navigator.navigate_until_text(
+            navigate_instruction=instruction,
+            validation_instructions=None,
+            text="Transaction signed",
+            timeout=3,
+            screen_change_before_first_instruction=False,
+            screen_change_after_last_instruction=True,
+        )
+
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {
+        "structure_type": 42,
+        "version": 1,
+        "signature": {
+            "pk_sig": "1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e",
+            "pr_sig": "3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310",
+        },
+        "gammas_count": 0,
+    }
+    assert check_response(unpacked, expected)
+
+
+def test_sign_transaction_token_arc22_transfer_private(
+    backend: BackendInterface, scenario_navigator: NavigateWithScenario
+) -> None:
+    client = CommandSender(backend)
+    record = [
+        "3614797564276936744957924747041031196891698846785520060979425601577054464500field",
+        "2426895214035216932245297778850989035038538961658726507442215877484415082794field",
+        "0220642863446832956019507279394572297489712696240584424406852292692897199577field",
+    ]
+    merkle_proof = [
+        "3614797564276936744957924747041031196891698846785520060979425601577054464500field"
+    ] * 34
+
+    tx_datas = forge_arc22_token_private_transfer(
+        500,
+        100,
+        record,
+        "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe",
+        1000,
+        "usdcx_stablecoin.aleo",
+        merkle_proof,
+    )
+    tx_datas["path"] = "m/44'/683'/0'/0'"
+    with client.sign_transaction(tx_datas=tx_datas):
+        scenario_navigator.review_approve_with_spinner("Calculating fees")
+
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {
+        "structure_type": 42,
+        "version": 1,
+        "signature": {
+            "pk_sig": "1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e",
+            "pr_sig": "3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310",
+        },
+        "gammas_count": 1,
+        "gammas": ["b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003"],
+    }
+    assert check_response(unpacked, expected)
+
+    tx_datas = forge_private_fee(
+        500,
+        100,
+        record,
+        "7266375125414209082394925781071362722506946030314916664133746682226945366259field",
+    )
+    with client.sign_transaction(tx_datas=tx_datas):
+        if scenario_navigator.device.is_nano:
+            instruction = NavInsID.BOTH_CLICK
+        else:
+            instruction = NavInsID.USE_CASE_REVIEW_TAP
+        scenario_navigator.navigator.navigate_until_text(
+            navigate_instruction=instruction,
+            validation_instructions=None,
+            text="Transaction signed",
+            timeout=3,
+            screen_change_before_first_instruction=False,
+            screen_change_after_last_instruction=True,
+        )
+
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {
+        "structure_type": 42,
+        "version": 1,
+        "signature": {
+            "pk_sig": "1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e",
+            "pr_sig": "3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310",
+        },
+        "gammas_count": 1,
+        "gammas": ["b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003"],
+    }
+    assert check_response(unpacked, expected)
+
+
+def test_sign_transaction_token_arc22_transfer_batch_private(
+    backend: BackendInterface, scenario_navigator: NavigateWithScenario
+) -> None:
+    client = CommandSender(backend)
+
+    tx_datas = {"type": "get_tvk", "path": "m/44'/683'/0'/0'", "index": 0}
+    response = client.get_tvk(tx_datas=tx_datas).data
+    unpacked = unpack_get_tvk_response(response)
+    tvk_0 = unpacked["tvk"]
+    tx_datas = {"type": "get_tvk", "path": "m/44'/683'/0'/0'", "index": 1}
+    response = client.get_tvk(tx_datas=tx_datas).data
+    unpacked = unpack_get_tvk_response(response)
+    tvk_1 = unpacked["tvk"]
+    tx_datas = {"type": "get_tvk", "path": "m/44'/683'/0'/0'", "index": 2}
+    response = client.get_tvk(tx_datas=tx_datas).data
+    unpacked = unpack_get_tvk_response(response)
+    tvk_2 = unpacked["tvk"]
+
+    external_record = [
+        "d5f4b9312020d52c6752cb927e00771b300e8742e7cbe2cffe79a2a9f1641e03f1020000b6a58dc9bd8dc99591a5d1cd0503100019000000000000806381fe03232753113751635f57729543c73e2ab3641901f57fec18b1e560b28b80000000",
+        "d5f4b9312020d52c6752cb927e00771b300e8742e7cbe2cffe79a2a9f1641e03f1020000b6a58dc9bd8dc99591a5d1cd0503100019000000000000c0eed4b40239bab0f49f52a8a88613dc6ea6aec32d2d23df9a005edf7d940ecfb980000000",
+    ]
+    merkle_proof = [
+        "3614797564276936744957924747041031196891698846785520060979425601577054464500field"
+    ] * 34
+
+    tx_datas = forge_arc22_token_batch_private_transfer(
+        500,
+        100,
+        external_record,
+        "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe",
+        1000,
+        "ldg_usad_p_28.aleo",
+        merkle_proof,
+        "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
+    )
+    tx_datas["path"] = "m/44'/683'/0'/0'"
+    with client.sign_transaction(tx_datas=tx_datas):
+        scenario_navigator.review_approve_with_spinner("Prepare Tx 5/15")
+
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {
+        "structure_type": 42,
+        "version": 1,
+        "signature": {
+            "pk_sig": "1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e",
+            "pr_sig": "3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310",
+        },
+        "tvk": tvk_0,
+        "gammas_count": 0,
+    }
+    assert check_response(unpacked, expected)
+
+    record = [
+        "3614797564276936744957924747041031196891698846785520060979425601577054464500field",
+        "2426895214035216932245297778850989035038538961658726507442215877484415082794field",
+        "0220642863446832956019507279394572297489712696240584424406852292692897199577field",
+    ]
+    tx_datas = forge_nested_call_join(
+        record,
+        record,
+        "usad_stablecoin.aleo",
+        "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
+    )
+    with client.sign_transaction(tx_datas=tx_datas):
+        if scenario_navigator.device.is_nano:
+            instruction = NavInsID.BOTH_CLICK
+        else:
+            instruction = NavInsID.USE_CASE_REVIEW_TAP
+        scenario_navigator.navigator.navigate_until_text(
+            navigate_instruction=instruction,
+            validation_instructions=None,
+            text="Prepare Tx 10/15",
+            timeout=3,
+            screen_change_before_first_instruction=False,
+            screen_change_after_last_instruction=True,
+        )
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {
+        "structure_type": 42,
+        "version": 1,
+        "signature": {
+            "pk_sig": "1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e",
+            "pr_sig": "3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310",
+        },
+        "tvk": tvk_1,
+        "gammas_count": 2,
+        "gammas": [
+            "b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003",
+            "b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003",
+        ],
+    }
+    assert check_response(unpacked, expected)
+
+    tx_datas = forge_nested_call_arc22_token_private_transfer(
+        record,
+        "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe",
+        1000,
+        "usad_stablecoin.aleo",
+        merkle_proof,
+        "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
+    )
+    with client.sign_transaction(tx_datas=tx_datas):
+        if scenario_navigator.device.is_nano:
+            instruction = NavInsID.BOTH_CLICK
+        else:
+            instruction = NavInsID.USE_CASE_REVIEW_TAP
+        scenario_navigator.navigator.navigate_until_text(
+            navigate_instruction=instruction,
+            validation_instructions=None,
+            text="Calculating fees",
+            timeout=3,
+            screen_change_before_first_instruction=False,
+            screen_change_after_last_instruction=True,
+        )
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {
+        "structure_type": 42,
+        "version": 1,
+        "signature": {
+            "pk_sig": "1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e",
+            "pr_sig": "3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310",
+        },
+        "tvk": tvk_2,
+        "gammas_count": 1,
+        "gammas": ["b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003"],
+    }
+    assert check_response(unpacked, expected)
+
+    tx_datas = forge_private_fee(
+        500,
+        100,
+        record,
+        "7266375125414209082394925781071362722506946030314916664133746682226945366259field",
+    )
+    with client.sign_transaction(tx_datas=tx_datas):
+        if scenario_navigator.device.is_nano:
+            instruction = NavInsID.BOTH_CLICK
+        else:
+            instruction = NavInsID.USE_CASE_REVIEW_TAP
+        scenario_navigator.navigator.navigate_until_text(
+            navigate_instruction=instruction,
+            validation_instructions=None,
+            text="Transaction signed",
+            timeout=3,
+            screen_change_before_first_instruction=False,
+            screen_change_after_last_instruction=True,
+        )
+
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {
+        "structure_type": 42,
+        "version": 1,
+        "signature": {
+            "pk_sig": "1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e",
+            "pr_sig": "3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310",
+        },
+        "gammas_count": 1,
+        "gammas": ["b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003"],
+    }
+    assert check_response(unpacked, expected)
+
+
+def test_sign_transaction_token_arc22_transfer_private_to_public(
+    backend: BackendInterface, scenario_navigator: NavigateWithScenario
+) -> None:
+    client = CommandSender(backend)
+    record = [
+        "3614797564276936744957924747041031196891698846785520060979425601577054464500field",
+        "2426895214035216932245297778850989035038538961658726507442215877484415082794field",
+        "0220642863446832956019507279394572297489712696240584424406852292692897199577field",
+    ]
+    merkle_proof = [
+        "3614797564276936744957924747041031196891698846785520060979425601577054464500field"
+    ] * 34
+
+    tx_datas = forge_arc22_token_private_to_public_transfer(
+        500,
+        100,
+        record,
+        "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe",
+        1000,
+        "usad_stablecoin.aleo",
+        merkle_proof,
+    )
+    tx_datas["path"] = "m/44'/683'/0'/0'"
+    with client.sign_transaction(tx_datas=tx_datas):
+        scenario_navigator.review_approve_with_spinner("Calculating fees")
+
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {
+        "structure_type": 42,
+        "version": 1,
+        "signature": {
+            "pk_sig": "1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e",
+            "pr_sig": "3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310",
+        },
+        "gammas_count": 1,
+        "gammas": ["b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003"],
+    }
+    assert check_response(unpacked, expected)
+
+    tx_datas = forge_private_fee(
+        500,
+        100,
+        record,
+        "7266375125414209082394925781071362722506946030314916664133746682226945366259field",
+    )
+    with client.sign_transaction(tx_datas=tx_datas):
+        if scenario_navigator.device.is_nano:
+            instruction = NavInsID.BOTH_CLICK
+        else:
+            instruction = NavInsID.USE_CASE_REVIEW_TAP
+        scenario_navigator.navigator.navigate_until_text(
+            navigate_instruction=instruction,
+            validation_instructions=None,
+            text="Transaction signed",
+            timeout=3,
+            screen_change_before_first_instruction=False,
+            screen_change_after_last_instruction=True,
+        )
+
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {
+        "structure_type": 42,
+        "version": 1,
+        "signature": {
+            "pk_sig": "1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e",
+            "pr_sig": "3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310",
+        },
+        "gammas_count": 1,
+        "gammas": ["b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003"],
+    }
+    assert check_response(unpacked, expected)
+
+
+def test_sign_transaction_token_arc22_transfer_public_to_private(
+    backend: BackendInterface, scenario_navigator: NavigateWithScenario
+) -> None:
+    client = CommandSender(backend)
+    tx_datas = forge_arc22_token_public_to_private_transfer(
+        500,
+        100,
+        "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe",
+        1000,
+        "usad_stablecoin.aleo",
+    )
+    tx_datas["path"] = "m/44'/683'/0'/0'"
+    with client.sign_transaction(tx_datas=tx_datas):
+        scenario_navigator.review_approve_with_spinner("Calculating fees")
+
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {
+        "structure_type": 42,
+        "version": 1,
+        "signature": {
+            "pk_sig": "1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e",
+            "pr_sig": "3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310",
+        },
+        "gammas_count": 0,
+    }
+    assert check_response(unpacked, expected)
+
+    tx_datas = forge_public_fee(
+        500,
+        100,
+        "7266375125414209082394925781071362722506946030314916664133746682226945366259field",
+    )
+    with client.sign_transaction(tx_datas=tx_datas):
+        if scenario_navigator.device.is_nano:
+            instruction = NavInsID.BOTH_CLICK
+        else:
+            instruction = NavInsID.USE_CASE_REVIEW_TAP
+        scenario_navigator.navigator.navigate_until_text(
+            navigate_instruction=instruction,
+            validation_instructions=None,
+            text="Transaction signed",
+            timeout=3,
+            screen_change_before_first_instruction=False,
+            screen_change_after_last_instruction=True,
+        )
+
+    response = client.get_async_response().data
+    unpacked = unpack_sign_transaction_response(response)
+    expected = {
+        "structure_type": 42,
+        "version": 1,
+        "signature": {
+            "pk_sig": "1d4c4b28dd6ce05ab520f00b71c081d480684c746a7d8f3b0a3a68d410ce840e",
+            "pr_sig": "3a8a3cfee21ce108285cca4cc50abb5ac9044acf26959ddb7722cbb968bdc310",
+        },
+        "gammas_count": 0,
+    }
+    assert check_response(unpacked, expected)
