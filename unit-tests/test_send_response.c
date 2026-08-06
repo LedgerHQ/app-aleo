@@ -112,9 +112,9 @@ static void test_send_response(void **state)
         &G_context.sign_transaction_datas.prepared_request.response, &response, sizeof(scalar_t));
     G_context.sign_transaction_datas.prepared_request.gammas_count = 1;
     group_t gamma                                                  = {
-                                                         .x.big.u64
+        .x.big.u64
         = {0x3e0f47ba54ff2c20, 0xa4b263d02d37731f, 0xf6c650f0a280e050, 0x11b7382b66742e4d},
-                                                         .y.big.u64
+        .y.big.u64
         = {0x387cfa1a55b496b7, 0x9de2032207dc5348, 0xbec120f8b0c0d11e, 0x13f7d479fee498d }
     };
     memcpy(&G_context.sign_transaction_datas.prepared_request.gammas[0], &gamma, sizeof(group_t));
@@ -135,6 +135,13 @@ static void test_send_response(void **state)
     will_return(io_legacy_apdu_tx, sign_apdu);
     will_return(io_legacy_apdu_tx, 247);
     assert_int_equal(helper_send_response_sign_transaction(), 0);
+
+    // helper_send_response_get_tvk
+    const char *tvk_apdu
+        = "\x20\xda\x7a\x28\xb6\x78\xa5\x07\x38\x57\xf4\x2b\x4a\x32\x27\xdd\xb3\x37\xcd\x29\x3c\x6b\xc0\x3b\x6e\xb5\x6b\xc8\xeb\xde\x83\x38\x90\x00";
+    will_return(io_legacy_apdu_tx, tvk_apdu);
+    will_return(io_legacy_apdu_tx, 35);
+    assert_int_equal(helper_send_response_get_tvk(&tvk), 0);
 }
 
 int main()

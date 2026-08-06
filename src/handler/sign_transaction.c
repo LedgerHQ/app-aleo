@@ -90,12 +90,7 @@ static int sign_root_tx(buffer_t *cdata)
 
     // Extract intent
     if ((status = tx_extract_intent(&tlv_buffer)) < 0) {
-        account_erase(&G_context.account);
-        r_list_erase();
-#ifndef FUZZ
-        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
-#endif  // FUZZ
-        goto end;
+        goto rejected;
     }
     G_context.sign_transaction_datas.prepared_request.is_root = true;
     G_context.nested_call_count
@@ -103,34 +98,29 @@ static int sign_root_tx(buffer_t *cdata)
 
     // Parse intent
     if ((status = tx_parse(&G_context.sign_transaction_datas, &G_context.tx)) < 0) {
-        account_erase(&G_context.account);
-        r_list_erase();
-#ifndef FUZZ
-        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
-#endif  // FUZZ
-        goto end;
+        goto rejected;
     }
 
-    if ((G_context.tx.type < TX_TRANSFER_START) || (G_context.tx.type > TX_ALEO_TRANSFER_END)) {
+    if ((G_context.tx.type < TX_TRANSFER_START) || (G_context.tx.type > TX_TRANSFER_END)) {
         status = -1;
-        account_erase(&G_context.account);
-        r_list_erase();
-#ifndef FUZZ
-        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
-#endif  // FUZZ
-        goto end;
+        goto rejected;
     }
 
     G_context.signing_state = SIGNING_STATE_INTENT;
 
     // Display & sign transaction
     if ((status = ui_display_transaction()) < 0) {
-        account_erase(&G_context.account);
-        r_list_erase();
-#ifndef FUZZ
-        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
-#endif  // FUZZ
+        goto rejected;
     }
+
+    goto end;
+
+rejected:
+    account_erase(&G_context.account);
+    r_list_erase();
+#ifndef FUZZ
+    nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
+#endif  // FUZZ
 
 end:
     return status;

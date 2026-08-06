@@ -25,56 +25,31 @@
 #include "os_utils.h"
 #include "cx.h"
 
-#include "db_program_function.h"
+#include "db.h"
 #include "bhp_1024.h"
 
 int bhp_1024_hash_function_id(prepared_request_t *request)
 {
-    size_t                 index         = 0;
-    size_t                 program_index = 0;
-    function_parameters_t *functions     = NULL;
-
     LEDGER_ASSERT(request != NULL, "NULL request");
+
+    function_parameters_t *function_parameters = NULL;
 
     if (request->network_id >= NETWORK_ID_COUNT) {
         return -1;
     }
 
-    // Find program
-    for (index = 0; index < NB_OF_PROGRAMS; index++) {
-        if (request->program_id_length != strlen(PIC(program_parameters[index].program_id))) {
-            continue;
-        }
-        if (memcmp(request->program_id,
-                   PIC(program_parameters[index].program_id),
-                   request->program_id_length)) {
-            continue;
-        }
-        break;
+    int status = db_get_function_parameters(request->program_id,
+                                            request->program_id_length,
+                                            request->function_name,
+                                            request->function_name_length,
+                                            &function_parameters);
+    if (status < 0) {
+        return status;
     }
 
-    if (index >= NB_OF_PROGRAMS) {
-        return -1;
-    }
+    memcpy(&request->function_id,
+           PIC(&function_parameters->bhp_1024_hashes[request->network_id]),
+           sizeof(field_t));
 
-    // Find program's function
-    program_index = index;
-    functions     = PIC(program_parameters[program_index].functions);
-
-    for (index = 0; index < program_parameters[program_index].nb_of_functions; index++) {
-        if (request->function_name_length != strlen(PIC(functions[index].string))) {
-            continue;
-        }
-        if (memcmp(request->function_name,
-                   PIC(functions[index].string),
-                   request->function_name_length)) {
-            continue;
-        }
-        memcpy(&request->function_id,
-               PIC(&functions[index].bhp_1024_hashes[request->network_id]),
-               sizeof(field_t));
-        return 0;
-    }
-
-    return -1;
+    return 0;
 }

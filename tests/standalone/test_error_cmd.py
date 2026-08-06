@@ -1,9 +1,7 @@
 import pytest
-
-from ragger.error import ExceptionRAPDU, StatusWords
-from ragger.backend.interface import BackendInterface
-
 from application_client.command_sender import CLA, InsType
+from ragger.backend.interface import BackendInterface
+from ragger.error import ExceptionRAPDU, StatusWords
 
 
 # Ensure the app returns an error when a bad CLA is used
@@ -16,7 +14,7 @@ def test_bad_cla(backend: BackendInterface) -> None:
 # Ensure the app returns an error when a bad INS is used
 def test_bad_ins(backend: BackendInterface) -> None:
     with pytest.raises(ExceptionRAPDU) as e:
-        backend.exchange(cla=CLA, ins=0xff)
+        backend.exchange(cla=CLA, ins=0xFF)
     assert e.value.status == StatusWords.SWO_INVALID_INS
 
 

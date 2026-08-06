@@ -299,6 +299,7 @@ int big_int_random(bigint_256_t *a, const bigint_256_t *modulus)
     bn_to_big_int(bn, a);
 
 end:
+    explicit_bzero(bn, sizeof(bn));
     if (cx_bn_unlock() != CX_OK) {
         return -1;
     }
@@ -330,7 +331,7 @@ void bn_print(uint8_t *bn)
 {
     LEDGER_ASSERT(bn != NULL, "NULL bn");
 
-    for (size_t i = 0; i < 32; i++) {
+    for (size_t i = 0; i < BN_LENGTH; i++) {
         PRINTF("%02x", bn[i]);
     }
     PRINTF("\n");

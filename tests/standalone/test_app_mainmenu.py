@@ -1,12 +1,11 @@
-from ledgered.devices import DeviceType, Device
+from ledgered.devices import Device, DeviceType
 from ragger.navigator import Navigator, NavInsID
 
 
 # In this test we check the behavior of the device main menu
-def test_app_mainmenu(device: Device,
-                      navigator: Navigator,
-                      test_name: str,
-                      default_screenshot_path: str) -> None:
+def test_app_mainmenu(
+    device: Device, navigator: Navigator, test_name: str, default_screenshot_path: str
+) -> None:
     # Navigate in the main menu
     instructions = []
     if device.is_nano:
@@ -17,22 +16,20 @@ def test_app_mainmenu(device: Device,
             NavInsID.RIGHT_CLICK,
             NavInsID.BOTH_CLICK,
         ]
-    elif device.type is DeviceType.STAX:
+    elif (
+        device.type is DeviceType.STAX
+        or device.type is DeviceType.FLEX
+        or device.type is DeviceType.APEX_P
+    ):
         instructions += [
             NavInsID.USE_CASE_HOME_SETTINGS,
-            NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT
-        ]
-    elif device.type is DeviceType.FLEX:
-        instructions += [
-            NavInsID.USE_CASE_HOME_SETTINGS,
-            NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT
-        ]
-    elif device.type is DeviceType.APEX_P:
-        instructions += [
-            NavInsID.USE_CASE_HOME_SETTINGS,
-            NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT
+            NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT,
         ]
 
     assert len(instructions) > 0
-    navigator.navigate_and_compare(default_screenshot_path, test_name, instructions,
-                                   screen_change_before_first_instruction=False)
+    navigator.navigate_and_compare(
+        default_screenshot_path,
+        test_name,
+        instructions,
+        screen_change_before_first_instruction=False,
+    )
