@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-08-06
+
+### Added
+
+- Swap feature support (Exchange app integration)
+- Swap unit tests and Ragger tests, including tests for token swaps
+
+### Fixed
+
+- Device getting stuck on the loading transaction screen when no fees are present
+- Fuzzing test issue
+- Clang format issues
+- Build issue after rebasing with `develop` branch
+- Ragger swap test for the Fake token
+- Ragger tests vanished during merge
+
+### Changed
+
+- CI: added swap tests
+
+## [1.2.0] - 2026-08-04
+
+### Fixed
+
+- Audit-5: Allow pre-generated TVK only for private batch transfers
+- Audit-8: Internal state not cleared before the end of the stackframe
+- Audit-9: Missing error handling
+- Audit-10: `hash_input` static variable not zeroed immediately after use
+- Audit-11: Local variables not cleared on successful return path
+- Audit-12: Repeated error processing in `sign_root_tx`
+- Ruff linting issues
+- Minor fixes
+
+### Changed
+
+- Migrate Python linting/formatting tooling to ruff
+
 ## [1.1.1] - 2026-06-26
 
 ### Added
