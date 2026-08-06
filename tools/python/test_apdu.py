@@ -13,6 +13,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--file", help="json file", default=None)
     parser.add_argument("--dry-run", help="just print apdus", action="store_true")
+    parser.add_argument("--tcp", help="", action="store_true")
     args = parser.parse_args()
 
     if args.file is None:
@@ -24,8 +25,11 @@ if __name__ == "__main__":
 
     tx = Transaction()
 
-    if not args.dry_run:
-        dongle = getDongle(True)
+    if args.dry_run == False:
+        if args.tcp:
+            dongle = getDongleTCP("127.0.0.1", 1237)
+        else:
+            dongle = getDongle(True)
 
     for cmd in cmds:
         apdus = tx.gen_apdus_tx(cmd)
