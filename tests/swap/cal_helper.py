@@ -35,8 +35,13 @@ ALEO_USDCX_CURRENCY_CONFIGURATION = CurrencyConfiguration(
 # ALEO FAKE token configuration - FAKE with 6 decimals
 ALEO_FAKE_CONF = create_currency_config("FAKE", "Aleo", sub_coin_config=("FAKE", 6))
 ALEO_FAKE_PACKED_DERIVATION_PATH = ALEO_PACKED_DERIVATION_PATH
-ALEO_FAKE_CURRENCY_CONFIGURATION = CurrencyConfiguration(
-    ticker="FAKE",
-    conf=ALEO_FAKE_CONF,
-    packed_derivation_path=ALEO_FAKE_PACKED_DERIVATION_PATH,
-)
+ALEO_FAKE_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="FAKE",
+                                                         conf=ALEO_FAKE_CONF,
+                                                         packed_derivation_path=ALEO_FAKE_PACKED_DERIVATION_PATH)
+
+# ALEO ARC20 USDC token configuration - USDC with 6 decimals
+ALEO_ARC20_USDC_CONF = create_currency_config("USDC", "Aleo", sub_coin_config=("USDC", 6))
+ALEO_ARC20_USDC_PACKED_DERIVATION_PATH = ALEO_PACKED_DERIVATION_PATH
+ALEO_ARC20_USDC_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="USDC",
+                                                               conf=ALEO_ARC20_USDC_CONF,
+                                                               packed_derivation_path=ALEO_ARC20_USDC_PACKED_DERIVATION_PATH)

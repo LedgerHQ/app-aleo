@@ -68,22 +68,7 @@ if __name__ == "__main__":
     print("#include <stddef.h>  // size_t", file=h_file)
     print(file=h_file)
     print('#include "types.h"', file=h_file)
-    print('#include "field.h"', file=h_file)
-    print(file=h_file)
-
-    print("typedef enum {", file=h_file)
-    print("    NETWORK_ID_MAINNET = 0,", file=h_file)
-    print("    NETWORK_ID_TESTNET = 1,", file=h_file)
-    print("    NETWORK_ID_COUNT   = 2,", file=h_file)
-    print("} network_id_e;", file=h_file)
-    print(file=h_file)
-
-    print("typedef struct {", file=h_file)
-    print("    const char *string;", file=h_file)
-    print("    tx_type_e   tx_type;", file=h_file)
-    print("    uint8_t     input_count;", file=h_file)
-    print("    field_t     bhp_1024_hashes[NETWORK_ID_COUNT];", file=h_file)
-    print("} function_parameters_t;", file=h_file)
+    print('#include "db.h"', file=h_file)
     print(file=h_file)
 
     print("typedef struct {", file=h_file)
@@ -126,7 +111,7 @@ if __name__ == "__main__":
         for item in programs[program_id]:
             function_name = item["function"]
             print("    " + function_name)
-            print(f'    {{.string      = "{function_name}",', file=c_file)
+            print(f'    {{.name        = "{function_name}",', file=c_file)
             print("     .tx_type     = {},".format(item["tx_type"]), file=c_file)
             print("     .input_count = {:d},".format(item["input_count"]), file=c_file)
             print("     .bhp_1024_hashes", file=c_file)
