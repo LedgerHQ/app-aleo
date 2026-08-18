@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 from application_client.command_sender import CommandSender, InsType
 from application_client.response_unpacker import (
@@ -39,7 +41,7 @@ def forge_public_transfer(
     program_checksum: str = "",
 ) -> dict:
 
-    data = {
+    data: dict[str, Any] = {
         "type": "intent",
         "max_base_fee": max_base_fee,
         "max_priority_fee": max_priority_fee,
@@ -70,7 +72,7 @@ def forge_private_transfer(
     program_checksum: str = "",
 ) -> dict:
 
-    data = {
+    data: dict[str, Any] = {
         "type": "intent",
         "max_base_fee": max_base_fee,
         "max_priority_fee": max_priority_fee,
@@ -101,7 +103,7 @@ def forge_batch_private_transfer(
     amount: int,
     program_checksum: str = "",
 ) -> dict:
-    data = {
+    data: dict[str, Any] = {
         "type": "intent",
         "max_base_fee": max_base_fee,
         "max_priority_fee": max_priority_fee,
@@ -125,10 +127,8 @@ def forge_batch_private_transfer(
     return data
 
 
-def forge_nested_call_join(
-    r0: list[str], r1: list[str], program_id: str, program_checksum: str = ""
-):
-    data = {"type": "nested_call"}
+def forge_nested_call_join(r0: list[str], r1: list[str], program_id: str, program_checksum: str = ""):
+    data: dict[str, Any] = {"type": "nested_call"}
     data["request"] = {
         "network_id": "mainnet",
         "program_id": program_id,
@@ -144,10 +144,8 @@ def forge_nested_call_join(
     return data
 
 
-def forge_nested_call_private_transfer(
-    record: list[str], address_to: str, amount: int, program_checksum: str = ""
-):
-    data = {"type": "nested_call"}
+def forge_nested_call_private_transfer(record: list[str], address_to: str, amount: int, program_checksum: str = ""):
+    data: dict[str, Any] = {"type": "nested_call"}
     data["request"] = {
         "network_id": "mainnet",
         "program_id": "credits.aleo",
@@ -173,7 +171,7 @@ def forge_arc22_token_public_transfer(
     program_checksum: str = "",
 ) -> dict:
 
-    data = {
+    data: dict[str, Any] = {
         "type": "intent",
         "max_base_fee": max_base_fee,
         "max_priority_fee": max_priority_fee,
@@ -206,7 +204,7 @@ def forge_arc22_token_private_transfer(
     program_checksum: str = "",
 ) -> dict:
 
-    data = {
+    data: dict[str, Any] = {
         "type": "intent",
         "max_base_fee": max_base_fee,
         "max_priority_fee": max_priority_fee,
@@ -240,7 +238,7 @@ def forge_arc22_token_batch_private_transfer(
     merkle_proof: list[str],
     program_checksum: str = "",
 ) -> dict:
-    data = {
+    data: dict[str, Any] = {
         "type": "intent",
         "max_base_fee": max_base_fee,
         "max_priority_fee": max_priority_fee,
@@ -276,7 +274,7 @@ def forge_arc22_token_private_to_public_transfer(
     program_checksum: str = "",
 ) -> dict:
 
-    data = {
+    data: dict[str, Any] = {
         "type": "intent",
         "max_base_fee": max_base_fee,
         "max_priority_fee": max_priority_fee,
@@ -309,7 +307,7 @@ def forge_arc22_token_public_to_private_transfer(
     program_checksum: str = "",
 ) -> dict:
 
-    data = {
+    data: dict[str, Any] = {
         "type": "intent",
         "max_base_fee": max_base_fee,
         "max_priority_fee": max_priority_fee,
@@ -339,7 +337,7 @@ def forge_nested_call_arc22_token_private_transfer(
     merkle_proof: list[str],
     program_checksum: str = "",
 ) -> dict:
-    data = {"type": "nested_call"}
+    data: dict[str, Any] = {"type": "nested_call"}
     data["request"] = {
         "network_id": "mainnet",
         "program_id": program_name,
@@ -357,10 +355,8 @@ def forge_nested_call_arc22_token_private_transfer(
     return data
 
 
-def forge_public_fee(
-    base_fee: int, priority_fee: int, execution_id: str, program_checksum: str = ""
-) -> dict:
-    data = {"type": "fee"}
+def forge_public_fee(base_fee: int, priority_fee: int, execution_id: str, program_checksum: str = "") -> dict:
+    data: dict[str, Any] = {"type": "fee"}
     data["request"] = {
         "network_id": "mainnet",
         "program_id": "credits.aleo",
@@ -384,7 +380,7 @@ def forge_private_fee(
     execution_id: str,
     program_checksum: str = "",
 ) -> dict:
-    data = {"type": "fee"}
+    data: dict[str, Any] = {"type": "fee"}
     data["request"] = {
         "network_id": "mainnet",
         "program_id": "credits.aleo",
@@ -402,9 +398,7 @@ def forge_private_fee(
     return data
 
 
-def test_sign_transaction_errors(
-    backend: BackendInterface, scenario_navigator: NavigateWithScenario
-) -> None:
+def test_sign_transaction_errors(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
 
     with pytest.raises(ExceptionRAPDU) as e:
@@ -412,20 +406,14 @@ def test_sign_transaction_errors(
     assert e.value.status == StatusWords.SWO_WRONG_DATA_LENGTH
 
     with pytest.raises(ExceptionRAPDU) as e:
-        backend.exchange_raw(
-            bytes.fromhex("E006000013048000002c800000008000000080000000FFFF")
-        )
+        backend.exchange_raw(bytes.fromhex("E006000013048000002c800000008000000080000000FFFF"))
     assert e.value.status == StatusWords.SWO_INSUFFICIENT_MEMORY
 
     with pytest.raises(ExceptionRAPDU) as e:
-        backend.exchange_raw(
-            bytes.fromhex("E006000113048000002c8000000080000000800000000000")
-        )
+        backend.exchange_raw(bytes.fromhex("E006000113048000002c8000000080000000800000000000"))
     assert e.value.status == StatusWords.SWO_CONDITIONS_NOT_SATISFIED
 
-    backend.exchange_raw(
-        bytes.fromhex("E006000014048000002c800000008000000080000000000211")
-    )
+    backend.exchange_raw(bytes.fromhex("E006000014048000002c800000008000000080000000000211"))
     with pytest.raises(ExceptionRAPDU) as e:
         backend.exchange_raw(bytes.fromhex("E0060001022233"))
     assert e.value.status == StatusWords.SWO_WRONG_DATA_LENGTH
@@ -443,15 +431,11 @@ def test_sign_transaction_errors(
     assert e.value.status == StatusWords.SWO_CONDITIONS_NOT_SATISFIED
 
     with pytest.raises(ExceptionRAPDU) as e:
-        backend.exchange_raw(
-            bytes.fromhex("E0060000130b8000002c8000000080000000800000000000")
-        )
+        backend.exchange_raw(bytes.fromhex("E0060000130b8000002c8000000080000000800000000000"))
     assert e.value.status == StatusWords.SWO_WRONG_DATA_LENGTH
 
 
-def test_sign_transaction_refused(
-    backend: BackendInterface, scenario_navigator: NavigateWithScenario
-) -> None:
+def test_sign_transaction_refused(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
     tx_datas = forge_public_transfer(
         500,
@@ -474,7 +458,7 @@ def test_sign_transaction_refused(
         instruction = NavInsID.USE_CASE_REVIEW_TAP
     scenario_navigator.navigator.navigate_until_text(
         navigate_instruction=instruction,
-        validation_instructions=None,
+        validation_instructions=[],
         text="Transaction rejected",
         timeout=3,
         screen_change_before_first_instruction=False,
@@ -482,9 +466,7 @@ def test_sign_transaction_refused(
     )
 
 
-def test_sign_transaction_fee_timeout(
-    backend: BackendInterface, scenario_navigator: NavigateWithScenario
-) -> None:
+def test_sign_transaction_fee_timeout(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
     tx_datas = forge_public_transfer(
         500,
@@ -514,7 +496,7 @@ def test_sign_transaction_fee_timeout(
         instruction = NavInsID.USE_CASE_REVIEW_TAP
     scenario_navigator.navigator.navigate_until_text(
         navigate_instruction=instruction,
-        validation_instructions=None,
+        validation_instructions=[],
         text="Transaction rejected",
         timeout=20,
         screen_change_before_first_instruction=False,
@@ -522,9 +504,7 @@ def test_sign_transaction_fee_timeout(
     )
 
 
-def test_sign_transaction_wrong_fee(
-    backend: BackendInterface, scenario_navigator: NavigateWithScenario
-) -> None:
+def test_sign_transaction_wrong_fee(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
     tx_datas = forge_public_transfer(
         500,
@@ -561,9 +541,7 @@ def test_sign_transaction_wrong_fee(
     assert e.value.status == StatusWords.SWO_INCORRECT_DATA
 
 
-def test_sign_transaction_transfer_public(
-    backend: BackendInterface, scenario_navigator: NavigateWithScenario
-) -> None:
+def test_sign_transaction_transfer_public(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
     tx_datas = forge_public_transfer(
         500,
@@ -600,7 +578,7 @@ def test_sign_transaction_transfer_public(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Transaction signed",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -621,9 +599,7 @@ def test_sign_transaction_transfer_public(
     assert check_response(unpacked, expected)
 
 
-def test_sign_transaction_transfer_private(
-    backend: BackendInterface, scenario_navigator: NavigateWithScenario
-) -> None:
+def test_sign_transaction_transfer_private(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
     record = [
         "3614797564276936744957924747041031196891698846785520060979425601577054464500field",
@@ -668,7 +644,7 @@ def test_sign_transaction_transfer_private(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Transaction signed",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -690,9 +666,7 @@ def test_sign_transaction_transfer_private(
     assert check_response(unpacked, expected)
 
 
-def test_sign_transaction_transfer_private_zero_fees(
-    backend: BackendInterface, scenario_navigator: NavigateWithScenario
-) -> None:
+def test_sign_transaction_transfer_private_zero_fees(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
     record = [
         "3614797564276936744957924747041031196891698846785520060979425601577054464500field",
@@ -725,9 +699,7 @@ def test_sign_transaction_transfer_private_zero_fees(
     assert check_response(unpacked, expected)
 
 
-def test_sign_transaction_transfer_batch_private(
-    backend: BackendInterface, scenario_navigator: NavigateWithScenario
-) -> None:
+def test_sign_transaction_transfer_batch_private(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
 
     tx_datas = {"type": "get_tvk", "path": "m/44'/683'/0'/0'", "index": 0}
@@ -791,7 +763,7 @@ def test_sign_transaction_transfer_batch_private(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Prepare Tx 10/15",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -828,7 +800,7 @@ def test_sign_transaction_transfer_batch_private(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Calculating fees",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -862,7 +834,7 @@ def test_sign_transaction_transfer_batch_private(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Transaction signed",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -950,7 +922,7 @@ def test_sign_transaction_transfer_batch_private_zero_fees(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Prepare Tx 10/15",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -987,7 +959,7 @@ def test_sign_transaction_transfer_batch_private_zero_fees(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Transaction signed",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -1071,7 +1043,7 @@ def test_sign_transaction_transfer_batch_private_timeout(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Transaction rejected",
             timeout=20,
             screen_change_before_first_instruction=False,
@@ -1162,7 +1134,7 @@ def test_sign_transaction_transfer_batch_private_wrong_nc(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Prepare Tx 10/15",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -1204,7 +1176,7 @@ def test_sign_transaction_transfer_batch_private_wrong_nc(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Calculating fees",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -1303,7 +1275,7 @@ def test_sign_transaction_transfer_batch_private_wrong_tvk(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Prepare Tx 10/15",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -1394,9 +1366,7 @@ def test_get_tvk_derived_index_skip(backend: BackendInterface) -> None:
     # Skip index 1, request index 2 directly
     path_data = bytes.fromhex("048000002c800002ab8000000080000000") + bytes([2])
     with pytest.raises(ExceptionRAPDU) as e:
-        backend.exchange(
-            cla=0xE0, ins=InsType.CMD_GET_TVK, p1=0x01, p2=0x00, data=path_data
-        )
+        backend.exchange(cla=0xE0, ins=InsType.CMD_GET_TVK, p1=0x01, p2=0x00, data=path_data)
     assert e.value.status == StatusWords.SWO_INCORRECT_DATA
 
 
@@ -1410,19 +1380,15 @@ def test_get_tvk_derived_missing_index_byte(backend: BackendInterface) -> None:
     # Send derived request with path only (no index byte)
     path_data = bytes.fromhex("048000002c800002ab8000000080000000")
     with pytest.raises(ExceptionRAPDU) as e:
-        backend.exchange(
-            cla=0xE0, ins=InsType.CMD_GET_TVK, p1=0x01, p2=0x00, data=path_data
-        )
+        backend.exchange(cla=0xE0, ins=InsType.CMD_GET_TVK, p1=0x01, p2=0x00, data=path_data)
     assert e.value.status == StatusWords.SWO_INCORRECT_DATA
 
 
-def test_sign_transaction_get_tvk_timeout(
-    backend: BackendInterface, scenario_navigator: NavigateWithScenario
-) -> None:
+def test_sign_transaction_get_tvk_timeout(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
 
     tx_datas = {"type": "get_tvk", "path": "m/44'/683'/0'/0'", "index": 0}
-    client.get_tvk(tx_datas=tx_datas).data
+    _ = client.get_tvk(tx_datas=tx_datas).data
 
     if scenario_navigator.device.is_nano:
         instruction = NavInsID.LEFT_CLICK
@@ -1430,7 +1396,7 @@ def test_sign_transaction_get_tvk_timeout(
         instruction = NavInsID.USE_CASE_REVIEW_TAP
     scenario_navigator.navigator.navigate_until_text(
         navigate_instruction=instruction,
-        validation_instructions=None,
+        validation_instructions=[],
         text="Aleo",
         timeout=15,
         screen_change_before_first_instruction=False,
@@ -1438,9 +1404,7 @@ def test_sign_transaction_get_tvk_timeout(
     )
 
 
-def test_sign_transaction_token_arc22_unknown(
-    backend: BackendInterface, scenario_navigator: NavigateWithScenario
-) -> None:
+def test_sign_transaction_token_arc22_unknown(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
     tx_datas = forge_arc22_token_public_transfer(
         500,
@@ -1459,7 +1423,7 @@ def test_sign_transaction_token_arc22_unknown(
                 instruction = NavInsID.USE_CASE_REVIEW_TAP
             scenario_navigator.navigator.navigate_until_text(
                 navigate_instruction=instruction,
-                validation_instructions=None,
+                validation_instructions=[],
                 text="Transaction rejected",
                 timeout=3,
                 screen_change_before_first_instruction=False,
@@ -1509,7 +1473,7 @@ def test_sign_transaction_token_arc22_transfer_public(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Transaction signed",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -1539,9 +1503,7 @@ def test_sign_transaction_token_arc22_transfer_private(
         "2426895214035216932245297778850989035038538961658726507442215877484415082794field",
         "0220642863446832956019507279394572297489712696240584424406852292692897199577field",
     ]
-    merkle_proof = [
-        "3614797564276936744957924747041031196891698846785520060979425601577054464500field"
-    ] * 34
+    merkle_proof = ["3614797564276936744957924747041031196891698846785520060979425601577054464500field"] * 34
 
     tx_datas = forge_arc22_token_private_transfer(
         500,
@@ -1583,7 +1545,7 @@ def test_sign_transaction_token_arc22_transfer_private(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Transaction signed",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -1627,9 +1589,7 @@ def test_sign_transaction_token_arc22_transfer_batch_private(
         "d5f4b9312020d52c6752cb927e00771b300e8742e7cbe2cffe79a2a9f1641e03f1020000b6a58dc9bd8dc99591a5d1cd0503100019000000000000806381fe03232753113751635f57729543c73e2ab3641901f57fec18b1e560b28b80000000",
         "d5f4b9312020d52c6752cb927e00771b300e8742e7cbe2cffe79a2a9f1641e03f1020000b6a58dc9bd8dc99591a5d1cd0503100019000000000000c0eed4b40239bab0f49f52a8a88613dc6ea6aec32d2d23df9a005edf7d940ecfb980000000",
     ]
-    merkle_proof = [
-        "3614797564276936744957924747041031196891698846785520060979425601577054464500field"
-    ] * 34
+    merkle_proof = ["3614797564276936744957924747041031196891698846785520060979425601577054464500field"] * 34
 
     tx_datas = forge_arc22_token_batch_private_transfer(
         500,
@@ -1677,7 +1637,7 @@ def test_sign_transaction_token_arc22_transfer_batch_private(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Prepare Tx 10/15",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -1716,7 +1676,7 @@ def test_sign_transaction_token_arc22_transfer_batch_private(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Calculating fees",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -1750,7 +1710,7 @@ def test_sign_transaction_token_arc22_transfer_batch_private(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Transaction signed",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -1781,9 +1741,7 @@ def test_sign_transaction_token_arc22_transfer_private_to_public(
         "2426895214035216932245297778850989035038538961658726507442215877484415082794field",
         "0220642863446832956019507279394572297489712696240584424406852292692897199577field",
     ]
-    merkle_proof = [
-        "3614797564276936744957924747041031196891698846785520060979425601577054464500field"
-    ] * 34
+    merkle_proof = ["3614797564276936744957924747041031196891698846785520060979425601577054464500field"] * 34
 
     tx_datas = forge_arc22_token_private_to_public_transfer(
         500,
@@ -1825,7 +1783,7 @@ def test_sign_transaction_token_arc22_transfer_private_to_public(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Transaction signed",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -1887,7 +1845,7 @@ def test_sign_transaction_token_arc22_transfer_public_to_private(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Transaction signed",
             timeout=3,
             screen_change_before_first_instruction=False,

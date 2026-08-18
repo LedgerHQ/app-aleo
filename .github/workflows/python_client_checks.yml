@@ -20,5 +20,5 @@ jobs:
     with:
       run_type_check: true
       src_directory: .
-      setup_directory: tests/application_client
+      setup_directory: tests
       req_directory: tests/standalone

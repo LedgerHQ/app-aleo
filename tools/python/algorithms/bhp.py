@@ -21,9 +21,9 @@ class BHP:
         self.F = F
 
     def get_lookup_base(self, path):
-        json_file = open(path, "r")
+        json_file = open(path)
         lookup_content = json.load(json_file)
-        json_file.close
+        json_file.close()
 
         lookup_base = []
 
@@ -54,7 +54,7 @@ class BHP:
         input,
         input_total_bit_len,
         sum=None,
-        buff_init=[],
+        buff_init=None,
         base_start=0,
         input_start=0,
     ):
@@ -65,17 +65,15 @@ class BHP:
         for input_block_index in range(input_nb_of_block):
             if input_block_index == 0:
                 if sum is None:
-                    bhp_buffer += self.buffer_to_boolean(
-                        self.F.DOMAIN, self.F.DOMAIN_SIZE_IN_BITS
-                    )
+                    bhp_buffer += self.buffer_to_boolean(self.F.DOMAIN, self.F.DOMAIN_SIZE_IN_BITS)
                 bhp_buffer += self.buffer_to_boolean(input, input_total_bit_len)
 
+        if buff_init is None:
+            buff_init = []
         bhp_buffer = buff_init + bhp_buffer[input_start:]
         input_total_bit_len -= input_start
         if len(bhp_buffer) % self.BHP_CHUNK_SIZE:
-            for index in range(
-                self.BHP_CHUNK_SIZE - (len(bhp_buffer) % self.BHP_CHUNK_SIZE)
-            ):
+            for _index in range(self.BHP_CHUNK_SIZE - (len(bhp_buffer) % self.BHP_CHUNK_SIZE)):
                 bhp_buffer.append(False)
 
         if sum is None:
