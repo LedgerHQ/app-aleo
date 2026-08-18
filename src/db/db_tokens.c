@@ -763,40 +763,35 @@ const function_parameters_t test_arc20_eth_aleo[NB_OF_TEST_ARC20_ETH_ALEO_FUNCTI
      .tx_type     = TX_TOKEN_TRANSFER_PUBLIC,
      .input_count = 2,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0xd982702ee4fa1fed, 0xee8131f980e8a23c, 0xd5e18c4864869d5d, 0x003549cea9de63bc}}}},
     {.name        = "transfer_private",
      .tx_type     = TX_TOKEN_TRANSFER_PRIVATE,
      .input_count = 3,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0x9ad98e9cd6025d8b, 0x12aa4669fcef6334, 0x7c84cccb18961d1d, 0x00c5dbd842f37cea}}}},
     {.name        = "transfer_public_to_private",
      .tx_type     = TX_TOKEN_TRANSFER_PUBLIC_TO_PRIVATE,
      .input_count = 2,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0xf316b9f1181025e7, 0x7c64fa96e1103969, 0x7e62d802348c5400, 0x0ff7633bb80e0ed6}}}},
     {.name        = "transfer_private_to_public",
      .tx_type     = TX_TOKEN_TRANSFER_PRIVATE_TO_PUBLIC,
      .input_count = 3,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0x53b45bc56e007d3a, 0xfd3b56719c3a01cc, 0x0556d87e727633a2, 0x01da4bd45a0f375b}}}},
     {.name        = "join",
      .tx_type     = TX_TOKEN_JOIN,
      .input_count = 2,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0x9408876a879c2e66, 0x587a29f2f27b3926, 0x4ef01de21d0da147, 0x0c3bd556f2f3eb1d}}}},
 };
@@ -807,40 +802,35 @@ const function_parameters_t test_arc20_sol_aleo[NB_OF_TEST_ARC20_SOL_ALEO_FUNCTI
      .tx_type     = TX_TOKEN_TRANSFER_PUBLIC,
      .input_count = 2,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0x51afa5b2cc2d274c, 0x26a0b58f9b746718, 0x0c0fa9f037ff40df, 0x127ecfd161f98cf7}}}},
     {.name        = "transfer_private",
      .tx_type     = TX_TOKEN_TRANSFER_PRIVATE,
      .input_count = 3,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0x81087363e3c82a57, 0x8d87cf4a13305ab2, 0xc787d55cad2d645e, 0x0c3c49f9f27170ef}}}},
     {.name        = "transfer_public_to_private",
      .tx_type     = TX_TOKEN_TRANSFER_PUBLIC_TO_PRIVATE,
      .input_count = 2,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0x0db825d7945d3b5e, 0xaedd313827448022, 0xc8888509b5925ed5, 0x0f51f62e53b7769b}}}},
     {.name        = "transfer_private_to_public",
      .tx_type     = TX_TOKEN_TRANSFER_PRIVATE_TO_PUBLIC,
      .input_count = 3,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0xe5b94946d62ab039, 0xcc20fb1564672f52, 0x1c2cfdf8dbdfc90b, 0x068d6741b6cd35b3}}}},
     {.name        = "join",
      .tx_type     = TX_TOKEN_JOIN,
      .input_count = 2,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0x8525b928000b92a3, 0x44b41fd0fc7d549f, 0x0cd08286c079f95a, 0x09335ca02fef4bee}}}},
 };
@@ -851,40 +841,35 @@ const function_parameters_t test_arc20_wbtc_aleo[NB_OF_TEST_ARC20_WBTC_ALEO_FUNC
      .tx_type     = TX_TOKEN_TRANSFER_PUBLIC,
      .input_count = 2,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0x1d32e01da5c2c782, 0xd5a5c63c521f7875, 0x087e75b663499f41, 0x04c5f862f403f98a}}}},
     {.name        = "transfer_private",
      .tx_type     = TX_TOKEN_TRANSFER_PRIVATE,
      .input_count = 3,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0xd8506ad7009e85b9, 0xc40e98d33b7f55de, 0x2a333db881648d9f, 0x0634384f065f571a}}}},
     {.name        = "transfer_public_to_private",
      .tx_type     = TX_TOKEN_TRANSFER_PUBLIC_TO_PRIVATE,
      .input_count = 2,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0x4a89882240c7be28, 0x7d34ee625a1c44a5, 0x9ed1710e141865a9, 0x012678d256b73211}}}},
     {.name        = "transfer_private_to_public",
      .tx_type     = TX_TOKEN_TRANSFER_PRIVATE_TO_PUBLIC,
      .input_count = 3,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0xe7750eb381c5c3c1, 0x60ca0278c0188bc9, 0xacb993811b09efc4, 0x0d31b46cc974f810}}}},
     {.name        = "join",
      .tx_type     = TX_TOKEN_JOIN,
      .input_count = 2,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0xaeb0115fde0ed18e, 0x96dde1eaf4b0437a, 0x786c5ba8f0c0d01b, 0x0e9c354e064d8df3}}}},
 };
@@ -895,40 +880,35 @@ const function_parameters_t test_arc20_usdc_aleo[NB_OF_TEST_ARC20_USDC_ALEO_FUNC
      .tx_type     = TX_TOKEN_TRANSFER_PUBLIC,
      .input_count = 2,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0x39cb234889320fe7, 0x66d7cb8822845aa3, 0x70c387ea1267aead, 0x05cdee026ad7bff3}}}},
     {.name        = "transfer_private",
      .tx_type     = TX_TOKEN_TRANSFER_PRIVATE,
      .input_count = 3,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0x7f96dcbfdaec326a, 0x60704266637e017c, 0x3b81ee3f0d4db942, 0x0a8a7d29b5d8c8fc}}}},
     {.name        = "transfer_public_to_private",
      .tx_type     = TX_TOKEN_TRANSFER_PUBLIC_TO_PRIVATE,
      .input_count = 2,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0x437d1d3e5497438f, 0x1f3ba9109607ebde, 0x5ce469d7ffb153e9, 0x03cba86b8bd3608e}}}},
     {.name        = "transfer_private_to_public",
      .tx_type     = TX_TOKEN_TRANSFER_PRIVATE_TO_PUBLIC,
      .input_count = 3,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0x9821cfdad3757331, 0x4afd474e980698c9, 0x4175501051256b62, 0x003068163cce5319}}}},
     {.name        = "join",
      .tx_type     = TX_TOKEN_JOIN,
      .input_count = 2,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0x2060ae36709d02c1, 0x79fbea79b9e2ac94, 0x5b830b28bb4e1edd, 0x0678204591ce1be4}}}},
 };
@@ -939,40 +919,35 @@ const function_parameters_t test_arc20_usdt_aleo[NB_OF_TEST_ARC20_USDT_ALEO_FUNC
      .tx_type     = TX_TOKEN_TRANSFER_PUBLIC,
      .input_count = 2,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0xebabb9fdddfd65c8, 0x9ada1d08c7c32162, 0x810365206285afca, 0x0fcf16becceb7b4a}}}},
     {.name        = "transfer_private",
      .tx_type     = TX_TOKEN_TRANSFER_PRIVATE,
      .input_count = 3,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0x362d860c375846e6, 0x45264c613ed4cbe2, 0x119ab2abaa5ee553, 0x005a541602adcdae}}}},
     {.name        = "transfer_public_to_private",
      .tx_type     = TX_TOKEN_TRANSFER_PUBLIC_TO_PRIVATE,
      .input_count = 2,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0x6df9729b0357177e, 0x28ec12988cd05ef3, 0x79698c8d060c3c8f, 0x0e0f331aa9e9054f}}}},
     {.name        = "transfer_private_to_public",
      .tx_type     = TX_TOKEN_TRANSFER_PRIVATE_TO_PUBLIC,
      .input_count = 3,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0xeb744bc663bde3d0, 0xbef2d75bad0b954a, 0x3675f24319ed5ad7, 0x0bbad6e395377159}}}},
     {.name        = "join",
      .tx_type     = TX_TOKEN_JOIN,
      .input_count = 2,
      .bhp_1024_hashes
-     = {{.big.u64
-         = {0x00, 0x00, 0x00, 0x00}},
+     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
         {.big.u64
          = {0x9442fc415bd3fb7a, 0x27eb97671660caa6, 0x462099fbf7b2db0c, 0x09e5284f996ea9af}}}},
 };
