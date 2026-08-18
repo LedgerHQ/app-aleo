@@ -149,23 +149,22 @@ if __name__ == "__main__":
                 digest = bhp.hash(input, len(input) * 8)
                 item["hashes"].append(digest)
 
+                d = digest.value.value
                 if network_id == 1:
                     print(
-                        f"         = {{0x{digest.value.value[0]:016x}, 0x{digest.value.value[1]:016x}, 0x{digest.value.value[2]:016x}, 0x{digest.value.value[3]:016x}}}}}}}}},",
+                        f"         = {{0x{d[0]:016x}, 0x{d[1]:016x}, 0x{d[2]:016x}, 0x{d[3]:016x}}}}}}}}},",
                         file=c_file,
                     )
                 else:
                     print(
-                        f"         = {{0x{digest.value.value[0]:016x}, 0x{digest.value.value[1]:016x}, 0x{digest.value.value[2]:016x}, 0x{digest.value.value[3]:016x}}}}},",
+                        f"         = {{0x{d[0]:016x}, 0x{d[1]:016x}, 0x{d[2]:016x}, 0x{d[3]:016x}}}}},",
                         file=c_file,
                     )
 
         print("};", file=c_file)
         print(file=c_file)
 
-    print(
-        "const program_parameter_t program_parameters[NB_OF_PROGRAMS] = {", file=c_file
-    )
+    print("const program_parameter_t program_parameters[NB_OF_PROGRAMS] = {", file=c_file)
     max_len = 0
     for program_id in programs.keys():
         max_len = max(max_len, len(program_id))
@@ -177,9 +176,7 @@ if __name__ == "__main__":
             file=c_file,
         )
         print(
-            "     .functions       = {}{}}},".format(
-                str_program_id, " " * (max_len - len(str_program_id))
-            ),
+            "     .functions       = {}{}}},".format(str_program_id, " " * (max_len - len(str_program_id))),
             file=c_file,
         )
     print("};", file=c_file)

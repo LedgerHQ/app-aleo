@@ -39,9 +39,7 @@ def test_get_address_no_confirm(backend: BackendInterface) -> None:
 
 
 # In this test we check that the CMD_GET_ADDRESS works in confirmation mode
-def test_get_address_confirm_accepted(
-    backend: BackendInterface, scenario_navigator: NavigateWithScenario
-) -> None:
+def test_get_address_confirm_accepted(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
     path = "m/44'/683'/0'/0'"
     with client.get_address_with_confirmation(path=path):
@@ -50,16 +48,11 @@ def test_get_address_confirm_accepted(
     response = client.get_async_response().data
     _, address = unpack_get_address_response(response)
 
-    assert (
-        address.decode("utf-8")
-        == "aleo1k7349nakx72h3q3gm8zg6f0dksnkp9p9ha93lrx6zu2gnvjzpyrsj28j54"
-    )
+    assert address.decode("utf-8") == "aleo1k7349nakx72h3q3gm8zg6f0dksnkp9p9ha93lrx6zu2gnvjzpyrsj28j54"
 
 
 # In this test we check that the CMD_GET_ADDRESS in confirmation mode replies an error if the user refuses
-def test_get_address_confirm_refused(
-    backend: BackendInterface, scenario_navigator: NavigateWithScenario
-) -> None:
+def test_get_address_confirm_refused(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
     path = "m/44'/683'/0'/0'"
 

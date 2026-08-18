@@ -51,94 +51,62 @@ class Fp256:
         carry2 = 0
 
         # Iteration 0
-        r[0], carry1 = self.mac_with_carry(
-            r[0], self.value.value[0], other.value.value[0], 0
-        )
+        r[0], carry1 = self.mac_with_carry(r[0], self.value.value[0], other.value.value[0], 0)
         k = (r[0] * self.F.INV) % 0x10000000000000000
         _, carry2 = self.mac_with_carry(r[0], k, self.F.MODULUS.value[0], 0)
 
-        r[1], carry1 = self.mac_with_carry(
-            r[1], self.value.value[1], other.value.value[0], carry1
-        )
+        r[1], carry1 = self.mac_with_carry(r[1], self.value.value[1], other.value.value[0], carry1)
         r[0], carry2 = self.mac_with_carry(r[1], k, self.F.MODULUS.value[1], carry2)
 
-        r[2], carry1 = self.mac_with_carry(
-            r[2], self.value.value[2], other.value.value[0], carry1
-        )
+        r[2], carry1 = self.mac_with_carry(r[2], self.value.value[2], other.value.value[0], carry1)
         r[1], carry2 = self.mac_with_carry(r[2], k, self.F.MODULUS.value[2], carry2)
 
-        r[3], carry1 = self.mac_with_carry(
-            r[3], self.value.value[3], other.value.value[0], carry1
-        )
+        r[3], carry1 = self.mac_with_carry(r[3], self.value.value[3], other.value.value[0], carry1)
         r[2], carry2 = self.mac_with_carry(r[3], k, self.F.MODULUS.value[3], carry2)
         r[3] = carry1 + carry2
 
         # Iteration 2
-        r[0], carry1 = self.mac_with_carry(
-            r[0], self.value.value[0], other.value.value[1], 0
-        )
+        r[0], carry1 = self.mac_with_carry(r[0], self.value.value[0], other.value.value[1], 0)
         k = (r[0] * self.F.INV) % 0x10000000000000000
         _, carry2 = self.mac_with_carry(r[0], k, self.F.MODULUS.value[0], 0)
 
-        r[1], carry1 = self.mac_with_carry(
-            r[1], self.value.value[1], other.value.value[1], carry1
-        )
+        r[1], carry1 = self.mac_with_carry(r[1], self.value.value[1], other.value.value[1], carry1)
         r[0], carry2 = self.mac_with_carry(r[1], k, self.F.MODULUS.value[1], carry2)
 
-        r[2], carry1 = self.mac_with_carry(
-            r[2], self.value.value[2], other.value.value[1], carry1
-        )
+        r[2], carry1 = self.mac_with_carry(r[2], self.value.value[2], other.value.value[1], carry1)
         r[1], carry2 = self.mac_with_carry(r[2], k, self.F.MODULUS.value[2], carry2)
 
-        r[3], carry1 = self.mac_with_carry(
-            r[3], self.value.value[3], other.value.value[1], carry1
-        )
+        r[3], carry1 = self.mac_with_carry(r[3], self.value.value[3], other.value.value[1], carry1)
         r[2], carry2 = self.mac_with_carry(r[3], k, self.F.MODULUS.value[3], carry2)
         r[3] = carry1 + carry2
 
         # Iteration 2
-        r[0], carry1 = self.mac_with_carry(
-            r[0], self.value.value[0], other.value.value[2], 0
-        )
+        r[0], carry1 = self.mac_with_carry(r[0], self.value.value[0], other.value.value[2], 0)
         k = (r[0] * self.F.INV) % 0x10000000000000000
         _, carry2 = self.mac_with_carry(r[0], k, self.F.MODULUS.value[0], 0)
 
-        r[1], carry1 = self.mac_with_carry(
-            r[1], self.value.value[1], other.value.value[2], carry1
-        )
+        r[1], carry1 = self.mac_with_carry(r[1], self.value.value[1], other.value.value[2], carry1)
         r[0], carry2 = self.mac_with_carry(r[1], k, self.F.MODULUS.value[1], carry2)
 
-        r[2], carry1 = self.mac_with_carry(
-            r[2], self.value.value[2], other.value.value[2], carry1
-        )
+        r[2], carry1 = self.mac_with_carry(r[2], self.value.value[2], other.value.value[2], carry1)
         r[1], carry2 = self.mac_with_carry(r[2], k, self.F.MODULUS.value[2], carry2)
 
-        r[3], carry1 = self.mac_with_carry(
-            r[3], self.value.value[3], other.value.value[2], carry1
-        )
+        r[3], carry1 = self.mac_with_carry(r[3], self.value.value[3], other.value.value[2], carry1)
         r[2], carry2 = self.mac_with_carry(r[3], k, self.F.MODULUS.value[3], carry2)
         r[3] = carry1 + carry2
 
         # Iteration 3
-        r[0], carry1 = self.mac_with_carry(
-            r[0], self.value.value[0], other.value.value[3], 0
-        )
+        r[0], carry1 = self.mac_with_carry(r[0], self.value.value[0], other.value.value[3], 0)
         k = (r[0] * self.F.INV) % 0x10000000000000000
         _, carry2 = self.mac_with_carry(r[0], k, self.F.MODULUS.value[0], 0)
 
-        r[1], carry1 = self.mac_with_carry(
-            r[1], self.value.value[1], other.value.value[3], carry1
-        )
+        r[1], carry1 = self.mac_with_carry(r[1], self.value.value[1], other.value.value[3], carry1)
         r[0], carry2 = self.mac_with_carry(r[1], k, self.F.MODULUS.value[1], carry2)
 
-        r[2], carry1 = self.mac_with_carry(
-            r[2], self.value.value[2], other.value.value[3], carry1
-        )
+        r[2], carry1 = self.mac_with_carry(r[2], self.value.value[2], other.value.value[3], carry1)
         r[1], carry2 = self.mac_with_carry(r[2], k, self.F.MODULUS.value[2], carry2)
 
-        r[3], carry1 = self.mac_with_carry(
-            r[3], self.value.value[3], other.value.value[3], carry1
-        )
+        r[3], carry1 = self.mac_with_carry(r[3], self.value.value[3], other.value.value[3], carry1)
         r[2], carry2 = self.mac_with_carry(r[3], k, self.F.MODULUS.value[3], carry2)
         r[3] = carry1 + carry2
 
@@ -240,7 +208,7 @@ class Fp256:
 
     def pow(self, alpha):
         r = Fp256(self.F, self.value.to_int())
-        for i in range(alpha - 1):
+        for _ in range(alpha - 1):
             self.mul_assign(r)
 
     def sum_of_products(self, b):

@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 from application_client.command_sender import CommandSender
 from ledger_app_clients.exchange.test_runner import (
@@ -17,7 +19,7 @@ def forge_public_transfer(
     program_checksum: str = "",
 ) -> dict:
 
-    data = {
+    data: dict[str, Any] = {
         "type": "intent",
         "max_base_fee": max_base_fee,
         "max_priority_fee": max_priority_fee,
@@ -39,10 +41,8 @@ def forge_public_transfer(
     return data
 
 
-def forge_public_fee(
-    base_fee: int, priority_fee: int, execution_id: str, program_checksum: str = ""
-) -> dict:
-    data = {"type": "fee"}
+def forge_public_fee(base_fee: int, priority_fee: int, execution_id: str, program_checksum: str = "") -> dict:
+    data: dict[str, Any] = {"type": "fee"}
     data["request"] = {
         "network_id": "mainnet",
         "program_id": "credits.aleo",
@@ -68,7 +68,7 @@ def forge_arc22_token_public_transfer(
     program_checksum: str = "",
 ) -> dict:
 
-    data = {
+    data: dict[str, Any] = {
         "type": "intent",
         "max_base_fee": max_base_fee,
         "max_priority_fee": max_priority_fee,
@@ -94,15 +94,11 @@ class GenericAleoTests(ExchangeTestRunner):
     # The coin configuration of our currency. Replace by your own
     currency_configuration = cal.ALEO_CURRENCY_CONFIGURATION
     # A valid template address of a supposed trade partner.
-    valid_destination_1 = (
-        "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe"
-    )
+    valid_destination_1 = "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe"
     # A memo to use associated with the destination address if applicable.
     valid_destination_memo_1 = ""
     # A second valid template address of a supposed trade partner.
-    valid_destination_2 = (
-        "aleo1ktwldl75earvxjur7devnqvdccjeuqa6807078klkg0a0l6ayq8qu9xzg4"
-    )
+    valid_destination_2 = "aleo1ktwldl75earvxjur7devnqvdccjeuqa6807078klkg0a0l6ayq8qu9xzg4"
     # A second memo to use associated with the destination address if applicable.
     valid_destination_memo_2 = ""
     # The address of the Speculos seed on the ALEO_PATH.
@@ -131,7 +127,7 @@ class GenericAleoTests(ExchangeTestRunner):
         tx_datas["path"] = "m/44'/683'/0'/0'"
         with client.sign_transaction(tx_datas=tx_datas):
             pass
-        rapdu = client.get_async_response()
+        _ = client.get_async_response()
 
         if fees != 0:
             tx_datas = forge_public_fee(
@@ -141,7 +137,7 @@ class GenericAleoTests(ExchangeTestRunner):
             )
             with client.sign_transaction(tx_datas=tx_datas):
                 pass
-            rapdu = client.get_async_response()
+            _ = client.get_async_response()
 
 
 class ZeroFeeAleoTests(GenericAleoTests):
@@ -158,13 +154,11 @@ class USADTokenTests(GenericAleoTests):
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         client = CommandSender(self.backend)
-        tx_datas = forge_arc22_token_public_transfer(
-            0, fees, destination, send_amount, "usad_stablecoin.aleo"
-        )
+        tx_datas = forge_arc22_token_public_transfer(0, fees, destination, send_amount, "usad_stablecoin.aleo")
         tx_datas["path"] = "m/44'/683'/0'/0'"
         with client.sign_transaction(tx_datas=tx_datas):
             pass
-        rapdu = client.get_async_response()
+        _ = client.get_async_response()
 
         if fees != 0:
             tx_datas = forge_public_fee(
@@ -174,7 +168,7 @@ class USADTokenTests(GenericAleoTests):
             )
             with client.sign_transaction(tx_datas=tx_datas):
                 pass
-            rapdu = client.get_async_response()
+            _ = client.get_async_response()
 
 
 class ZeroFeeUSADTokenTests(USADTokenTests):
@@ -191,13 +185,11 @@ class FAKETokenTests2(GenericAleoTests):
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         client = CommandSender(self.backend)
-        tx_datas = forge_arc22_token_public_transfer(
-            0, fees, destination, send_amount, "fake_stablecoin.aleo"
-        )
+        tx_datas = forge_arc22_token_public_transfer(0, fees, destination, send_amount, "fake_stablecoin.aleo")
         tx_datas["path"] = "m/44'/683'/0'/0'"
         with client.sign_transaction(tx_datas=tx_datas):
             pass
-        rapdu = client.get_async_response()
+        _ = client.get_async_response()
 
         if fees != 0:
             tx_datas = forge_public_fee(
@@ -207,7 +199,7 @@ class FAKETokenTests2(GenericAleoTests):
             )
             with client.sign_transaction(tx_datas=tx_datas):
                 pass
-            rapdu = client.get_async_response()
+            _ = client.get_async_response()
 
 
 class TestsAleo:
@@ -225,9 +217,7 @@ class TestsAleo:
         USADTokenTests(backend, exchange_navigation_helper).run_test("swap_valid_1")
 
     def test_aleo_swap_usad_zero_fee(self, backend, exchange_navigation_helper):
-        ZeroFeeUSADTokenTests(backend, exchange_navigation_helper).run_test(
-            "swap_valid_1"
-        )
+        ZeroFeeUSADTokenTests(backend, exchange_navigation_helper).run_test("swap_valid_1")
 
     def test_aleo_swap_fake_1(self, backend, exchange_navigation_helper):
         with pytest.raises(ExceptionRAPDU) as e:
@@ -236,7 +226,5 @@ class TestsAleo:
 
     def test_aleo_swap_fake_2(self, backend, exchange_navigation_helper):
         with pytest.raises(ExceptionRAPDU) as e:
-            FAKETokenTests2(backend, exchange_navigation_helper).run_test(
-                "swap_valid_1"
-            )
+            FAKETokenTests2(backend, exchange_navigation_helper).run_test("swap_valid_1")
         assert e.value.status in [0xC000, 0x6A80]

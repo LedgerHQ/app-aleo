@@ -1,8 +1,11 @@
+from typing import ClassVar
+
+
 class BECH32M:
     CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 
     # fmt: off
-    CHARSET_REVERSED = [
+    CHARSET_REVERSED: ClassVar[list] = [
 		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 15, -1, 10, 17,
 		21, 20, 26, 30, 7,  5,  -1, -1, -1, -1, -1, -1, -1, 29, -1, 24, 13, 25, 9,  8,  23, -1, 18, 22, 31, 27,
@@ -52,9 +55,7 @@ class BECH32M:
 
         return True
 
-    def encode(
-        output: list[int], hrp: list[int], data: list[int], is_m_encoding: bool
-    ) -> bool:
+    def encode(output: list[int], hrp: list[int], data: list[int], is_m_encoding: bool) -> bool:
         chk = 1
         for item in hrp:
             ch = item
@@ -81,7 +82,7 @@ class BECH32M:
             chk = BECH32M.polymod_step(chk) ^ data[i]
             output.append(ord(BECH32M.CHARSET[data[i]]))
 
-        for i in range(6):
+        for _ in range(6):
             chk = BECH32M.polymod_step(chk)
         chk ^= BECH32M.final_constant(is_m_encoding)
         for i in range(6):
