@@ -59,9 +59,7 @@ class BECH32M:
         return True
 
     @staticmethod
-    def encode(
-        output: list[int], hrp: list[int], data: list[int], is_m_encoding: bool
-    ) -> bool:
+    def encode(output: list[int], hrp: list[int], data: list[int], is_m_encoding: bool) -> bool:
         chk = 1
         for item in hrp:
             ch = item
@@ -88,7 +86,7 @@ class BECH32M:
             chk = BECH32M.polymod_step(chk) ^ item
             output.append(ord(BECH32M.CHARSET[item]))
 
-        for i in range(6):
+        for _ in range(6):
             chk = BECH32M.polymod_step(chk)
         chk ^= BECH32M.final_constant(is_m_encoding)
         for i in range(6):
@@ -103,10 +101,7 @@ class BECH32M:
             return False
 
         data_offset = 0
-        while (
-            data_offset < len(input_data)
-            and input_data[len(input_data) - 1 - data_offset] != 49
-        ):
+        while data_offset < len(input_data) and input_data[len(input_data) - 1 - data_offset] != 49:
             data_offset += 1
 
         hrp_len = len(input_data) - (1 + data_offset)
