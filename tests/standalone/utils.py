@@ -30,9 +30,7 @@ def verify_version(version: str) -> None:
     vers_dict = {}
     vers_str = ""
     lines = _read_makefile()
-    version_re = re.compile(
-        r"^APPVERSION_(?P<part>\w)\s?=\s?(?P<val>\d*)", re.IGNORECASE
-    )
+    version_re = re.compile(r"^APPVERSION_(?P<part>\w)\s?=\s?(?P<val>\d*)", re.IGNORECASE)
     for line in lines:
         info = version_re.match(line)
         if info:
@@ -50,6 +48,6 @@ def _read_makefile() -> list[str]:
 
     parent = Path(__file__).parent.parent.parent.resolve()
     makefile = f"{parent}/Makefile"
-    with open(makefile, "r", encoding="utf-8") as f_p:
+    with open(makefile, encoding="utf-8") as f_p:
         lines = f_p.readlines()
     return lines

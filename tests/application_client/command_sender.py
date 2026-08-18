@@ -75,14 +75,10 @@ class CommandSender:
         )
 
     def get_version(self) -> RAPDU:
-        return self.backend.exchange(
-            cla=CLA, ins=InsType.CMD_GET_VERSION, p1=0x00, p2=0x00, data=b""
-        )
+        return self.backend.exchange(cla=CLA, ins=InsType.CMD_GET_VERSION, p1=0x00, p2=0x00, data=b"")
 
     def get_app_name(self) -> RAPDU:
-        return self.backend.exchange(
-            cla=CLA, ins=InsType.CMD_GET_APP_NAME, p1=0x00, p2=0x00, data=b""
-        )
+        return self.backend.exchange(cla=CLA, ins=InsType.CMD_GET_APP_NAME, p1=0x00, p2=0x00, data=b"")
 
     def get_address_without_confirmation(self, path: str) -> RAPDU:
         return self.backend.exchange(
@@ -121,13 +117,9 @@ class CommandSender:
         if len(apdus) != 0:
             for item in apdus[:-1]:
                 apdu = bytes.fromhex(item)
-                self.backend.exchange(
-                    cla=apdu[0], ins=apdu[1], p1=apdu[2], p2=apdu[3], data=apdu[5:]
-                )
+                self.backend.exchange(cla=apdu[0], ins=apdu[1], p1=apdu[2], p2=apdu[3], data=apdu[5:])
             apdu = bytes.fromhex(apdus[-1])
-            return self.backend.exchange(
-                cla=apdu[0], ins=apdu[1], p1=apdu[2], p2=apdu[3], data=apdu[5:]
-            )
+            return self.backend.exchange(cla=apdu[0], ins=apdu[1], p1=apdu[2], p2=apdu[3], data=apdu[5:])
         return RAPDU(0x0000, b"")
 
     @contextmanager
@@ -138,15 +130,12 @@ class CommandSender:
             return
         for item in apdus[:-1]:
             apdu = bytes.fromhex(item)
-            self.backend.exchange(
-                cla=apdu[0], ins=apdu[1], p1=apdu[2], p2=apdu[3], data=apdu[5:]
-            )
+            self.backend.exchange(cla=apdu[0], ins=apdu[1], p1=apdu[2], p2=apdu[3], data=apdu[5:])
         apdu = bytes.fromhex(apdus[-1])
-        with self.backend.exchange_async(
-            cla=apdu[0], ins=apdu[1], p1=apdu[2], p2=apdu[3], data=apdu[5:]
-        ) as response:
+        with self.backend.exchange_async(cla=apdu[0], ins=apdu[1], p1=apdu[2], p2=apdu[3], data=apdu[5:]) as response:
             yield response
 
     # Retrieve the last asynchronous response from the backend
-    def get_async_response(self) -> RAPDU | None:
+    def get_async_response(self) -> RAPDU:
+        assert self.backend.last_async_response is not None
         return self.backend.last_async_response

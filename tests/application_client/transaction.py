@@ -91,13 +91,13 @@ class Transaction:
         else:
             t = Transaction.TlvTypes(0)
 
-        l = int(tlv[offset : offset + 2], base=16)
+        length = int(tlv[offset : offset + 2], base=16)
         offset += 2
 
-        v = tlv[offset : offset + 2 * l]
-        offset += 2 * l
+        v = tlv[offset : offset + 2 * length]
+        offset += 2 * length
 
-        return t, l, v, offset
+        return t, length, v, offset
 
     @staticmethod
     def gen_chunks(lst: str, n: int) -> list[tuple]:
@@ -138,9 +138,7 @@ class Transaction:
         elif sp_input_type[-1] == "private":
             val += "02" + Transaction.get_plaintext_type_from_string(sp_input_type[0])
         elif sp_input_type[-1] == "record":
-            val += (
-                f"03{len(sp_input_type[0]):02x}{sp_input_type[0].encode('ascii').hex()}"
-            )
+            val += f"03{len(sp_input_type[0]):02x}{sp_input_type[0].encode('ascii').hex()}"
         elif sp_input_type[-1] == "external_record":
             val += "04"
         elif sp_input_type[-1] == "merkle_proof":
@@ -203,18 +201,14 @@ class Transaction:
         else:
             val += Transaction.forge_tlv(Transaction.TlvTypes.NETWORK_ID, "0001")
         # Program id
-        val += Transaction.forge_tlv(
-            Transaction.TlvTypes.PROGRAM_ID, f"{request['program_id'].encode().hex()}"
-        )
+        val += Transaction.forge_tlv(Transaction.TlvTypes.PROGRAM_ID, f"{request['program_id'].encode().hex()}")
         # Function name
         val += Transaction.forge_tlv(
             Transaction.TlvTypes.FUNCTION_NAME,
             f"{request['function_name'].encode().hex()}",
         )
         # Input count
-        val += Transaction.forge_tlv(
-            Transaction.TlvTypes.INPUT_COUNT, f"{len(request['inputs']):02x}"
-        )
+        val += Transaction.forge_tlv(Transaction.TlvTypes.INPUT_COUNT, f"{len(request['inputs']):02x}")
         # Input values & types
         val += Transaction.generate_input(request["inputs"])
         # Nested call count
@@ -225,9 +219,7 @@ class Transaction:
             )
 
         if "program_checksum" in request and len(request["program_checksum"]):
-            val += Transaction.forge_tlv(
-                Transaction.TlvTypes.PROGRAM_CHECKSUM, request["program_checksum"]
-            )
+            val += Transaction.forge_tlv(Transaction.TlvTypes.PROGRAM_CHECKSUM, request["program_checksum"])
 
         return val
 
@@ -253,22 +245,16 @@ class Transaction:
         # Version
         req += Transaction.forge_tlv(Transaction.TlvTypes.VERSION, "01")
         # max_base_fee
-        req += Transaction.forge_tlv(
-            Transaction.TlvTypes.MAX_BASE_FEE, f"{tx['max_base_fee']:08x}"
-        )
+        req += Transaction.forge_tlv(Transaction.TlvTypes.MAX_BASE_FEE, f"{tx['max_base_fee']:08x}")
         # max_priority_fee
-        req += Transaction.forge_tlv(
-            Transaction.TlvTypes.MAX_PRIORITY_FEE, f"{tx['max_priority_fee']:08x}"
-        )
+        req += Transaction.forge_tlv(Transaction.TlvTypes.MAX_PRIORITY_FEE, f"{tx['max_priority_fee']:08x}")
         # fee_function_name
         req += Transaction.forge_tlv(
             Transaction.TlvTypes.FEE_FUNCTION_NAME,
             tx["fee_function_name"].encode().hex(),
         )
         # fee_program_id
-        req += Transaction.forge_tlv(
-            Transaction.TlvTypes.FEE_PROGRAM_ID, tx["fee_program_id"].encode().hex()
-        )
+        req += Transaction.forge_tlv(Transaction.TlvTypes.FEE_PROGRAM_ID, tx["fee_program_id"].encode().hex())
         # request
         req += Transaction.forge_tlv(
             Transaction.TlvTypes.REQUEST,
