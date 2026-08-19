@@ -8,6 +8,7 @@
 #include "tx_types.h"
 #include "handle_swap.h"
 #include "tokens.h"
+#include "aleo_swap_utils.h"
 
 #include <stdint.h>
 

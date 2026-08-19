@@ -144,14 +144,14 @@ if __name__ == "__main__":
                         f"         = {{0x{d[0]:016x}, 0x{d[1]:016x}, 0x{d[2]:016x}, 0x{d[3]:016x}}}}}}}}},",
                         file=c_file,
                     )
-                elif token['mainnet_availability']:
+                elif token["mainnet_availability"]:
                     print(
                         f"         = {{0x{d[0]:016x}, 0x{d[1]:016x}, 0x{d[2]:016x}, 0x{d[3]:016x}}}}},",
                         file=c_file,
                     )
                 else:
                     print(
-                        f"         = {{0x00, 0x00, 0x00, 0x00}}}},",
+                        "         = {0x00, 0x00, 0x00, 0x00}},",
                         file=c_file,
                     )
 

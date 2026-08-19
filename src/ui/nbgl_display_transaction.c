@@ -35,6 +35,7 @@
 #include "types.h"
 #include "menu.h"
 #include "tokens.h"
+#include "handle_swap.h"
 
 // Buffer where the transaction amount string is written
 static char g_amount[MAX_AMOUNT_SIZE + 1 + MAX_TICKER_SIZE];
