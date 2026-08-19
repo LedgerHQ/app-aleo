@@ -5,6 +5,7 @@
 #include "os.h"
 #include "tokens.h"
 #include "format_u128.h"
+#include "aleo_swap_utils.h"
 
 #include <string.h>
 #include <stdio.h>

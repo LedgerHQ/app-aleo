@@ -172,9 +172,10 @@ class Transaction:
                 value = int(input_item["value"].split("field")[0])
                 big = BigInteger256(int(value))
                 input_val += big.to_int().to_bytes(32, "little").hex()
-            elif "dyn_external_record" in input_item["type"]:
-                input_val = input_item["value"]
-            elif "external_record" in input_item["type"]:
+            elif (
+                "dyn_external_record" in input_item["type"]
+                or "external_record" in input_item["type"]
+            ):
                 input_val = input_item["value"]
             elif "record" in input_item["type"]:
                 for in_val in input_item["value"]:
@@ -193,7 +194,7 @@ class Transaction:
             elif "identifier" in input_item["type"]:
                 id_len = len(input_item["value"])
                 input_val = bytes(input_item["value"], "utf-8").hex()
-                input_val += '00'*(31-id_len)
+                input_val += "00" * (31 - id_len)
             else:
                 input_val += input_item["value"]
             val += Transaction.forge_tlv(Transaction.TlvTypes.INPUT_VALUES, input_val)

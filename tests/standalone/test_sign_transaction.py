@@ -486,6 +486,7 @@ def forge_arc20_token_private_to_public_transfer(
 
     return data
 
+
 def forge_arc20_token_batch_private_transfer(
     max_base_fee: int,
     max_priority_fee: int,
@@ -2647,6 +2648,7 @@ def test_sign_transaction_token_arc20_transfer_batch_private(
         "gammas": ["b0bfc7d7c4fd471833c6d4dd6bd061b3a728a31594b75ef8e424a2de7f883003"],
     }
     assert check_response(unpacked, expected)
+
 
 def test_sign_transaction_token_arc20_unknown_transfer_batch_private(
     backend: BackendInterface, scenario_navigator: NavigateWithScenario
