@@ -731,6 +731,59 @@ static void test_tx_token_arc20_parse(void **state)
 
     datas_arc20_private.prepared_request.inputs[2].type = type_11;
     assert_int_equal(tx_parse(&datas_arc20_private, &tx), -1);
+
+    sign_transaction_datas_t datas_arc20_batch_private = {
+        .max_base_fee             = 100,
+        .max_priority_fee         = 500,
+        .fee_function_name_length = 11,
+        .fee_function_name        = "fee_private",
+        .fee_program_id_length    = 12,
+        .fee_program_id           = "credits.aleo",
+        .prepared_request
+        = {.program_id_length    = 20,
+           .program_id           = "ldg_arc20_p_213.aleo",
+           .function_name_length = 18,
+           .function_name        = "transfer_private_2",
+           .inputs_count         = 5,
+           .inputs               = {
+               {.value_length = 31,
+                .value        = (uint8_t *)"arc20_eth\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                                           "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+                .type_length  = 3,
+                .type         = (uint8_t *) "\x02\x00\x11"},
+               {.value_length = 96,
+                .value        = hash_record,
+                .type_length  = 9,
+                .type         = (uint8_t *) "\x06"},
+               {.value_length = 96,
+                .value        = hash_record,
+                .type_length  = 9,
+                .type         = (uint8_t *) "\x06"},
+               {.value_length = 32,
+                .value
+                = (uint8_t *) "\x82\x48\xd5\xe8\x5a\xc4\xc1\x23\x46\xf8\x45\x8b\xd9\x39\xf1\xce"
+                              "\x25\xae\x03\xe9\xc6\xcb\xc8\x86\x28\x6d\xf1\x61\x63\x0a\x75\x0c",
+                .type_length = 3,
+                .type        = (uint8_t *) "\x02\x00\x00"},
+               {.value_length = 16,
+                .value
+                = (uint8_t *) "\xe8\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+                .type_length = 3,
+                .type        = (uint8_t *) "\x02\x00\x0d"},
+           }}
+    };
+    memcpy(hash_record, hash_record_c, sizeof(hash_record));
+    assert_int_equal(tx_parse(&datas_arc20_batch_private, &tx), 0);
+
+    char program_id_5[22]                                        = "ldg_arc20_p2p_213.aleo";
+    datas_arc20_batch_private.prepared_request.program_id_length = sizeof(program_id_5);
+    datas_arc20_batch_private.prepared_request.program_id        = program_id_5;
+    char function_name_5[28]                                     = "transfer_private_to_public_2";
+    datas_arc20_batch_private.prepared_request.function_name_length = sizeof(function_name_5);
+    datas_arc20_batch_private.prepared_request.function_name        = function_name_5;
+    datas_arc20_batch_private.prepared_request.inputs[3].type       = type_11;
+    datas_arc20_batch_private.prepared_request.inputs[4].type       = type_1;
+    assert_int_equal(tx_parse(&datas_arc20_batch_private, &tx), 0);
 }
 
 int main()

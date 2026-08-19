@@ -720,6 +720,73 @@ static void test_signature(void **state)
     check_field(&request_usad_batch_private.tcm, &tcm_13);
     check_scalar(&request_usad_batch_private.challenge, &challenge_13);
     check_scalar(&request_usad_batch_private.response, &response_13);
+
+    prepared_request_t request_arc20_batch_private = {
+        .is_root              = true,
+        .network_id           = 1,
+        .program_id_length    = 20,
+        .program_id           = "ldg_arc20_p_213.aleo",
+        .function_name_length = 18,
+        .function_name        = "transfer_private_2",
+        .inputs_count         = 5,
+        .inputs
+        = {{.value_length = 31,
+                .value        = (uint8_t *)"arc20_eth\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                                           "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+                .type_length  = 3,
+                .type         = (uint8_t *) "\x02\x00\x11"},
+           {.value_length = 96, .value = hash_record, .type_length = 1, .type = (uint8_t *) "\x06"},
+           {.value_length = 96, .value = hash_record, .type_length = 1, .type = (uint8_t *) "\x06"},
+           {.value_length = 32,
+            .value = (uint8_t *) "\x82\x48\xd5\xe8\x5a\xc4\xc1\x23\x46\xf8\x45\x8b\xd9\x39\xf1\xce"
+                                 "\x25\xae\x03\xe9\xc6\xcb\xc8\x86\x28\x6d\xf1\x61\x63\x0a\x75\x0c",
+            .type_length = 3,
+            .type        = (uint8_t *) "\x02\x00\x00"},
+           {.value_length = 16,
+            .value = (uint8_t *) "\xe8\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+            .type_length = 3,
+            .type        = (uint8_t *) "\x01\x00\x0c"}},
+        .program_checksum  = NULL,
+        .nested_call_count = 2,
+    };
+
+    scalar_t r_14 = {
+        .big.u64 = {0xd12073752c196d6d, 0x6f96db151559f1ff, 0x25a34b586f7f9723, 0x2697302b89ed397}
+    };
+    field_t tvk_14 = {
+        .big.u64 = {0xfcd99dd33fd711b9, 0x3085372523a8663b, 0x69091782d0a1eb9e, 0x56f3af574b36c6a}
+    };
+    group_t tpk_14 = {
+        .x.big.u64
+        = {0xe8b1b5b13b95e77d, 0xe55190c120afffca, 0x903d7a482cacfa01, 0xb25f7526348007b},
+        .y.big.u64
+        = {0x9cf6379fb4164e10, 0x2c579edeb53e4c5e, 0xe937cc4854754624, 0xbcaeaa8087b3b4b}
+    };
+    field_t tcm_14 = {
+        .big.u64 = {0x25910ef54db490ed, 0x1748ffd6736145e7, 0x288b9a16ca91d094, 0x220b2a6efe46d2c}
+    };
+    scalar_t challenge_14 = {
+        .big.u64 = {0xa2e465527fc07a34, 0xc9a0515bc3e2196d, 0x6d14e0d9c8a39684, 0x3db2afaa91051c}
+    };
+    scalar_t response_14 = {
+        .big.u64 = {0xdc3cd043fcca940c, 0x44a467f09fc87f22, 0x98492a6cfc382e30, 0x39345663863263d}
+    };
+
+    memcpy(program_checksum, program_checksum_c, 32);
+    request.program_checksum = program_checksum;
+    memcpy(hash_record, hash_record_c, 96);
+    request_arc20_batch_private.gammas_count = 0;
+    prepare_random_ok(random_bn);
+    prepare_scalar_mult_ok();
+    prepare_scalar_mult_ok();
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_arc20_batch_private), 0);
+    assert_int_equal(request_arc20_batch_private.gammas_count, 0);
+    check_scalar(&request_arc20_batch_private.r, &r_14);
+    check_field(&request_arc20_batch_private.tvk, &tvk_14);
+    check_group(&request_arc20_batch_private.tpk, &tpk_14);
+    check_field(&request_arc20_batch_private.tcm, &tcm_14);
+    check_scalar(&request_arc20_batch_private.challenge, &challenge_14);
+    check_scalar(&request_arc20_batch_private.response, &response_14);
 }
 
 int main()
