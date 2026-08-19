@@ -8,6 +8,7 @@
 #include <cmocka.h>
 
 #include "os.h"
+#include "db.h"
 #include "tx.h"
 
 global_ctx_t G_context;
@@ -189,6 +190,15 @@ static void test_tx_parse(void **state)
     datas_public.prepared_request.inputs_count = 1;
     assert_int_equal(tx_parse(&datas_public, &tx), -1);
     datas_public.prepared_request.inputs_count = 2;
+
+    // network_id must be rejected as soon as it reaches or exceeds NETWORK_ID_COUNT,
+    // even though bhp_1024_hashes[] is a wider byte array: indexing must be bounded
+    // by the element count, not sizeof(array).
+    datas_public.prepared_request.network_id = NETWORK_ID_COUNT;
+    assert_int_equal(tx_parse(&datas_public, &tx), -1);
+    datas_public.prepared_request.network_id = NETWORK_ID_COUNT - 1;
+    assert_int_equal(tx_parse(&datas_public, &tx), 0);
+    datas_public.prepared_request.network_id = 0;
 
     // get_u64
     datas_public.prepared_request.inputs[1].type_length = 2;
