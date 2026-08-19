@@ -543,7 +543,7 @@ int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
         return -1;
     }
 
-    if (data->prepared_request.network_id >= sizeof(function_parameters->bhp_1024_hashes)) {
+    if (data->prepared_request.network_id >= NETWORK_ID_COUNT) {
         return -1;
     }
 
