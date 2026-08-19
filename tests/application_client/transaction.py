@@ -48,6 +48,7 @@ class Transaction:
         "scalar": "0e",
         "signature": "0f",
         "string": "10",
+        "identifier": "11",
     }
 
     @staticmethod
@@ -143,6 +144,8 @@ class Transaction:
             )
         elif sp_input_type[-1] == "external_record":
             val += "04"
+        elif sp_input_type[-1] == "dyn_external_record":
+            val += "06"
         elif sp_input_type[-1] == "merkle_proof":
             val += "020100"
 
@@ -169,6 +172,8 @@ class Transaction:
                 value = int(input_item["value"].split("field")[0])
                 big = BigInteger256(int(value))
                 input_val += big.to_int().to_bytes(32, "little").hex()
+            elif "dyn_external_record" in input_item["type"]:
+                input_val = input_item["value"]
             elif "external_record" in input_item["type"]:
                 input_val = input_item["value"]
             elif "record" in input_item["type"]:
@@ -185,6 +190,10 @@ class Transaction:
                     value = int(in_val.split("field")[0])
                     big = BigInteger256(int(value))
                     input_val += big.to_int().to_bytes(32, "little").hex()
+            elif "identifier" in input_item["type"]:
+                id_len = len(input_item["value"])
+                input_val = bytes(input_item["value"], "utf-8").hex()
+                input_val += '00'*(31-id_len)
             else:
                 input_val += input_item["value"]
             val += Transaction.forge_tlv(Transaction.TlvTypes.INPUT_VALUES, input_val)
