@@ -7,6 +7,7 @@
 #include "account.h"
 
 #include "constants.h"
+#include "tokens.h"
 
 /**
  * Enumeration with expected INS of APDU commands.
@@ -17,6 +18,7 @@ typedef enum {
     CMD_GET_ADDRESS      = 0x05,  /// get public address
     CMD_SIGN_TRANSACTION = 0x06,  /// sign transaction
     CMD_GET_VIEW_KEY     = 0x07,  /// get the view key
+    CMD_GET_TVK          = 0x08,  /// get the precomputed transition view key
 } command_e;
 
 typedef enum {
@@ -52,12 +54,24 @@ typedef enum {
     CONFIRM_TRANSACTION  /// confirm transaction information
 } request_type_e;
 
+typedef enum {
+    TOKEN_TYPE_ALEO  = 0x00,
+    TOKEN_TYPE_ARC20 = 0x20,
+    TOKEN_TYPE_ARC21 = 0x21,
+    TOKEN_TYPE_ARC22 = 0x22,
+} token_type_e;
+
 typedef struct {
     uint16_t value_length;
     uint8_t *value;
     uint8_t  type_length;
     uint8_t *type;
 } input_t;
+
+typedef struct {
+    uint64_t low;
+    uint64_t high;
+} u128_t;
 
 typedef struct {
     // input
@@ -93,9 +107,9 @@ typedef struct {
     uint32_t max_base_fee;
     uint32_t max_priority_fee;
     uint8_t  fee_function_name_length;
-    char     fee_function_name[32];
+    char     fee_function_name[FUNCTION_NAME_MAX_LEN];
     uint8_t  fee_program_id_length;
-    char     fee_program_id[64];
+    char     fee_program_id[PROGRAM_ID_NAME_MAX_LEN];
 
     prepared_request_t prepared_request;
 
@@ -103,22 +117,38 @@ typedef struct {
 
 typedef enum {
     TX_UNKNOWN,
-    TX_TRANSFER,
-    TX_FEE,
+
     TX_STAKING,
+    TX_SPLIT,
+    TX_JOIN,
+    TX_TOKEN_JOIN,
+
+    TX_TRANSFER_START,
+    TX_ALEO_TRANSFER_PUBLIC = TX_TRANSFER_START,
+    TX_ALEO_TRANSFER_PRIVATE,
+    TX_ALEO_TRANSFER_BATCH_PRIVATE,
+    TX_ALEO_TRANSFER_PRIVATE_TO_PUBLIC,
+    TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
+    TX_ALEO_TRANSFER_PUBLIC_TO_PRIVATE,
+    TX_TOKEN_TRANSFER_PUBLIC,
+    TX_TOKEN_TRANSFER_PRIVATE,
+    TX_TOKEN_TRANSFER_BATCH_PRIVATE,
+    TX_TOKEN_TRANSFER_PRIVATE_TO_PUBLIC,
+    TX_TOKEN_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
+    TX_TOKEN_TRANSFER_PUBLIC_TO_PRIVATE,
+    TX_TRANSFER_END = TX_TOKEN_TRANSFER_PUBLIC_TO_PRIVATE,
+
+    TX_FEE_START,
+    TX_FEE_PUBLIC = TX_FEE_START,
+    TX_FEE_PRIVATE,
+    TX_FEE_END = TX_FEE_PRIVATE,
 } tx_type_e;
 
-typedef enum {
-    TX_TRANSFER_PUBLIC,
-    TX_TRANSFER_PRIVATE,
-    TX_TRANSFER_PUBLIC_TO_PRIVATE,
-    TX_TRANSFER_PRIVATE_TO_PUBLIC,
-} tx_transfer_type_e;
-
-typedef enum {
-    TX_FEE_PUBLIC,
-    TX_FEE_PRIVATE,
-} tx_fee_type_e;
+typedef struct {
+    token_type_e type;
+    char         ticker[MAX_TICKER_SIZE + 1];
+    uint8_t      decimals;
+} token_display_info_t;
 
 typedef enum {
     TX_STAKING_BOND,
@@ -127,15 +157,14 @@ typedef enum {
 } tx_staking_type_e;
 
 typedef struct {
-    tx_transfer_type_e type;
-    char               address_to[ADDRESS_LEN + 1];
-    uint64_t           amount;
+    char                  address_to[ADDRESS_LEN + 1];
+    u128_t                amount;
+    token_display_info_t *token_info;
 } tx_transfer_t;
 
 typedef struct {
-    tx_fee_type_e type;
-    uint64_t      base_fee;
-    uint64_t      priority_fee;
+    uint64_t base_fee;
+    uint64_t priority_fee;
 } tx_fee_t;
 
 typedef struct {
@@ -159,8 +188,8 @@ typedef struct {
 typedef struct {
     state_e state;  /// state of the context
     union {
-        char address[ADDRESS_LEN];
-        char view_key[VIEW_KEY_LEN];
+        char address[ADDRESS_LEN + 1];
+        char view_key[VIEW_KEY_LEN + 1];
     };
     request_type_e req_type;                    /// user request
     uint32_t       bip32_path[MAX_BIP32_PATH];  /// BIP32 path
@@ -174,4 +203,7 @@ typedef struct {
     uint8_t                  nested_call_offset;
     sign_transaction_datas_t sign_transaction_datas;
     tx_t                     tx;
+    uint32_t                 r_list_alive_remaining_time_ms;
+    r_list_t                 r_list;
+
 } global_ctx_t;

@@ -3,6 +3,8 @@
 #include <stdint.h>   // uint*_t
 #include <stdbool.h>  // bool
 
+#include "constants.h"
+
 typedef struct {
     uint64_t u64[4];
 } bigint_256_t;

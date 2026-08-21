@@ -12,13 +12,8 @@ typedef struct {
 } group_t;
 
 typedef struct {
-    uint8_t  compressed[32];
-    uint32_t sign;
-} compressed_group_t;
-
-typedef struct {
-    uint8_t x[32];
-    uint8_t y[32];
+    uint8_t x[BN_LENGTH];
+    uint8_t y[BN_LENGTH];
 } bn_group_t;
 
 int group_add_assign(group_t *a, const group_t *b);

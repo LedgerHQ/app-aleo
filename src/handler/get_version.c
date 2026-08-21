@@ -28,7 +28,7 @@
 #include "sw.h"
 #include "types.h"
 
-int handler_get_version()
+int handler_get_version(void)
 {
     _Static_assert(APPVERSION_LEN == 3, "Length of (MAJOR || MINOR || PATCH) must be 3!");
     _Static_assert(MAJOR_VERSION >= 0 && MAJOR_VERSION <= UINT8_MAX,

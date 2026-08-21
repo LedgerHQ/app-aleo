@@ -1,6 +1,5 @@
-from pathlib import Path
-from typing import List
 import re
+from pathlib import Path
 
 
 def verify_name(name: str) -> None:
@@ -12,7 +11,7 @@ def verify_name(name: str) -> None:
 
     name_str = ""
     lines = _read_makefile()
-    name_re = re.compile(r"^APPNAME\s?=\s?\"?(?P<val>\w+)\"?", re.I)
+    name_re = re.compile(r"^APPNAME\s?=\s?\"?(?P<val>\w+)\"?", re.IGNORECASE)
     for line in lines:
         info = name_re.match(line)
         if info:
@@ -31,7 +30,9 @@ def verify_version(version: str) -> None:
     vers_dict = {}
     vers_str = ""
     lines = _read_makefile()
-    version_re = re.compile(r"^APPVERSION_(?P<part>\w)\s?=\s?(?P<val>\d*)", re.I)
+    version_re = re.compile(
+        r"^APPVERSION_(?P<part>\w)\s?=\s?(?P<val>\d*)", re.IGNORECASE
+    )
     for line in lines:
         info = version_re.match(line)
         if info:
@@ -44,8 +45,8 @@ def verify_version(version: str) -> None:
     assert version == vers_str
 
 
-def _read_makefile() -> List[str]:
-    """Read lines from the parent Makefile """
+def _read_makefile() -> list[str]:
+    """Read lines from the parent Makefile"""
 
     parent = Path(__file__).parent.parent.parent.resolve()
     makefile = f"{parent}/Makefile"

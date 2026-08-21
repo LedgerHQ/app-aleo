@@ -9,6 +9,8 @@
 
 typedef fp256_t scalar_t;
 
+extern const field_t SCALAR_ZERO;
+
 void scalar_from_field_lossy(scalar_t *a, const field_t *f);
 void scalar_to_field(const scalar_t *a, field_t *f);
 

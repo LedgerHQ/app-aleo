@@ -3,6 +3,8 @@
 #include "os.h"
 #include "macros.h"
 
+#include "field.h"
+
 /**
  * Length of public key.
  */
@@ -43,3 +45,13 @@ int helper_send_response_get_view_key(void);
  *
  */
 int helper_send_response_sign_transaction(void);
+
+/**
+ * Helper to send APDU response with specified tvk.
+ *
+ * response = see doc/SIGN_TRANSACTION.md
+ *
+ * @return zero or positive integer if success, -1 otherwise.
+ *
+ */
+int helper_send_response_get_tvk(field_t *tvk);

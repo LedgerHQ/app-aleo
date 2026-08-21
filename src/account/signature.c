@@ -32,9 +32,9 @@
 #include "nbgl_use_case.h"
 #include "signature.h"
 
-#define HASH_INPUT_MAX_LENGTH     (16)
-#define MESSAGE_MAX_LENGTH        (32)
-#define PLAINTEXT_FIELDS_MAX_SIZE (4)
+#define HASH_INPUT_MAX_LENGTH     (56)
+#define MESSAGE_MAX_LENGTH        (64)
+#define PLAINTEXT_FIELDS_MAX_SIZE (48)
 #define BIT_BUFFER_MAX_LENGTH     (128)
 
 const field_t SERIAL_NUMBER_DOMAIN = {
@@ -63,76 +63,124 @@ static int add_field_to_message(field_t *field)
     return 0;
 }
 
+static int plaintext_to_field(uint8_t       *plaintext,
+                              uint16_t       plaintext_length,
+                              const uint8_t *plaintext_type,
+                              uint8_t        plaintext_type_length,
+                              field_t       *output,
+                              uint16_t       output_length)
+{
+    if (plaintext_type_length < 1) {
+        return -1;
+    }
+
+    if (plaintext_type[0] == INPUT_VALUE_TYPE_PLAINTEXT_LITERAL) {
+        uint16_t bit_size = 0;
+
+        if (plaintext_type_length < 2) {
+            return -1;
+        }
+        uint8_t variant = plaintext_type[1];
+        switch (variant) {
+            case PLAINTEXT_TYPE_LITERAL_ADDRESS:
+            case PLAINTEXT_TYPE_LITERAL_FIELD:
+                PRINTF("PLAINTEXT_TYPE_LITERAL_ADDRESS/FIELD\n");
+                bit_size = FIELD_MODULUS_BITS;
+                break;
+            case PLAINTEXT_TYPE_LITERAL_U64:
+                PRINTF("PLAINTEXT_TYPE_LITERAL_U64\n");
+                bit_size = 64;
+                break;
+            case PLAINTEXT_TYPE_LITERAL_U128:
+                PRINTF("PLAINTEXT_TYPE_LITERAL_U128\n");
+                bit_size = 128;
+                break;
+            default:
+                return -1;
+                break;
+        }
+        if ((plaintext_length * 8) < bit_size) {
+            return -1;
+        }
+        int bit_length = bits_from_plaintext_literal(
+            plaintext, bit_size, variant, bit_buffer, BIT_BUFFER_MAX_LENGTH * 8);
+        if (bit_length < 0) {
+            return bit_length;
+        }
+        if (bit_length >= BIT_BUFFER_MAX_LENGTH * 8) {
+            return -1;
+        }
+        bits_add_single(bit_buffer, (uint16_t) bit_length, true);
+        bit_length += 1;
+        return field_from_bits(bit_buffer, (uint16_t) bit_length, output, output_length);
+    }
+    else if ((plaintext_type[0] == INPUT_VALUE_TYPE_PLAINTEXT_STRUCT)
+             || (plaintext_type[0] == INPUT_VALUE_TYPE_PLAINTEXT_ARRAY)) {
+        bigint_256_t s;
+        if ((plaintext_length == 0) || (plaintext_length % BN_LENGTH != 0)) {
+            return -1;
+        }
+        uint8_t num_of_fields = plaintext_length / BN_LENGTH;
+        if (num_of_fields > output_length) {
+            return -1;
+        }
+        for (uint8_t i = 0; i < num_of_fields; i++) {
+            bn_reverse(&plaintext[i * BN_LENGTH]);
+            bn_to_big_int(&plaintext[i * BN_LENGTH], &s);
+            field_from_big_int(&output[i], &s);
+        }
+        return num_of_fields;
+    }
+    else {
+        PRINTF("Plaintext type unsupported (%d)\n", plaintext_type[0]);
+    }
+    return -1;
+}
+
 static int hash_public_input(prepared_request_t *request, uint8_t input_index)
 {
     _Static_assert(HASH_INPUT_MAX_LENGTH >= 13, "hash_input size won't fit");
-    int      status           = 0;
+    int      status           = -1;
     uint8_t  hash_input_index = 8;
     input_t *input            = &request->inputs[input_index];
     field_t  hash;
 
+    if (input->type_length < 2) {
+        status = -1;
+        goto end;
+    }
     memset(hash_input, 0, sizeof(hash_input));
     memcpy(&hash_input[hash_input_index++], &request->function_id, sizeof(field_t));
-    if (input->type[1] == INPUT_VALUE_TYPE_PLAINTEXT) {
-        if ((input->type[2] == PLAINTEXT_TYPE_LITERAL_ADDRESS)
-            || (input->type[2] == PLAINTEXT_TYPE_LITERAL_FIELD)) {
-            PRINTF("PLAINTEXT_TYPE_LITERAL_ADDRESS/FIELD\n");
-            int bit_length = bits_from_plaintext(input->value,
-                                                 &input->type[1],
-                                                 FIELD_MODULUS_BITS,
-                                                 bit_buffer,
-                                                 BIT_BUFFER_MAX_LENGTH * 8);
-            if (bit_length < 0) {
-                return bit_length;
-            }
-            if (bit_length >= BIT_BUFFER_MAX_LENGTH * 8) {
-                return -1;
-            }
-            bits_add_single(bit_buffer, (uint16_t) bit_length, true);
-            bit_length += 1;
-            hash_input_index += field_from_bits(
-                bit_buffer, (uint16_t) bit_length, &hash_input[hash_input_index], 2);
-            field_print_array(&hash_input[hash_input_index - 2], 2);
-        }
-        else if (input->type[2] == PLAINTEXT_TYPE_LITERAL_U64) {
-            PRINTF("PLAINTEXT_TYPE_LITERAL_U64\n");
-            int bit_length = bits_from_plaintext(
-                input->value, &input->type[1], 64, bit_buffer, BIT_BUFFER_MAX_LENGTH * 8);
-            if (bit_length < 0) {
-                return bit_length;
-            }
-            if (bit_length >= BIT_BUFFER_MAX_LENGTH * 8) {
-                return -1;
-            }
-            bits_add_single(bit_buffer, (uint16_t) bit_length, true);
-            bit_length += 1;
-            hash_input_index += field_from_bits(
-                bit_buffer, (uint16_t) bit_length, &hash_input[hash_input_index], 1);
-            field_print_array(&hash_input[hash_input_index - 1], 1);
-        }
-        else {
-            PRINTF("Public plaintext type unsupported (%d)\n", input->type[2]);
-            return -1;
-        }
+    status = plaintext_to_field(input->value,
+                                input->value_length,
+                                &input->type[1],
+                                input->type_length - 1,
+                                &hash_input[hash_input_index],
+                                HASH_INPUT_MAX_LENGTH - hash_input_index);
+    if (status < 0) {
+        goto end;
     }
-    else {
-        PRINTF("Public input value type unsupported (%d)\n", input->type[1]);
-        return -1;
-    }
+    field_print_array(&hash_input[hash_input_index], status);
+    hash_input_index += status;
+
     memcpy(&hash_input[hash_input_index++], &request->tcm, sizeof(field_t));
     field_from_int(&hash_input[hash_input_index++], input_index);
     if ((status = hash_psd8(hash_input, hash_input_index, &hash)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("hash : ");
     field_println(&hash);
 
-    return add_field_to_message(&hash);
+    status = add_field_to_message(&hash);
+
+end:
+    explicit_bzero(hash_input, sizeof(hash_input));
+    return status;
 }
 
 static int hash_private_input(prepared_request_t *request, uint8_t input_index)
 {
-    int      status           = 0;
+    int      status           = -1;
     size_t   hash_input_index = 0;
     input_t *input            = &request->inputs[input_index];
     uint8_t  num_randomizers  = 0;
@@ -146,57 +194,31 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
     memcpy(&hash_input[5], &request->tvk, sizeof(field_t));
     field_from_int(&hash_input[6], input_index);
     if ((status = hash_psd4(hash_input, 4 + 3, &input_view_key)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("input_view_key : ");
     field_println(&input_view_key);
 
-    if (input->type[1] == INPUT_VALUE_TYPE_PLAINTEXT) {
-        if ((input->type[2] == PLAINTEXT_TYPE_LITERAL_ADDRESS)
-            || (input->type[2] == PLAINTEXT_TYPE_LITERAL_FIELD)) {
-            PRINTF("PLAINTEXT_TYPE_LITERAL_ADDRESS/FIELD\n");
-            int bit_length = bits_from_plaintext(input->value,
-                                                 &input->type[1],
-                                                 FIELD_MODULUS_BITS,
-                                                 bit_buffer,
-                                                 BIT_BUFFER_MAX_LENGTH * 8);
-            if (bit_length < 0) {
-                return bit_length;
-            }
-            if (bit_length >= BIT_BUFFER_MAX_LENGTH * 8) {
-                return -1;
-            }
-            bits_add_single(bit_buffer, (uint16_t) bit_length, true);
-            bit_length += 1;
-            num_randomizers = field_from_bits(
-                bit_buffer, (uint16_t) bit_length, plaintext_fields, PLAINTEXT_FIELDS_MAX_SIZE);
-        }
-        else if (input->type[2] == PLAINTEXT_TYPE_LITERAL_U64) {
-            PRINTF("PLAINTEXT_TYPE_LITERAL_U64\n");
-            int bit_length = bits_from_plaintext(
-                input->value, &input->type[1], 64, bit_buffer, BIT_BUFFER_MAX_LENGTH * 8);
-            if (bit_length < 0) {
-                return bit_length;
-            }
-            if (bit_length >= BIT_BUFFER_MAX_LENGTH * 8) {
-                return -1;
-            }
-            bits_add_single(bit_buffer, (uint16_t) bit_length, true);
-            bit_length += 1;
-            num_randomizers = field_from_bits(
-                bit_buffer, (uint16_t) bit_length, plaintext_fields, PLAINTEXT_FIELDS_MAX_SIZE);
-        }
-        else {
-            PRINTF("Private plaintext type unsupported (%d)\n", input->type[2]);
-            return -1;
-        }
-        PRINTF("plaintext_fields : \n");
-        field_print_array(plaintext_fields, num_randomizers);
+    if (input->type_length < 2) {
+        status = -1;
+        goto end;
     }
-    else {
-        PRINTF("Private input value type unsupported (%d)\n", input->type[1]);
-        return -1;
+
+    status = plaintext_to_field(input->value,
+                                input->value_length,
+                                &input->type[1],
+                                input->type_length - 1,
+                                plaintext_fields,
+                                PLAINTEXT_FIELDS_MAX_SIZE);
+    if (status < 0) {
+        goto end;
     }
+    num_randomizers = (uint8_t) status;
+    if (num_randomizers >= PLAINTEXT_FIELDS_MAX_SIZE) {
+        status = -1;
+        goto end;
+    }
+    field_print_array(plaintext_fields, num_randomizers);
 
     // Compute randomizers
     _Static_assert(HASH_INPUT_MAX_LENGTH >= 10, "hash_input size won't fit");
@@ -204,7 +226,7 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
     memcpy(&hash_input[8], &ENCRYPTION_DOMAIN, sizeof(field_t));
     memcpy(&hash_input[9], &input_view_key, sizeof(field_t));
     if ((status = hash_many_psd8(hash_input, 10, randomizer_fields, num_randomizers)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("randomizer_fields : \n");
     field_print_array(randomizer_fields, num_randomizers);
@@ -224,23 +246,36 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
 
     // Hash the ciphertext to a field element
     if ((status = hash_psd8(hash_input, hash_input_index, &hash)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("hash : ");
     field_println(&hash);
 
-    return add_field_to_message(&hash);
+    status = add_field_to_message(&hash);
+
+end:
+    explicit_bzero(hash_input, sizeof(hash_input));
+    return status;
 }
 
 static int hash_record_input(account_t *account, prepared_request_t *request, uint8_t input_index)
 {
-    int          status = 0;
+    int          status = -1;
     bigint_256_t s;
     input_t     *input = &request->inputs[input_index];
     field_t      commitment;
     group_t      h;
     group_t      h_r;
     field_t      tag;
+
+    if (request->gammas_count >= MAX_NB_OF_RECORDS) {
+        status = -1;
+        goto end;
+    }
+    if (input->value_length < (3 * sizeof(field_t))) {
+        status = -1;
+        goto end;
+    }
 
     // Extract 'commitment'
     bn_reverse(input->value);
@@ -250,26 +285,26 @@ static int hash_record_input(account_t *account, prepared_request_t *request, ui
     field_println(&commitment);
 
     // Extract 'h' x coordinate
-    bn_reverse(&input->value[32]);
-    bn_to_big_int(&input->value[32], &s);
+    bn_reverse(&input->value[sizeof(field_t)]);
+    bn_to_big_int(&input->value[sizeof(field_t)], &s);
     field_from_big_int(&h.x, &s);
 
     // Extract 'h' y coordinate
-    bn_reverse(&input->value[64]);
-    bn_to_big_int(&input->value[64], &s);
+    bn_reverse(&input->value[2 * sizeof(field_t)]);
+    bn_to_big_int(&input->value[2 * sizeof(field_t)], &s);
     field_from_big_int(&h.y, &s);
     if ((status = add_field_to_message(&h.x)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("h : ");
     group_println(&h);
 
     // Compute `h_r` as `r * h`
     if ((status = group_scalar_multiply(&h, &request->r, &h_r)) < 0) {
-        return status;
+        goto end;
     }
     if ((status = add_field_to_message(&h_r.x)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("h_r : ");
     group_println(&h_r);
@@ -278,10 +313,10 @@ static int hash_record_input(account_t *account, prepared_request_t *request, ui
     if ((status = group_scalar_multiply(
              &h, &account->private_key.sk_sig, &request->gammas[request->gammas_count]))
         < 0) {
-        return status;
+        goto end;
     }
     if ((status = add_field_to_message(&request->gammas[request->gammas_count].x)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("gamma : ");
     group_println(&request->gammas[request->gammas_count]);
@@ -293,16 +328,68 @@ static int hash_record_input(account_t *account, prepared_request_t *request, ui
     memcpy(&hash_input[2], &account->graph_key, sizeof(field_t));
     memcpy(&hash_input[3], &commitment, sizeof(field_t));
     if ((status = hash_psd2(hash_input, 2 + 2, &tag)) < 0) {
-        return status;
+        goto end;
     }
     PRINTF("tag : ");
     field_println(&tag);
-    return add_field_to_message(&tag);
+
+    status = add_field_to_message(&tag);
+
+end:
+    explicit_bzero(hash_input, sizeof(hash_input));
+    return status;
+}
+
+static int hash_external_record_input(prepared_request_t *request, uint8_t input_index)
+{
+    int          status           = -1;
+    size_t       hash_input_index = 8;
+    input_t     *input            = &request->inputs[input_index];
+    bigint_256_t s;
+    field_t      hash;
+
+    if ((input->value_length == 0) || (input->value_length % BN_LENGTH != 0)) {
+        status = -1;
+        goto end;
+    }
+    uint8_t num_fields = input->value_length / BN_LENGTH;
+    if (num_fields
+        > (HASH_INPUT_MAX_LENGTH - 11)) { /* 11 = 8 capacity + function_id + tvk + index */
+        status = -1;
+        goto end;
+    }
+
+    _Static_assert(HASH_INPUT_MAX_LENGTH >= 14, "hash_input size won't fit for external record");
+    memset(hash_input, 0, sizeof(hash_input));
+
+    /* Preimage: [function_id || record_fields... || tvk || index] */
+    memcpy(&hash_input[hash_input_index++], &request->function_id, sizeof(field_t));
+
+    for (uint8_t i = 0; i < num_fields; i++) {
+        bn_reverse(&input->value[i * BN_LENGTH]);
+        bn_to_big_int(&input->value[i * BN_LENGTH], &s);
+        field_from_big_int(&hash_input[hash_input_index++], &s);
+    }
+
+    memcpy(&hash_input[hash_input_index++], &request->tvk, sizeof(field_t));
+    field_from_int(&hash_input[hash_input_index++], input_index);
+
+    if ((status = hash_psd8(hash_input, hash_input_index, &hash)) < 0) {
+        goto end;
+    }
+    PRINTF("external_record_hash : ");
+    field_println(&hash);
+
+    status = add_field_to_message(&hash);
+
+end:
+    explicit_bzero(hash_input, sizeof(hash_input));
+    return status;
 }
 
 static int prepare_inputs(account_t *account, prepared_request_t *request)
 {
-    int     status      = 0;
+    int     status      = -1;
     uint8_t input_index = 0;
 
     for (input_index = 0; input_index < request->inputs_count; input_index++) {
@@ -323,6 +410,10 @@ static int prepare_inputs(account_t *account, prepared_request_t *request)
 
             case INPUT_ID_RECORD:
                 status = hash_record_input(account, request, input_index);
+                break;
+
+            case INPUT_ID_EXTERNAL_RECORD:
+                status = hash_external_record_input(request, input_index);
                 break;
 
             default:
@@ -347,8 +438,8 @@ static void display_progression(uint8_t step)
         text = "Signing transaction";
     }
     else if (G_context.signing_state == SIGNING_STATE_NESTED_CALL) {
-        text = "Prepare Tx";
-        current_step += step + ((1 + G_context.nested_call_offset) * 5);
+        text         = "Prepare Tx";
+        current_step = step + ((1 + G_context.nested_call_offset) * 5);
     }
     else {
         text = "Prepare Tx";
@@ -367,7 +458,7 @@ static void display_progression(uint8_t step)
 
 int sign_prepared_request(account_t *account, prepared_request_t *request)
 {
-    int      status = 0;
+    int      status = -1;
     field_t *is_root;
     group_t  g_temp;
     field_t  nonce;
@@ -375,24 +466,39 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     LEDGER_ASSERT(account != NULL, "NULL account");
     LEDGER_ASSERT(request != NULL, "NULL request");
 
-    if ((status = field_random(&nonce)) < 0) {
-        goto end;
-    }
-    PRINTF("nonce : ");
-    field_println(&nonce);
-
     display_progression(1);
-
-    // Compute a `r` as `HashToScalar(sk_sig || nonce)`. Note: This is the transition secret key
-    // `tsk`.
-    _Static_assert(HASH_INPUT_MAX_LENGTH >= 7, "hash_input size won't fit");
-    memset(hash_input, 0, sizeof(hash_input));
-    memcpy(&hash_input[4], &SERIAL_NUMBER_DOMAIN, sizeof(field_t));
-    scalar_to_field(&account->private_key.sk_sig, &hash_input[5]);
-    memcpy(&hash_input[6], &nonce, sizeof(field_t));
-    if ((status = hash_to_scalar_psd4(hash_input, 4 + 3, &request->r)) < 0) {
-        goto end;
+    if ((G_context.r_list.count) && (G_context.signing_state != SIGNING_STATE_FEES)) {
+        // r is picked up from a pre-computed list (only for intent & nested calls)
+        if ((request->is_root == true) && (G_context.r_list.index != 0)) {
+            // R_0 must be used for root intent
+            status = -1;
+            goto end;
+        }
+        if ((status = r_list_get(G_context.r_list.index, &request->r)) < 0) {
+            goto end;
+        }
+        G_context.r_list.index++;
     }
+    else {
+        // r is computed on the fly from a random nonce
+        if ((status = field_random(&nonce)) < 0) {
+            goto end;
+        }
+        PRINTF("nonce : ");
+        field_println(&nonce);
+
+        // Compute a `r` as `HashToScalar(sk_sig || nonce)`. Note: This is the transition
+        // secret key `tsk`.
+        _Static_assert(HASH_INPUT_MAX_LENGTH >= 7, "hash_input size won't fit");
+        memset(hash_input, 0, sizeof(hash_input));
+        memcpy(&hash_input[4], &SERIAL_NUMBER_DOMAIN, sizeof(field_t));
+        scalar_to_field(&account->private_key.sk_sig, &hash_input[5]);
+        memcpy(&hash_input[6], &nonce, sizeof(field_t));
+        if ((status = hash_to_scalar_psd4(hash_input, 4 + 3, &request->r)) < 0) {
+            goto end;
+        }
+    }
+
     PRINTF("r : ");
     scalar_println(&request->r);
     display_progression(2);
@@ -431,40 +537,7 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     }
 
     // Compute the function ID.
-    function_id_datas_t function_id_datas;
-    memset(&function_id_datas, 0, sizeof(function_id_datas));
-    function_id_datas.network_id = request->network_id;
-    uint8_t is_name              = 1;
-    uint8_t offset               = 0;
-    for (size_t i = 0; i < request->program_id_length; i++) {
-        if (request->program_id[i] != '.') {
-            if (is_name) {
-                if (offset >= sizeof(function_id_datas.program_id_name)) {
-                    status = -1;
-                    goto end;
-                }
-                function_id_datas.program_id_name[offset++] = request->program_id[i];
-            }
-            else {
-                if (offset >= sizeof(function_id_datas.program_id_network)) {
-                    status = -1;
-                    goto end;
-                }
-                function_id_datas.program_id_network[offset++] = request->program_id[i];
-            }
-        }
-        else {
-            is_name = 0;
-            offset  = 0;
-        }
-    }
-    if (request->function_name_length >= sizeof(function_id_datas.function_name)) {
-        status = -1;
-        goto end;
-    }
-    memcpy(function_id_datas.function_name, request->function_name, request->function_name_length);
-
-    if ((status = bhp_1024_hash_function_id(&function_id_datas, &request->function_id)) < 0) {
+    if ((status = bhp_1024_hash_function_id(request)) < 0) {
         goto end;
     }
     PRINTF("function_id : ");
@@ -539,6 +612,8 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     display_progression(5);
 
 end:
+    explicit_bzero(&g_temp, sizeof(g_temp));
+    explicit_bzero(&nonce, sizeof(nonce));
     explicit_bzero(hash_input, sizeof(hash_input));
     explicit_bzero(message, sizeof(message));
 

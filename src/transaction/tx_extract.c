@@ -52,6 +52,7 @@ static void print_signature_data(sign_transaction_datas_t *data)
         }
         PRINTF("\n");
     }
+    PRINTF("nested_call_count  : %d\n", data->prepared_request.nested_call_count);
     if (data->prepared_request.program_checksum) {
         PRINTF("program_checksum : ");
         for (int j = 0; j < 32; j++) {
@@ -96,7 +97,14 @@ static bool get_function_name(const tlv_data_t *data, prepared_request_t *cookie
 
 static bool get_input_count(const tlv_data_t *data, prepared_request_t *cookie)
 {
-    return get_uint8_t_from_tlv_data(data, &cookie->inputs_count);
+    if (!get_uint8_t_from_tlv_data(data, &cookie->inputs_count)) {
+        return false;
+    }
+    if (cookie->inputs_count > MAX_NB_OF_INPUTS) {
+        cookie->inputs_count = 0;
+        return false;
+    }
+    return true;
 }
 
 static bool get_input_value(const tlv_data_t *data, prepared_request_t *cookie)
@@ -194,7 +202,10 @@ static bool get_fee_program_id(const tlv_data_t *data, sign_transaction_datas_t 
 static bool get_request(const tlv_data_t *data, sign_transaction_datas_t *cookie)
 {
     cookie->prepared_request.is_root = true;
-    tx_extract_prepared_request(&data->value, &cookie->prepared_request);
+    if (tx_extract_prepared_request(&data->value, &cookie->prepared_request) < 0) {
+        explicit_bzero(&cookie->prepared_request, sizeof(cookie->prepared_request));
+        return false;
+    }
     return true;
 }
 
@@ -218,9 +229,19 @@ int tx_extract_prepared_request(const buffer_t *cdata, prepared_request_t *prepa
 
     explicit_bzero(prepared_request, sizeof(prepared_request_t));
     if (!prepared_request_tlv_parser(cdata, prepared_request, &received_tags)) {
+        explicit_bzero(prepared_request, sizeof(prepared_request_t));
         return -1;
     }
     print_signature_data(&G_context.sign_transaction_datas);
+
+    if (prepared_request->inputs_value_offset != prepared_request->inputs_type_offset) {
+        explicit_bzero(prepared_request, sizeof(prepared_request_t));
+        return -1;
+    }
+    if (prepared_request->inputs_value_offset != prepared_request->inputs_count) {
+        explicit_bzero(prepared_request, sizeof(prepared_request_t));
+        return -1;
+    }
 
     return 0;
 }

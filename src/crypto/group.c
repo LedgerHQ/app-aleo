@@ -37,14 +37,14 @@ int group_add_assign(group_t *a, const group_t *b)
     cx_ecpoint_t point_a;
     cx_ecpoint_t point_b;
     cx_ecpoint_t point_r;
-    uint8_t      bn_x[32];
-    uint8_t      bn_y[32];
+    uint8_t      bn_x[BN_LENGTH];
+    uint8_t      bn_y[BN_LENGTH];
     bigint_256_t s;
 
     LEDGER_ASSERT(a != NULL, "NULL a");
     LEDGER_ASSERT(b != NULL, "NULL b");
 
-    if (cx_bn_lock(32, 0) != CX_OK) {
+    if (cx_bn_lock(BN_LENGTH, 0) != CX_OK) {
         return -1;
     }
 
@@ -55,7 +55,7 @@ int group_add_assign(group_t *a, const group_t *b)
     if ((error = cx_ecpoint_alloc(&point_a, CX_CURVE_EdBLS12)) != CX_OK) {
         goto end;
     }
-    if ((error = cx_ecpoint_init(&point_a, bn_x, 32, bn_y, 32)) != CX_OK) {
+    if ((error = cx_ecpoint_init(&point_a, bn_x, sizeof(bn_x), bn_y, sizeof(bn_y))) != CX_OK) {
         goto end;
     }
 
@@ -66,7 +66,7 @@ int group_add_assign(group_t *a, const group_t *b)
     if ((error = cx_ecpoint_alloc(&point_b, CX_CURVE_EdBLS12)) != CX_OK) {
         goto end;
     }
-    if ((error = cx_ecpoint_init(&point_b, bn_x, 32, bn_y, 32)) != CX_OK) {
+    if ((error = cx_ecpoint_init(&point_b, bn_x, sizeof(bn_x), bn_y, sizeof(bn_y))) != CX_OK) {
         goto end;
     }
 
@@ -77,7 +77,7 @@ int group_add_assign(group_t *a, const group_t *b)
         goto end;
     }
 
-    if ((error = cx_ecpoint_export(&point_r, bn_x, 32, bn_y, 32)) != CX_OK) {
+    if ((error = cx_ecpoint_export(&point_r, bn_x, sizeof(bn_x), bn_y, sizeof(bn_y))) != CX_OK) {
         goto end;
     }
     bn_to_big_int(bn_x, &s);
@@ -107,9 +107,9 @@ int group_scalar_multiply(const group_t *a, const scalar_t *b, group_t *r)
 {
     cx_err_t     error;
     cx_ecpoint_t point;
-    uint8_t      bn_x[32];
-    uint8_t      bn_y[32];
-    uint8_t      bn_scalar[32];
+    uint8_t      bn_x[BN_LENGTH];
+    uint8_t      bn_y[BN_LENGTH];
+    uint8_t      bn_scalar[BN_LENGTH];
     bigint_256_t s;
 
     LEDGER_ASSERT(a != NULL, "NULL a");
@@ -124,21 +124,21 @@ int group_scalar_multiply(const group_t *a, const scalar_t *b, group_t *r)
     scalar_to_big_int(b, &s);
     big_int_to_bn(&s, bn_scalar);
 
-    if (cx_bn_lock(32, 0) != CX_OK) {
+    if (cx_bn_lock(BN_LENGTH, 0) != CX_OK) {
         return -1;
     }
 
     if ((error = cx_ecpoint_alloc(&point, CX_CURVE_EdBLS12)) != CX_OK) {
         goto end;
     }
-    if ((error = cx_ecpoint_init(&point, bn_x, 32, bn_y, 32)) != CX_OK) {
+    if ((error = cx_ecpoint_init(&point, bn_x, sizeof(bn_x), bn_y, sizeof(bn_y))) != CX_OK) {
         goto end;
     }
 
-    if ((error = cx_ecpoint_scalarmul(&point, bn_scalar, 32)) != CX_OK) {
+    if ((error = cx_ecpoint_scalarmul(&point, bn_scalar, sizeof(bn_scalar))) != CX_OK) {
         goto end;
     }
-    if ((error = cx_ecpoint_export(&point, bn_x, 32, bn_y, 32)) != CX_OK) {
+    if ((error = cx_ecpoint_export(&point, bn_x, sizeof(bn_x), bn_y, sizeof(bn_y))) != CX_OK) {
         goto end;
     }
 

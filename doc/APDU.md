@@ -29,3 +29,14 @@ in the industry.
 | ---        | ---            | --- |
 |      RData |            var | Response data (can be empty) |
 |         SW |              2 | Status word containing command processing status (e.g. `0x9000` for success) |
+
+## Commands
+
+| _INS_ | _Command_        | _Description_ |
+| :---: | ----             | ------------- |
+| 0x03  | GET_VERSION      | Get application version |
+| 0x04  | GET_APP_NAME     | Get application name |
+| 0x05  | GET_ADDRESS      | Get Aleo address from BIP32 path |
+| 0x06  | SIGN_TRANSACTION | Sign a transaction (see [SIGN_TRANSACTION](SIGN_TRANSACTION.md)) |
+| 0x07  | GET_VIEW_KEY     | Get view key from BIP32 path |
+| 0x08  | GET_TVK          | Pre-compute Transition View Keys (see [GET TVK](SIGN_TRANSACTION.md#get-tvk)) |

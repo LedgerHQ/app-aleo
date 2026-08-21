@@ -53,7 +53,7 @@
 /**
  * Maximum number of inputs for a single signature.
  */
-#define MAX_NB_OF_INPUTS (8)
+#define MAX_NB_OF_INPUTS (16)
 
 /**
  * Maximum number of records for a single signature.
@@ -77,10 +77,32 @@
 
 /**
  * Maximum length of input value.
+ *
+ * Sized for the largest input we sign: the stablecoin freeze-list exclusion proof
+ * `[MerkleProof; 2u32]`, whose `to_fields()` encoding is 41 fields = 1312 bytes. Set to
+ * 48 * 32 = 1536 for headroom, matching PLAINTEXT_FIELDS_MAX_SIZE (signature.c).
  */
-#define INPUT_VALUE_MAX_LEN (128)
+#define INPUT_VALUE_MAX_LEN (1536)
 
 /**
  * Maximum length of input type.
  */
 #define INPUT_TYPE_MAX_LEN (128)
+
+/**
+ * OS big number length.
+ */
+#define BN_LENGTH (32)
+
+/**
+ * Maximum length of the R list used to compute TVK.
+ */
+#define R_LIST_MAX_LENGTH (32)
+
+/**
+ * R_list keep maximum time validity in ms.
+ */
+#define R_LIST_MAX_VALIDITY_TIME_MS (5 * 1000)
+
+#define ALEO_DECIMALS (6)
+#define ALEO_TICKER   "ALEO"

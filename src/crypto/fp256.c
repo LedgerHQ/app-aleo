@@ -24,6 +24,7 @@
 #include "cx.h"
 #include "ledger_assert.h"
 
+#include "constants.h"
 #include "bigint_256.h"
 #include "fp256.h"
 
@@ -352,9 +353,11 @@ int fp256_random(const fp256_parameters_t *p, fp256_t *a)
     LEDGER_ASSERT(p != NULL, "NULL p");
 
     if (big_int_random(&big, &p->MODULUS.big) != 0) {
+        explicit_bzero(&big, sizeof(big));
         return -1;
     }
     fp256_from_big_int(p, a, &big);
 
+    explicit_bzero(&big, sizeof(big));
     return 0;
 }

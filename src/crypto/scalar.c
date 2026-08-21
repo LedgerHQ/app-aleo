@@ -26,6 +26,10 @@
 
 #include "scalar.h"
 
+const field_t SCALAR_ZERO = {
+    .big.u64 = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}
+};
+
 // BLS12-377
 static const fp256_parameters_t scalar_parameters = {
     .MODULUS_BITS = SCALAR_MODULUS_BITS,

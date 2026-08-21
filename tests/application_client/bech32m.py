@@ -1,15 +1,17 @@
+from typing import ClassVar
 
 
-class BECH32M():
-
+class BECH32M:
     CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 
-    CHARSET_REVERSED = [
+    # fmt: off
+    CHARSET_REVERSED: ClassVar[list[int]] = [
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 15, -1, 10, 17,
         21, 20, 26, 30, 7,  5,  -1, -1, -1, -1, -1, -1, -1, 29, -1, 24, 13, 25, 9,  8,  23, -1, 18, 22, 31, 27,
         19, -1, 1,  0,  3,  16, 11, 28, 12, 14, 6,  4,  2,  -1, -1, -1, -1, -1, -1, 29, -1, 24, 13, 25, 9,  8,
         23, -1, 18, 22, 31, 27, 19, -1, 1,  0,  3,  16, 11, 28, 12, 14, 6,  4,  2,  -1, -1, -1, -1, -1]
+    # fmt: on
 
     def __init__(self):
         pass
@@ -18,21 +20,27 @@ class BECH32M():
     def polymod_step(pre: int):
         b = pre >> 25
         res = (pre & 0x1FFFFFF) << 5
-        res ^= (-((b >> 0) & 1) & 0x3B6A57B2)
-        res ^= (-((b >> 1) & 1) & 0x26508E6D)
-        res ^= (-((b >> 2) & 1) & 0x1EA119FA)
-        res ^= (-((b >> 3) & 1) & 0x3D4233DD)
-        res ^= (-((b >> 4) & 1) & 0x2A1462B3)
+        res ^= -((b >> 0) & 1) & 0x3B6A57B2
+        res ^= -((b >> 1) & 1) & 0x26508E6D
+        res ^= -((b >> 2) & 1) & 0x1EA119FA
+        res ^= -((b >> 3) & 1) & 0x3D4233DD
+        res ^= -((b >> 4) & 1) & 0x2A1462B3
         return res
 
     @staticmethod
     def final_constant(is_m_encoding: bool) -> int:
         if is_m_encoding:
-            return 0x2bc830a3
+            return 0x2BC830A3
         return 1
 
     @staticmethod
-    def convert_bits(output: list[int], output_bits: int, input_data: list[int], input_bits: int, pad: bool) -> bool:
+    def convert_bits(
+        output: list[int],
+        output_bits: int,
+        input_data: list[int],
+        input_bits: int,
+        pad: bool,
+    ) -> bool:
         val = 0
         bits = 0
         max_v = (1 << output_bits) - 1
@@ -44,14 +52,16 @@ class BECH32M():
                 output.append((val >> bits) & max_v)
         if pad:
             if bits:
-                output.append((val << (output_bits-bits)) & max_v)
-        elif ((val << (output_bits-bits)) & max_v) or bits >= input_bits:
+                output.append((val << (output_bits - bits)) & max_v)
+        elif ((val << (output_bits - bits)) & max_v) or bits >= input_bits:
             return False
 
         return True
 
     @staticmethod
-    def encode(output: list[int], hrp: list[int], data: list[int], is_m_encoding: bool) -> bool:
+    def encode(
+        output: list[int], hrp: list[int], data: list[int], is_m_encoding: bool
+    ) -> bool:
         chk = 1
         for item in hrp:
             ch = item
@@ -62,12 +72,12 @@ class BECH32M():
 
             chk = BECH32M.polymod_step(chk) ^ (ch >> 5)
 
-        if len(hrp)+7+len(data) > 90:
+        if len(hrp) + 7 + len(data) > 90:
             return False
 
         chk = BECH32M.polymod_step(chk)
         for item in hrp:
-            chk = BECH32M.polymod_step(chk) ^ (item & 0x1f)
+            chk = BECH32M.polymod_step(chk) ^ (item & 0x1F)
             output.append(item)
 
         output.append(49)
@@ -78,11 +88,11 @@ class BECH32M():
             chk = BECH32M.polymod_step(chk) ^ item
             output.append(ord(BECH32M.CHARSET[item]))
 
-        for i in range(0, 6):
+        for i in range(6):
             chk = BECH32M.polymod_step(chk)
         chk ^= BECH32M.final_constant(is_m_encoding)
-        for i in range(0, 6):
-            output.append(ord(BECH32M.CHARSET[(chk >> ((5-i)*5)) & 0x1f]))
+        for i in range(6):
+            output.append(ord(BECH32M.CHARSET[(chk >> ((5 - i) * 5)) & 0x1F]))
 
         return True
 
@@ -93,22 +103,25 @@ class BECH32M():
             return False
 
         data_offset = 0
-        while data_offset < len(input_data) and input_data[len(input_data)-1 - data_offset] != 49:
+        while (
+            data_offset < len(input_data)
+            and input_data[len(input_data) - 1 - data_offset] != 49
+        ):
             data_offset += 1
 
-        hrp_len = len(input_data) - (1+data_offset)
-        if 1+data_offset >= len(input_data) or data_offset < 6:
+        hrp_len = len(input_data) - (1 + data_offset)
+        if 1 + data_offset >= len(input_data) or data_offset < 6:
             return False
 
-        for index in range(0, hrp_len):
+        for index in range(hrp_len):
             ch = input_data[index]
             if ch < 33 or ch > 126:
                 return False
             hrp.append(ch)
             chk = BECH32M.polymod_step(chk) ^ (ch >> 5)
         chk = BECH32M.polymod_step(chk)
-        for index in range(0, hrp_len):
-            chk = BECH32M.polymod_step(chk) ^ (input_data[index] & 0x1f)
+        for index in range(hrp_len):
+            chk = BECH32M.polymod_step(chk) ^ (input_data[index] & 0x1F)
         index = hrp_len + 1
         while index < len(input_data):
             ch = input_data[index]
@@ -119,7 +132,7 @@ class BECH32M():
             if v == -1:
                 return False
             chk = BECH32M.polymod_step(chk) ^ v
-            if index+6 < len(input_data):
+            if index + 6 < len(input_data):
                 data.append(v)
             index += 1
 
