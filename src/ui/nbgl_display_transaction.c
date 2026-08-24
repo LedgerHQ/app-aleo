@@ -83,6 +83,7 @@ static void review_transaction(bool confirm)
             nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
         }
 #endif  // FUZZ
+        G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
     }
 }
 
