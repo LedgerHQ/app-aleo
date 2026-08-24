@@ -124,6 +124,7 @@ rejected:
 #ifndef FUZZ
     nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
 #endif  // FUZZ
+    G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
 
 end:
     return status;
@@ -319,6 +320,11 @@ int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool next_chunk)
     if (!cdata->size) {
         // Reject empty data
         return io_send_sw(SWO_WRONG_DATA_LENGTH);
+    }
+
+    if ((G_context.signing_state == SIGNING_STATE_INTENT)
+        || (G_context.signing_state == SIGNING_STATE_FEES)) {
+        return io_send_sw(SWO_COMMAND_NOT_ACCEPTED);
     }
 
     // Handle fragmentation
