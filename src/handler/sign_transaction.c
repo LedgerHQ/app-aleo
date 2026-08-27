@@ -211,8 +211,8 @@ static int sign_nested_call_tx(buffer_t *cdata)
         r_list_erase();
         if ((G_context.sign_transaction_datas.max_base_fee != 0)
             || (G_context.sign_transaction_datas.max_priority_fee != 0)) {
-            G_context.fees_waiting_time_ms = 0;
-            G_context.signing_state        = SIGNING_STATE_WAIT_FEES;
+            G_context.next_step_waiting_time_ms = 0;
+            G_context.signing_state             = SIGNING_STATE_WAIT_FEES;
 #ifndef FUZZ
             if (!G_called_from_swap) {
                 nbgl_useCaseSpinner("Calculating fees");
@@ -232,8 +232,8 @@ static int sign_nested_call_tx(buffer_t *cdata)
 
 end:
     if (G_context.nested_call_offset < G_context.nested_call_count) {
-        G_context.fees_waiting_time_ms = 0;
-        G_context.signing_state        = SIGNING_STATE_WAIT_NESTED_CALL;
+        G_context.next_step_waiting_time_ms = 0;
+        G_context.signing_state             = SIGNING_STATE_WAIT_NESTED_CALL;
     }
     return status;
 }
