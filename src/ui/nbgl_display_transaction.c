@@ -51,12 +51,14 @@ static void review_transaction(bool confirm)
     validate_transaction(confirm);
     if (confirm) {
         if (G_context.nested_call_count) {
-            G_context.signing_state = SIGNING_STATE_WAIT_NESTED_CALL;
+            G_context.nested_call_offset        = 0;
+            G_context.next_step_waiting_time_ms = 0;
+            G_context.signing_state             = SIGNING_STATE_WAIT_NESTED_CALL;
         }
         else if ((G_context.sign_transaction_datas.max_base_fee != 0)
                  || (G_context.sign_transaction_datas.max_priority_fee != 0)) {
-            G_context.fees_waiting_time_ms = 0;
-            G_context.signing_state        = SIGNING_STATE_WAIT_FEES;
+            G_context.next_step_waiting_time_ms = 0;
+            G_context.signing_state             = SIGNING_STATE_WAIT_FEES;
             r_list_erase();
 #ifndef FUZZ
             if (!G_called_from_swap) {
