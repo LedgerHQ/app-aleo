@@ -639,7 +639,7 @@ static void test_tx_token_arc20_parse(void **state)
         .fee_program_id           = "credits.aleo",
         .prepared_request         = {
                                      .program_id_length    = 15,
-                                     .program_id           = "arc20_usdc.aleo",
+                                     .program_id           = "arc20_usdt.aleo",
                                      .function_name_length = 15,
                                      .function_name        = "transfer_public",
                                      .inputs_count         = 2,
@@ -705,7 +705,7 @@ static void test_tx_token_arc20_parse(void **state)
         .fee_program_id           = "credits.aleo",
         .prepared_request
         = {.program_id_length    = 15,
-           .program_id           = "arc20_usdc.aleo",
+           .program_id           = "arc20_usdt.aleo",
            .function_name_length = 16,
            .function_name        = "transfer_private",
            .inputs_count         = 3,

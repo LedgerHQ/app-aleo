@@ -2209,7 +2209,7 @@ def test_sign_transaction_token_arc20_transfer_public(
         100,
         "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe",
         1000,
-        "arc20_usdc.aleo",
+        "arc20_usdt.aleo",
     )
     tx_datas["path"] = "m/44'/683'/0'/0'"
     with client.sign_transaction(tx_datas=tx_datas):
@@ -2277,7 +2277,7 @@ def test_sign_transaction_token_arc20_transfer_private(
         record,
         "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe",
         1000,
-        "arc20_usdc.aleo",
+        "arc20_usdt.aleo",
     )
     tx_datas["path"] = "m/44'/683'/0'/0'"
     with client.sign_transaction(tx_datas=tx_datas):
@@ -2348,7 +2348,7 @@ def test_sign_transaction_token_arc20_transfer_private_to_public(
         record,
         "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe",
         1000,
-        "arc20_usdc.aleo",
+        "arc20_usdt.aleo",
     )
     tx_datas["path"] = "m/44'/683'/0'/0'"
     with client.sign_transaction(tx_datas=tx_datas):
@@ -2412,7 +2412,7 @@ def test_sign_transaction_token_arc20_transfer_public_to_private(
         100,
         "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe",
         1000,
-        "arc20_usdc.aleo",
+        "arc20_usdt.aleo",
     )
     tx_datas["path"] = "m/44'/683'/0'/0'"
     with client.sign_transaction(tx_datas=tx_datas):
@@ -2493,7 +2493,7 @@ def test_sign_transaction_token_arc20_transfer_batch_private(
         external_record,
         "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe",
         1000,
-        "arc20_usdc",
+        "arc20_usdt",
         "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
     )
     tx_datas["path"] = "m/44'/683'/0'/0'"
@@ -2522,7 +2522,7 @@ def test_sign_transaction_token_arc20_transfer_batch_private(
     tx_datas = forge_nested_call_join(
         record,
         record,
-        "arc20_usdc.aleo",
+        "arc20_usdt.aleo",
         "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
     )
     with client.sign_transaction(tx_datas=tx_datas):
@@ -2560,7 +2560,7 @@ def test_sign_transaction_token_arc20_transfer_batch_private(
         record,
         "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe",
         1000,
-        "arc20_usdc.aleo",
+        "arc20_usdt.aleo",
         "e9fb1007c069e11dda4a4c3f6e1d5a8c6fcbfb0a1f556ff629719f095902e107",
     )
     with client.sign_transaction(tx_datas=tx_datas):
