@@ -669,50 +669,6 @@ const function_parameters_t arc20_wbtc_aleo[NB_OF_ARC20_WBTC_ALEO_FUNCTIONS] = {
          = {0xe5609f5f42b43dd8, 0x0f5e46423090d834, 0x94df47440098335a, 0x024edcf562645d90}}}},
 };
 
-#define NB_OF_ARC20_USDC_ALEO_FUNCTIONS (5)
-const function_parameters_t arc20_usdc_aleo[NB_OF_ARC20_USDC_ALEO_FUNCTIONS] = {
-    {.name        = "transfer_public",
-     .tx_type     = TX_TOKEN_TRANSFER_PUBLIC,
-     .input_count = 2,
-     .bhp_1024_hashes
-     = {{.big.u64
-         = {0x4db6f9af09e10268, 0xd30e42533f36e5db, 0x1cf139328bddfc6c, 0x0823866b0c18f905}},
-        {.big.u64
-         = {0x8a82ba53ab9afd6c, 0x121a8b2950e3c004, 0x700362c97e205bdd, 0x0ed24c5ff16f389d}}}},
-    {.name        = "transfer_private",
-     .tx_type     = TX_TOKEN_TRANSFER_PRIVATE,
-     .input_count = 3,
-     .bhp_1024_hashes
-     = {{.big.u64
-         = {0x98394a01d6944793, 0x59a991617a2345da, 0x8c9c4dd89d177655, 0x07d4ec451e9887fa}},
-        {.big.u64
-         = {0xcbb840ec60d33d8e, 0xa4b40622efa3dc90, 0xc719c689c437f214, 0x0997b00c1c90e419}}}},
-    {.name        = "transfer_public_to_private",
-     .tx_type     = TX_TOKEN_TRANSFER_PUBLIC_TO_PRIVATE,
-     .input_count = 2,
-     .bhp_1024_hashes
-     = {{.big.u64
-         = {0x70f96f72f0c0ecc6, 0xde1bca8328ef9f44, 0x89a57d6b661d71c0, 0x04d623abbd484f95}},
-        {.big.u64
-         = {0x62079702a0bde19e, 0xafea2d936f2c50ff, 0x76942fb89e8df850, 0x041886bde9996392}}}},
-    {.name        = "transfer_private_to_public",
-     .tx_type     = TX_TOKEN_TRANSFER_PRIVATE_TO_PUBLIC,
-     .input_count = 3,
-     .bhp_1024_hashes
-     = {{.big.u64
-         = {0x598025a7e99e66ae, 0x501054f096416781, 0x5732711ba304b314, 0x0e04160a51cab0ef}},
-        {.big.u64
-         = {0x867e1b303148a941, 0x021e3756880875a8, 0xcd3a9120130927f7, 0x06117dd833737d13}}}},
-    {.name        = "join",
-     .tx_type     = TX_TOKEN_JOIN,
-     .input_count = 2,
-     .bhp_1024_hashes
-     = {{.big.u64
-         = {0xf587e2355ca60261, 0xae1e00fc2ef04968, 0x396794eb08ec732d, 0x01d1c36579e816c9}},
-        {.big.u64
-         = {0x866d5bb8f4263669, 0xf3e7a33273b91ccb, 0xd15feca5696e6584, 0x091c92c4c140c030}}}},
-};
-
 #define NB_OF_ARC20_USDT_ALEO_FUNCTIONS (5)
 const function_parameters_t arc20_usdt_aleo[NB_OF_ARC20_USDT_ALEO_FUNCTIONS] = {
     {.name        = "transfer_public",
@@ -874,45 +830,6 @@ const function_parameters_t test_arc20_wbtc_aleo[NB_OF_TEST_ARC20_WBTC_ALEO_FUNC
          = {0xaeb0115fde0ed18e, 0x96dde1eaf4b0437a, 0x786c5ba8f0c0d01b, 0x0e9c354e064d8df3}}}},
 };
 
-#define NB_OF_TEST_ARC20_USDC_ALEO_FUNCTIONS (5)
-const function_parameters_t test_arc20_usdc_aleo[NB_OF_TEST_ARC20_USDC_ALEO_FUNCTIONS] = {
-    {.name        = "transfer_public",
-     .tx_type     = TX_TOKEN_TRANSFER_PUBLIC,
-     .input_count = 2,
-     .bhp_1024_hashes
-     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
-        {.big.u64
-         = {0x39cb234889320fe7, 0x66d7cb8822845aa3, 0x70c387ea1267aead, 0x05cdee026ad7bff3}}}},
-    {.name        = "transfer_private",
-     .tx_type     = TX_TOKEN_TRANSFER_PRIVATE,
-     .input_count = 3,
-     .bhp_1024_hashes
-     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
-        {.big.u64
-         = {0x7f96dcbfdaec326a, 0x60704266637e017c, 0x3b81ee3f0d4db942, 0x0a8a7d29b5d8c8fc}}}},
-    {.name        = "transfer_public_to_private",
-     .tx_type     = TX_TOKEN_TRANSFER_PUBLIC_TO_PRIVATE,
-     .input_count = 2,
-     .bhp_1024_hashes
-     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
-        {.big.u64
-         = {0x437d1d3e5497438f, 0x1f3ba9109607ebde, 0x5ce469d7ffb153e9, 0x03cba86b8bd3608e}}}},
-    {.name        = "transfer_private_to_public",
-     .tx_type     = TX_TOKEN_TRANSFER_PRIVATE_TO_PUBLIC,
-     .input_count = 3,
-     .bhp_1024_hashes
-     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
-        {.big.u64
-         = {0x9821cfdad3757331, 0x4afd474e980698c9, 0x4175501051256b62, 0x003068163cce5319}}}},
-    {.name        = "join",
-     .tx_type     = TX_TOKEN_JOIN,
-     .input_count = 2,
-     .bhp_1024_hashes
-     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},
-        {.big.u64
-         = {0x2060ae36709d02c1, 0x79fbea79b9e2ac94, 0x5b830b28bb4e1edd, 0x0678204591ce1be4}}}},
-};
-
 #define NB_OF_TEST_ARC20_USDT_ALEO_FUNCTIONS (5)
 const function_parameters_t test_arc20_usdt_aleo[NB_OF_TEST_ARC20_USDT_ALEO_FUNCTIONS] = {
     {.name        = "transfer_public",
@@ -1072,13 +989,6 @@ const token_parameter_t token_parameters[NB_OF_TOKENS] = {
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_ARC20_WBTC_ALEO_FUNCTIONS,
      .functions       = arc20_wbtc_aleo        },
-    {.program_id   = "arc20_usdc.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC20, .ticker = "USDC", .decimals = 6},
-     .token_id
-     = {.big.u64
-        = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
-     .nb_of_functions = NB_OF_ARC20_USDC_ALEO_FUNCTIONS,
-     .functions       = arc20_usdc_aleo        },
     {.program_id   = "arc20_usdt.aleo",
      .display_info = {.type = TOKEN_TYPE_ARC20, .ticker = "USDT", .decimals = 6},
      .token_id
@@ -1107,13 +1017,6 @@ const token_parameter_t token_parameters[NB_OF_TOKENS] = {
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_TEST_ARC20_WBTC_ALEO_FUNCTIONS,
      .functions       = test_arc20_wbtc_aleo   },
-    {.program_id   = "test_arc20_usdc.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC20, .ticker = "USDC", .decimals = 6},
-     .token_id
-     = {.big.u64
-        = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
-     .nb_of_functions = NB_OF_TEST_ARC20_USDC_ALEO_FUNCTIONS,
-     .functions       = test_arc20_usdc_aleo   },
     {.program_id   = "test_arc20_usdt.aleo",
      .display_info = {.type = TOKEN_TYPE_ARC20, .ticker = "USDT", .decimals = 6},
      .token_id

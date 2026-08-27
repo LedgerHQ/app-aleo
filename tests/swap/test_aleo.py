@@ -242,12 +242,12 @@ class FAKETokenTests2(GenericAleoTests):
 
 
 class ARC20USDCTokenTests(GenericAleoTests):
-    currency_configuration = cal.ALEO_ARC20_USDC_CURRENCY_CONFIGURATION
+    currency_configuration = cal.ALEO_ARC20_USDT_CURRENCY_CONFIGURATION
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         client = CommandSender(self.backend)
         tx_datas = forge_arc20_token_public_transfer(
-            0, fees, destination, send_amount, "arc20_usdc.aleo"
+            0, fees, destination, send_amount, "arc20_usdt.aleo"
         )
         tx_datas["path"] = "m/44'/683'/0'/0'"
         with client.sign_transaction(tx_datas=tx_datas):
@@ -275,7 +275,7 @@ class ARC20FAKETokenTests(ARC20USDCTokenTests):
 
 
 class ARC20FAKETokenTests2(GenericAleoTests):
-    currency_configuration = cal.ALEO_ARC20_USDC_CURRENCY_CONFIGURATION
+    currency_configuration = cal.ALEO_ARC20_USDT_CURRENCY_CONFIGURATION
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         client = CommandSender(self.backend)
@@ -329,12 +329,12 @@ class TestsAleo:
             )
         assert e.value.status in [0xC000, 0x6A80]
 
-    def test_aleo_swap_arc20_usdc(self, backend, exchange_navigation_helper):
+    def test_aleo_swap_arc20_usdt(self, backend, exchange_navigation_helper):
         ARC20USDCTokenTests(backend, exchange_navigation_helper).run_test(
             "swap_valid_1"
         )
 
-    def test_aleo_swap_arc20_usdc_zero_fee(self, backend, exchange_navigation_helper):
+    def test_aleo_swap_arc20_usdt_zero_fee(self, backend, exchange_navigation_helper):
         ZeroFeeARC20USDCTokenTests(backend, exchange_navigation_helper).run_test(
             "swap_valid_1"
         )
