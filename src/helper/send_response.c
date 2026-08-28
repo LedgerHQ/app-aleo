@@ -312,6 +312,8 @@ int helper_send_response_sign_transaction(void)
             r_list_erase();
             explicit_bzero(response_buffer, sizeof(response_buffer));
             os_lib_end();
+            status = 0;
+            goto end;
         }
         else {
             PRINTF("Unrecoverable\n");
@@ -319,11 +321,14 @@ int helper_send_response_sign_transaction(void)
             os_io_stop();
 #endif  // USE_OS_IO_STACK
             os_sched_exit(-1);
+            status = -1;
+            goto end;
         }
     }
 
-end:
     status = io_legacy_apdu_tx(response_buffer, offset);
+
+end:
     explicit_bzero(response_buffer, sizeof(response_buffer));
 
     return status;
