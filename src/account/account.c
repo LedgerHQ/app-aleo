@@ -472,6 +472,7 @@ int r_list_set(account_t *account, uint8_t index)
     scalar_println(r);
 
 end:
+    explicit_bzero(&nonce, sizeof(nonce));
     explicit_bzero(hash_input, sizeof(hash_input));
     if (status < 0) {
         r_list_erase();
@@ -479,7 +480,7 @@ end:
     return status;
 }
 
-int r_list_get(uint8_t index, scalar_t *r)
+int r_list_get(uint8_t index, scalar_t *r, bool erase)
 {
     int status = -1;
 
@@ -495,6 +496,9 @@ int r_list_get(uint8_t index, scalar_t *r)
     }
     status = 0;
     memcpy(r, &G_context.r_list.array[index], sizeof(scalar_t));
+    if (erase) {
+        explicit_bzero(&G_context.r_list.array[index], sizeof(scalar_t));
+    }
 
 end:
     return status;
@@ -509,7 +513,7 @@ int r_list_get_tvk(account_t *account, uint8_t index, field_t *tvk)
     LEDGER_ASSERT(account != NULL, "NULL account");
     LEDGER_ASSERT(tvk != NULL, "NULL tvk");
 
-    if ((status = r_list_get(index, &r)) < 0) {
+    if ((status = r_list_get(index, &r, false)) < 0) {
         goto end;
     }
     PRINTF("R%d : ", index);
