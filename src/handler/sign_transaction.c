@@ -192,6 +192,7 @@ static int sign_nested_call_tx(buffer_t *cdata)
 
     if ((function_parameters->tx_type >= TX_FEE_START)
         && (function_parameters->tx_type <= TX_FEE_END)) {
+        // Fee type request rejected
         status = -1;
         goto end;
     }
@@ -318,12 +319,17 @@ static int sign_fee_tx(buffer_t *cdata)
 
     // Sign fees
     G_context.signing_state = SIGNING_STATE_FEES;
-    validate_transaction(true);
+    status                  = validate_transaction(true);
     account_erase(&G_context.account);
     r_list_erase();
 #ifndef FUZZ
     if (!G_called_from_swap) {
-        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
+        if (status == 0) {
+            nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
+        }
+        else {
+            nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
+        }
     }
 #endif  // FUZZ
     G_context.signing_state = SIGNING_STATE_WAIT_INTENT;

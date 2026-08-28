@@ -46,19 +46,21 @@ void validate_view_key(bool choice)
     }
 }
 
-void validate_transaction(bool choice)
+int validate_transaction(bool choice)
 {
     if (choice) {
         if (sign_prepared_request(&G_context.account,
                                   &G_context.sign_transaction_datas.prepared_request)
             < 0) {
             io_send_sw(SWO_INCORRECT_DATA);
+            return -1;
         }
-        else {
-            helper_send_response_sign_transaction();
+        if (helper_send_response_sign_transaction() < 0) {
+            io_send_sw(SWO_EXECUTION_ERROR);
+            return -1;
         }
+        return 0;
     }
-    else {
-        io_send_sw(SWO_PERMISSION_DENIED);
-    }
+
+    return io_send_sw(SWO_PERMISSION_DENIED);
 }

@@ -48,8 +48,8 @@ static nbgl_contentTagValueList_t pairList;
 
 static void review_transaction(bool confirm)
 {
-    validate_transaction(confirm);
-    if (confirm) {
+    int status = validate_transaction(confirm);
+    if (confirm && !status) {
         if (G_context.nested_call_count) {
             G_context.nested_call_offset        = 0;
             G_context.next_step_waiting_time_ms = 0;
