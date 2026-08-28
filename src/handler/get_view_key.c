@@ -52,6 +52,7 @@ int handler_get_view_key(buffer_t *cdata)
         G_context.bip32_path, G_context.bip32_path_len, G_context.view_key);
 
     if (status < 0) {
+        explicit_bzero(G_context.view_key, sizeof(G_context.view_key));
         return io_send_sw(SW_DISPLAY_BIP32_PATH_FAIL);
     }
 
