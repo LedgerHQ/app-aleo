@@ -479,7 +479,7 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
             status = -1;
             goto end;
         }
-        if ((status = r_list_get(G_context.r_list.index, &request->r)) < 0) {
+        if ((status = r_list_get(G_context.r_list.index, &request->r, true)) < 0) {
             goto end;
         }
         G_context.r_list.index++;
@@ -617,6 +617,10 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     display_progression(5);
 
 end:
+    if (status < 0) {
+        explicit_bzero(&request->r, sizeof(request->r));
+        explicit_bzero(&request->tvk, sizeof(request->tvk));
+    }
     explicit_bzero(&g_temp, sizeof(g_temp));
     explicit_bzero(&nonce, sizeof(nonce));
     explicit_bzero(hash_input, sizeof(hash_input));

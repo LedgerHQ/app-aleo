@@ -61,6 +61,6 @@ int account_generate_keys(const uint32_t *path, uint8_t path_len, account_t *acc
 void account_erase(account_t *account);
 
 int  r_list_set(account_t *account, uint8_t index);
-int  r_list_get(uint8_t index, scalar_t *r);
+int  r_list_get(uint8_t index, scalar_t *r, bool erase);
 int  r_list_get_tvk(account_t *account, uint8_t index, field_t *tvk);
 void r_list_erase(void);

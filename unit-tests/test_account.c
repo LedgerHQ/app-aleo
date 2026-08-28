@@ -229,12 +229,15 @@ static void test_r_list(void **state)
     assert_int_equal(r_list_set(&G_context.account, 1), 0);
 
     scalar_t r;
-    assert_int_equal(r_list_get(0, &r), 0);
+    assert_int_equal(r_list_get(0, &r, false), 0);
     check_scalar(&r, &r_0);
-    assert_int_equal(r_list_get(1, &r), 0);
+    assert_int_equal(r_list_get(1, &r, false), 0);
     check_scalar(&r, &r_1);
-    assert_int_equal(r_list_get(R_LIST_MAX_LENGTH, &r), -1);
-    assert_int_equal(r_list_get(2, &r), -1);
+    assert_int_equal(r_list_get(R_LIST_MAX_LENGTH, &r, false), -1);
+    assert_int_equal(r_list_get(2, &r, false), -1);
+    assert_int_equal(r_list_get(1, &r, true), 0);
+    check_scalar(&r, &r_1);
+    assert_int_equal(r_list_get(1, &r, true), -1);
 
     // r_list_get_tvk
     r_list_erase();
