@@ -189,7 +189,7 @@ static void test_signature(void **state)
     request.inputs[0].type = (uint8_t *) "\x01\x00\x00";
 
     scalar_t r_1 = {
-        .big.u64 = {0xd12073752c196d6d, 0x6f96db151559f1ff, 0x25a34b586f7f9723, 0x2697302b89ed397}
+        .big.u64 = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}
     };
     field_t tvk_1 = {
         .big.u64 = {0xfcd99dd33fd711b9, 0x3085372523a8663b, 0x69091782d0a1eb9e, 0x56f3af574b36c6a}
@@ -340,7 +340,7 @@ static void test_signature(void **state)
     request.inputs[1].type = (uint8_t *) "\x02\x00\x00";
 
     scalar_t r_10 = {
-        .big.u64 = {0xd12073752c196d6d, 0x6f96db151559f1ff, 0x25a34b586f7f9723, 0x2697302b89ed397}
+        .big.u64 = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}
     };
     field_t tvk_10 = {
         .big.u64 = {0xfcd99dd33fd711b9, 0x3085372523a8663b, 0x69091782d0a1eb9e, 0x56f3af574b36c6a}
@@ -470,7 +470,7 @@ static void test_signature(void **state)
     request_batch_private.inputs[0].value_length = 96;
 
     scalar_t r_11 = {
-        .big.u64 = {0xd12073752c196d6d, 0x6f96db151559f1ff, 0x25a34b586f7f9723, 0x2697302b89ed397}
+        .big.u64 = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}
     };
     field_t tvk_11 = {
         .big.u64 = {0xfcd99dd33fd711b9, 0x3085372523a8663b, 0x69091782d0a1eb9e, 0x56f3af574b36c6a}
@@ -610,7 +610,7 @@ static void test_signature(void **state)
     };
 
     scalar_t r_12 = {
-        .big.u64 = {0xd12073752c196d6d, 0x6f96db151559f1ff, 0x25a34b586f7f9723, 0x2697302b89ed397}
+        .big.u64 = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}
     };
     field_t tvk_12 = {
         .big.u64 = {0xfcd99dd33fd711b9, 0x3085372523a8663b, 0x69091782d0a1eb9e, 0x56f3af574b36c6a}
@@ -677,7 +677,7 @@ static void test_signature(void **state)
     };
 
     scalar_t r_13 = {
-        .big.u64 = {0xd12073752c196d6d, 0x6f96db151559f1ff, 0x25a34b586f7f9723, 0x2697302b89ed397}
+        .big.u64 = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}
     };
     field_t tvk_13 = {
         .big.u64 = {0xfcd99dd33fd711b9, 0x3085372523a8663b, 0x69091782d0a1eb9e, 0x56f3af574b36c6a}

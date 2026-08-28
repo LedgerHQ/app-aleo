@@ -271,6 +271,8 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
 
 end:
     explicit_bzero(hash_input, sizeof(hash_input));
+    explicit_bzero(randomizer_fields, sizeof(randomizer_fields));
+    explicit_bzero(plaintext_fields, sizeof(plaintext_fields));
     explicit_bzero(&hash, sizeof(hash));
     explicit_bzero(&input_view_key, sizeof(input_view_key));
     return status;
