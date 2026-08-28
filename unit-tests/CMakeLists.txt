@@ -194,7 +194,7 @@ target_link_libraries(test_transaction PUBLIC transaction tlv_library account st
 add_test(test_transaction test_transaction)
 
 add_executable(test_send_response test_send_response.c)
-target_link_libraries(test_send_response PUBLIC send_response group scalar field fp256 bigint_256 bits stubs_ox ${COMMON_LIBS})
+target_link_libraries(test_send_response PUBLIC send_response account stubs_os_hdkey stubs_nbgl bech32 poseidon base58 bip32 group scalar field fp256 bigint_256 bits stubs_ox ${COMMON_LIBS})
 add_test(test_send_response test_send_response)
 
 add_executable(test_db test_db.c)
