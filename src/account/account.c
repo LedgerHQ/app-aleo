@@ -199,6 +199,7 @@ static int graph_key_from_view_key(const scalar_t *view_key, field_t *graph_key)
     int     status = -1;
     field_t hash_input[7];
     field_t f_view_key;
+
     scalar_to_field(view_key, &f_view_key);
 
     memset(hash_input, 0, sizeof(hash_input));
@@ -215,6 +216,7 @@ static int graph_key_from_view_key(const scalar_t *view_key, field_t *graph_key)
 end:
     explicit_bzero(hash_input, sizeof(hash_input));
     explicit_bzero(&f_view_key, sizeof(f_view_key));
+
     return status;
 }
 
