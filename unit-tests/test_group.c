@@ -177,6 +177,7 @@ static void test_group(void **state)
     s.big.u64[3] = 0x0399f3f0056b5577;
 
     will_return(cx_bn_lock, -1);
+    will_return(cx_bn_unlock, CX_OK);
     assert_int_equal(group_scalar_multiply(&aaa, &s, &r), -1);
 
     will_return(cx_bn_lock, CX_OK);

@@ -89,6 +89,8 @@ static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
     bn_to_big_int(seed_bn, &seed_big_int);
     field_from_big_int(seed, &seed_big_int);
 
+    status = 0;
+
 end:
     explicit_bzero(seed_bn, sizeof(seed_bn));
     explicit_bzero(&seed_big_int, sizeof(seed_big_int));
