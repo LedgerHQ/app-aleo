@@ -232,8 +232,10 @@ static int sign_nested_call_tx(buffer_t *cdata)
 
 end:
     if (G_context.nested_call_offset < G_context.nested_call_count) {
-        G_context.next_step_waiting_time_ms = 0;
-        G_context.signing_state             = SIGNING_STATE_WAIT_NESTED_CALL;
+        if (status >= 0) {
+            G_context.next_step_waiting_time_ms = 0;
+        }
+        G_context.signing_state = SIGNING_STATE_WAIT_NESTED_CALL;
     }
     return status;
 }
