@@ -350,18 +350,23 @@ static int poseidon_hash_many(uint8_t  rate,
                               field_t *output,
                               size_t   num_output)
 {
+    int status = -1;
+
     // Sanity check
     if ((rate != 2) && (rate != 4) && (rate != 8)) {
         PRINTF("Bad poseidon rate (%d)\n", rate);
-        return -1;
+        status = -1;
+        goto end;
     }
     if (input_length < rate) {
         PRINTF("Bad poseidon input length vs rate (%d < %d)\n", input_length, rate);
-        return -1;
+        status = -1;
+        goto end;
     }
     // init sponge
     if (sponge_init(rate) < 0) {
-        return -1;
+        status = -1;
+        goto end;
     }
 
     // Build preimage
@@ -381,13 +386,20 @@ static int poseidon_hash_many(uint8_t  rate,
     memset(&input[2], 0, sizeof(field_t) * (rate - 2));
 
     if (sponge_absorb(input, input_length) < 0) {
-        return -1;
+        status = -1;
+        goto end;
     }
     if (sponge_squeeze(output, num_output) < 0) {
-        return -1;
+        status = -1;
+        goto end;
     }
 
-    return 0;
+    status = 0;
+
+end:
+    explicit_bzero(&sponge, sizeof(sponge));
+
+    return status;
 }
 
 int hash_to_scalar_psd2(field_t *input, size_t input_length, scalar_t *r)
