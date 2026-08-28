@@ -139,6 +139,7 @@ void app_ticker_event_callback(void)
         G_context.r_list_alive_remaining_time_ms -= 100;
         if (G_context.r_list_alive_remaining_time_ms < 100) {
             G_context.r_list_alive_remaining_time_ms = 0;
+            account_erase(&G_context.account);
             r_list_erase();
             if (!G_called_from_swap) {
                 ui_menu_main();
