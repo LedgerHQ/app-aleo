@@ -66,6 +66,7 @@ static void display_progression(uint8_t step)
 
 static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
 {
+    int          status = -1;
     uint8_t      seed_bn[BN_LENGTH];
     bigint_256_t seed_big_int;
     bolos_err_t  error = sys_hdkey_derive(HDKEY_DERIVE_MODE_BLS12377_ALEO,
@@ -79,7 +80,8 @@ static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
                                          NULL,
                                          0);
     if (error != SWO_OK) {
-        return -1;
+        status = -1;
+        goto end;
     }
     bn_print(seed_bn);
 
@@ -87,9 +89,11 @@ static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
     bn_to_big_int(seed_bn, &seed_big_int);
     field_from_big_int(seed, &seed_big_int);
 
+end:
     explicit_bzero(seed_bn, sizeof(seed_bn));
     explicit_bzero(&seed_big_int, sizeof(seed_big_int));
-    return 0;
+
+    return status;
 }
 
 static int private_key_from_seed(const field_t *seed, scalar_t *sk_sig, scalar_t *r_sig)
