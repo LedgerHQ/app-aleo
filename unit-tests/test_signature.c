@@ -133,11 +133,13 @@ static void test_signature(void **state)
 
     prepare_random_ok(random_bn);
     will_return(cx_bn_lock, -1);
+    will_return(cx_bn_unlock, CX_OK);
     assert_int_equal(sign_prepared_request(&G_context.account, &request), -1);
 
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     will_return(cx_bn_lock, -1);
+    will_return(cx_bn_unlock, CX_OK);
     assert_int_equal(sign_prepared_request(&G_context.account, &request), -1);
 
     request.program_id
@@ -306,6 +308,7 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     will_return(cx_bn_lock, -1);
+    will_return(cx_bn_unlock, CX_OK);
     assert_int_equal(sign_prepared_request(&G_context.account, &request_private), -1);
 
     memcpy(hash_record, hash_record_c, 96);
@@ -313,6 +316,7 @@ static void test_signature(void **state)
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
     will_return(cx_bn_lock, -1);
+    will_return(cx_bn_unlock, CX_OK);
     assert_int_equal(sign_prepared_request(&G_context.account, &request_private), -1);
 
     memcpy(hash_record, hash_record_c, 96);
@@ -321,6 +325,7 @@ static void test_signature(void **state)
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
     will_return(cx_bn_lock, -1);
+    will_return(cx_bn_unlock, CX_OK);
     assert_int_equal(sign_prepared_request(&G_context.account, &request_private), -1);
 
     memcpy(hash_record, hash_record_c, 96);
@@ -443,6 +448,7 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     will_return(cx_bn_lock, -1);
+    will_return(cx_bn_unlock, CX_OK);
     assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), -1);
 
     memcpy(hash_record, hash_record_c, 96);
