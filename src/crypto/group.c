@@ -96,7 +96,12 @@ int group_add_assign(group_t *a, const group_t *b)
     }
 
 end:
-    cx_bn_unlock();
+    explicit_bzero(bn_x, sizeof(bn_x));
+    explicit_bzero(bn_y, sizeof(bn_y));
+    explicit_bzero(&s, sizeof(s));
+    if (cx_bn_unlock() != CX_OK) {
+        return -1;
+    }
     if (error != CX_OK) {
         return -1;
     }
@@ -152,6 +157,10 @@ int group_scalar_multiply(const group_t *a, const scalar_t *b, group_t *r)
     }
 
 end:
+    explicit_bzero(bn_x, sizeof(bn_x));
+    explicit_bzero(bn_y, sizeof(bn_y));
+    explicit_bzero(bn_scalar, sizeof(bn_scalar));
+    explicit_bzero(&s, sizeof(s));
     if (cx_bn_unlock() != CX_OK) {
         return -1;
     }
