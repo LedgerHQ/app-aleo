@@ -87,6 +87,8 @@ static int get_seed(const uint32_t *path, uint8_t path_len, field_t *seed)
     bn_to_big_int(seed_bn, &seed_big_int);
     field_from_big_int(seed, &seed_big_int);
 
+    explicit_bzero(seed_bn, sizeof(seed_bn));
+    explicit_bzero(&seed_big_int, sizeof(seed_big_int));
     return 0;
 }
 
@@ -208,6 +210,7 @@ static int graph_key_from_view_key(const scalar_t *view_key, field_t *graph_key)
 
 end:
     explicit_bzero(hash_input, sizeof(hash_input));
+    explicit_bzero(&f_view_key, sizeof(f_view_key));
     return status;
 }
 
@@ -271,6 +274,8 @@ int account_get_address_string(const uint32_t *path,
 
 end:
     explicit_bzero(&account, sizeof(account_t));
+    explicit_bzero(&address_big_int, sizeof(address_big_int));
+    explicit_bzero(address_bn, sizeof(address_bn));
 
     return status;
 }
@@ -324,6 +329,9 @@ int account_get_view_key_string(const uint32_t *path,
 
 end:
     explicit_bzero(&account, sizeof(account_t));
+    explicit_bzero(&view_key_big_int, sizeof(view_key_big_int));
+    explicit_bzero(view_key_bn, sizeof(view_key_bn));
+    explicit_bzero(base_58_input, sizeof(base_58_input));
 
     return status;
 }
@@ -383,10 +391,14 @@ int account_generate_keys(const uint32_t *path, uint8_t path_len, account_t *acc
         goto error;
     }
 
-    return 0;
+    goto end;
 
 error:
     explicit_bzero(account, sizeof(account_t));
+
+end:
+    explicit_bzero(&address_big_int, sizeof(address_big_int));
+    explicit_bzero(address_bn, sizeof(address_bn));
     return status;
 }
 
