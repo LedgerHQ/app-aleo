@@ -649,6 +649,9 @@ end:
     explicit_bzero(&nonce, sizeof(nonce));
     explicit_bzero(hash_input, sizeof(hash_input));
     explicit_bzero(message, sizeof(message));
+    explicit_bzero(randomizer_fields, sizeof(randomizer_fields));
+    explicit_bzero(plaintext_fields, sizeof(plaintext_fields));
+    explicit_bzero(bit_buffer, sizeof(bit_buffer));
 
     return status;
 }
