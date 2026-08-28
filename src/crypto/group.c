@@ -110,6 +110,7 @@ end:
 
 int group_scalar_multiply(const group_t *a, const scalar_t *b, group_t *r)
 {
+    int          status = -1;
     cx_err_t     error;
     cx_ecpoint_t point;
     uint8_t      bn_x[BN_LENGTH];
@@ -130,20 +131,25 @@ int group_scalar_multiply(const group_t *a, const scalar_t *b, group_t *r)
     big_int_to_bn(&s, bn_scalar);
 
     if (cx_bn_lock(BN_LENGTH, 0) != CX_OK) {
-        return -1;
+        status = -1;
+        goto end;
     }
 
     if ((error = cx_ecpoint_alloc(&point, CX_CURVE_EdBLS12)) != CX_OK) {
+        status = -1;
         goto end;
     }
     if ((error = cx_ecpoint_init(&point, bn_x, sizeof(bn_x), bn_y, sizeof(bn_y))) != CX_OK) {
+        status = -1;
         goto end;
     }
 
     if ((error = cx_ecpoint_scalarmul(&point, bn_scalar, sizeof(bn_scalar))) != CX_OK) {
+        status = -1;
         goto end;
     }
     if ((error = cx_ecpoint_export(&point, bn_x, sizeof(bn_x), bn_y, sizeof(bn_y))) != CX_OK) {
+        status = -1;
         goto end;
     }
 
@@ -153,8 +159,11 @@ int group_scalar_multiply(const group_t *a, const scalar_t *b, group_t *r)
     field_from_big_int(&r->y, &s);
 
     if ((error = cx_ecpoint_destroy(&point)) != CX_OK) {
+        status = -1;
         goto end;
     }
+
+    status = 0;
 
 end:
     explicit_bzero(bn_x, sizeof(bn_x));
@@ -162,12 +171,12 @@ end:
     explicit_bzero(bn_scalar, sizeof(bn_scalar));
     explicit_bzero(&s, sizeof(s));
     if (cx_bn_unlock() != CX_OK) {
-        return -1;
+        if (status == 0) {
+            status = -1;
+        }
     }
-    if (error != CX_OK) {
-        return -1;
-    }
-    return 0;
+
+    return status;
 }
 
 int group_g_scalar_multiply(const scalar_t *b, group_t *r)
