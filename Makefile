@@ -29,8 +29,8 @@ APPNAME = "Aleo"
 
 # Application version
 APPVERSION_M = 1
-APPVERSION_N = 2
-APPVERSION_P = 0
+APPVERSION_N = 3
+APPVERSION_P = 1
 APPVERSION = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
 
 # Application source files
@@ -120,9 +120,9 @@ ifeq ($(APPNAME), "Aleo")
 #   - ENABLE_TESTING_SWAP:  will lead to the enabling of the swap related C code of the standard_app
 #                           ONLY works on Speculos, not on device
 # Testing only SWAP flag
-# ENABLE_TESTING_SWAP = 1
+#ENABLE_TESTING_SWAP = 1
 # Production enabled SWAP flag
-# ENABLE_SWAP = 1
+ENABLE_SWAP = 1
 endif
 # --8<-- [end:variables]
 

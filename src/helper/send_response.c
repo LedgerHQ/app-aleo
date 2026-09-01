@@ -21,6 +21,7 @@
 
 #include "buffer.h"
 
+#include "swap.h"
 #include "ledger_assert.h"
 #include "send_response.h"
 #include "constants.h"
@@ -58,6 +59,8 @@ static int add_tlv_field(uint8_t *in_buffer, size_t in_buffer_size, uint8_t type
     big_int_to_bn(&b, &in_buffer[offset]);
     bn_reverse(&in_buffer[offset]);
     offset += 32;
+
+    explicit_bzero(&b, sizeof(b));
 
     return offset;
 }
@@ -143,6 +146,8 @@ static size_t add_tlv_signature(uint8_t             *in_buffer,
     bn_reverse(&in_buffer[offset]);
     offset += 32;
 
+    explicit_bzero(&b, sizeof(b));
+
     return offset;
 }
 
@@ -151,6 +156,7 @@ int helper_send_response_get_address(void)
     _Static_assert((ADDRESS_LEN + 1) < RESPONSE_BUFFER_MAX_LENGTH,
                    "response_buffer size won't fit");
     size_t offset = 0;
+    int    status = -1;
 
     memset(response_buffer, 0, sizeof(response_buffer));
     response_buffer[offset++] = ADDRESS_LEN;
@@ -158,7 +164,10 @@ int helper_send_response_get_address(void)
     offset += ADDRESS_LEN;
     response_buffer[offset] = 0;
 
-    return io_send_response_pointer(response_buffer, offset, SWO_SUCCESS);
+    status = io_send_response_pointer(response_buffer, offset, SWO_SUCCESS);
+    explicit_bzero(response_buffer, sizeof(response_buffer));
+
+    return status;
 }
 
 int helper_send_response_get_view_key(void)
@@ -166,6 +175,7 @@ int helper_send_response_get_view_key(void)
     _Static_assert((VIEW_KEY_LEN + 1) < RESPONSE_BUFFER_MAX_LENGTH,
                    "response_buffer size won't fit");
     size_t offset = 0;
+    int    status = -1;
 
     memset(response_buffer, 0, sizeof(response_buffer));
     response_buffer[offset++] = VIEW_KEY_LEN;
@@ -173,7 +183,10 @@ int helper_send_response_get_view_key(void)
     offset += VIEW_KEY_LEN;
     response_buffer[offset] = 0;
 
-    return io_send_response_pointer(response_buffer, offset, SWO_SUCCESS);
+    status = io_send_response_pointer(response_buffer, offset, SWO_SUCCESS);
+    explicit_bzero(response_buffer, sizeof(response_buffer));
+
+    return status;
 }
 
 int helper_send_response_sign_transaction(void)
@@ -183,20 +196,23 @@ int helper_send_response_sign_transaction(void)
     size_t offset = 0;
     size_t i      = 0;
     int    len    = 0;
+    int    status = -1;
 
     memset(response_buffer, 0, sizeof(response_buffer));
     // Type
     if ((len = add_tlv_uint8(
              &response_buffer[offset], RESPONSE_BUFFER_MAX_LENGTH - offset, 0x01, 0x2a))  // 3 bytes
         < 0) {
-        return len;
+        status = len;
+        goto end;
     }
     offset += len;
     // Version
     if ((len = add_tlv_uint8(
              &response_buffer[offset], RESPONSE_BUFFER_MAX_LENGTH - offset, 0x02, 0x01))  // 3 bytes
         < 0) {
-        return len;
+        status = len;
+        goto end;
     }
     offset += len;
 
@@ -208,7 +224,8 @@ int helper_send_response_sign_transaction(void)
                                  &G_context.sign_transaction_datas.prepared_request.response,
                                  &G_context.account.compute_key))  // 130 bytes
         < 0) {
-        return len;
+        status = len;
+        goto end;
     }
     offset += len;
     // TVK
@@ -217,7 +234,8 @@ int helper_send_response_sign_transaction(void)
                              0xbf,
                              &G_context.sign_transaction_datas.prepared_request.tvk))  // 35 bytes
         < 0) {
-        return len;
+        status = len;
+        goto end;
     }
     offset += len;
     // TPK
@@ -226,7 +244,8 @@ int helper_send_response_sign_transaction(void)
                              0xc0,
                              &G_context.sign_transaction_datas.prepared_request.tpk))  // 35 bytes
         < 0) {
-        return len;
+        status = len;
+        goto end;
     }
     offset += len;
     // Gammas count
@@ -236,7 +255,8 @@ int helper_send_response_sign_transaction(void)
              0xc1,
              G_context.sign_transaction_datas.prepared_request.gammas_count))  // 4 bytes
         < 0) {
-        return len;
+        status = len;
+        goto end;
     }
     offset += len;
 
@@ -248,18 +268,70 @@ int helper_send_response_sign_transaction(void)
                  0xc2,
                  &G_context.sign_transaction_datas.prepared_request.gammas[i]))  // 35 bytes
             < 0) {
-            return len;
+            status = len;
+            goto end;
         }
         offset += len;
     }
 
     if ((RESPONSE_BUFFER_MAX_LENGTH - offset) < 2) {
-        return -1;
+        status = -1;
+        goto end;
     }
     write_u16_be(response_buffer, offset, SWO_SUCCESS);  // 2 bytes
     offset += 2;
 
-    return io_legacy_apdu_tx(response_buffer, offset);
+    G_swap_response_ready = false;
+    if (G_context.signing_state == SIGNING_STATE_FEES) {
+        // Signing fees
+        G_swap_response_ready = true;
+    }
+    else if ((G_context.signing_state == SIGNING_STATE_INTENT) && (G_context.nested_call_count == 0)
+             && (G_context.sign_transaction_datas.max_base_fee == 0)
+             && (G_context.sign_transaction_datas.max_priority_fee == 0)) {
+        // No nested calls & no fees to sign
+        G_swap_response_ready = true;
+    }
+    else if ((G_context.signing_state == SIGNING_STATE_NESTED_CALL)
+             && ((G_context.nested_call_offset + 1) >= G_context.nested_call_count)
+             && (G_context.sign_transaction_datas.max_base_fee == 0)
+             && (G_context.sign_transaction_datas.max_priority_fee == 0)) {
+        // No more nested calls & no fees to sign
+        G_swap_response_ready = true;
+    }
+
+    // If we are in swap mode and have validated a TX, we send it and immediately quit
+    if (G_called_from_swap && G_swap_response_ready) {
+        PRINTF("Swap answer is processed. Send it\n");
+
+        if (io_legacy_apdu_tx(response_buffer, offset) >= 0) {
+            *G_swap_signing_return_value_address = 1;
+            PRINTF("Returning to Exchange with status %d\n", *G_swap_signing_return_value_address);
+            PRINTF("os_lib_end\n");
+            account_erase(&G_context.account);
+            r_list_erase();
+            explicit_bzero(response_buffer, sizeof(response_buffer));
+            os_lib_end();
+            status = 0;
+            goto end;
+        }
+        else {
+            PRINTF("Unrecoverable\n");
+#ifndef USE_OS_IO_STACK
+            os_io_stop();
+#endif  // USE_OS_IO_STACK
+            os_sched_exit(-1);
+            status = -1;
+            goto end;
+        }
+    }
+
+    status = io_legacy_apdu_tx(response_buffer, offset);
+
+end:
+    explicit_bzero(response_buffer, sizeof(response_buffer));
+
+    return status;
 }
 
 int helper_send_response_get_tvk(field_t *tvk)
@@ -268,6 +340,7 @@ int helper_send_response_get_tvk(field_t *tvk)
 
     size_t       offset = 0;
     bigint_256_t b;
+    int          status = -1;
 
     memset(response_buffer, 0, sizeof(response_buffer));
 
@@ -278,8 +351,9 @@ int helper_send_response_get_tvk(field_t *tvk)
     bn_reverse(&response_buffer[offset]);
     offset += 32;
 
-    write_u16_be(response_buffer, offset, SWO_SUCCESS);  // 2 bytes
-    offset += 2;
+    status = io_send_response_pointer(response_buffer, offset, SWO_SUCCESS);
+    explicit_bzero(response_buffer, sizeof(response_buffer));
+    explicit_bzero(&b, sizeof(b));
 
-    return io_legacy_apdu_tx(response_buffer, offset);
+    return status;
 }

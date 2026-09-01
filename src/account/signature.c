@@ -20,6 +20,7 @@
 #include <stdbool.h>  // bool
 
 #include "os.h"
+#include "swap.h"
 #include "ledger_assert.h"
 #include "globals.h"
 #include "group.h"
@@ -163,8 +164,22 @@ static int hash_public_input(prepared_request_t *request, uint8_t input_index)
     field_print_array(&hash_input[hash_input_index], status);
     hash_input_index += status;
 
-    memcpy(&hash_input[hash_input_index++], &request->tcm, sizeof(field_t));
-    field_from_int(&hash_input[hash_input_index++], input_index);
+    if (hash_input_index < HASH_INPUT_MAX_LENGTH) {
+        memcpy(&hash_input[hash_input_index++], &request->tcm, sizeof(field_t));
+    }
+    else {
+        status = -1;
+        goto end;
+    }
+
+    if (hash_input_index < HASH_INPUT_MAX_LENGTH) {
+        field_from_int(&hash_input[hash_input_index++], input_index);
+    }
+    else {
+        status = -1;
+        goto end;
+    }
+
     if ((status = hash_psd8(hash_input, hash_input_index, &hash)) < 0) {
         goto end;
     }
@@ -175,6 +190,7 @@ static int hash_public_input(prepared_request_t *request, uint8_t input_index)
 
 end:
     explicit_bzero(hash_input, sizeof(hash_input));
+    explicit_bzero(&hash, sizeof(hash));
     return status;
 }
 
@@ -255,6 +271,10 @@ static int hash_private_input(prepared_request_t *request, uint8_t input_index)
 
 end:
     explicit_bzero(hash_input, sizeof(hash_input));
+    explicit_bzero(randomizer_fields, sizeof(randomizer_fields));
+    explicit_bzero(plaintext_fields, sizeof(plaintext_fields));
+    explicit_bzero(&hash, sizeof(hash));
+    explicit_bzero(&input_view_key, sizeof(input_view_key));
     return status;
 }
 
@@ -337,6 +357,11 @@ static int hash_record_input(account_t *account, prepared_request_t *request, ui
 
 end:
     explicit_bzero(hash_input, sizeof(hash_input));
+    explicit_bzero(&s, sizeof(s));
+    explicit_bzero(&commitment, sizeof(commitment));
+    explicit_bzero(&h, sizeof(h));
+    explicit_bzero(&h_r, sizeof(h_r));
+    explicit_bzero(&tag, sizeof(tag));
     return status;
 }
 
@@ -384,6 +409,8 @@ static int hash_external_record_input(prepared_request_t *request, uint8_t input
 
 end:
     explicit_bzero(hash_input, sizeof(hash_input));
+    explicit_bzero(&s, sizeof(s));
+    explicit_bzero(&hash, sizeof(hash));
     return status;
 }
 
@@ -434,6 +461,10 @@ static void display_progression(uint8_t step)
     uint8_t     current_step = step;
     uint8_t     total_step   = (1 + G_context.nested_call_count) * 5;
 
+    if (G_called_from_swap) {
+        return;
+    }
+
     if (G_context.signing_state == SIGNING_STATE_FEES) {
         text = "Signing transaction";
     }
@@ -462,6 +493,7 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     field_t *is_root;
     group_t  g_temp;
     field_t  nonce;
+    scalar_t s_res;
 
     LEDGER_ASSERT(account != NULL, "NULL account");
     LEDGER_ASSERT(request != NULL, "NULL request");
@@ -474,7 +506,7 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
             status = -1;
             goto end;
         }
-        if ((status = r_list_get(G_context.r_list.index, &request->r)) < 0) {
+        if ((status = r_list_get(G_context.r_list.index, &request->r, true)) < 0) {
             goto end;
         }
         G_context.r_list.index++;
@@ -602,7 +634,6 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     scalar_println(&request->challenge);
 
     // Compute response
-    scalar_t s_res;
     memcpy(&s_res, &request->challenge, sizeof(scalar_t));
     scalar_mul_assign(&s_res, &account->private_key.sk_sig);
     memcpy(&request->response, &request->r, sizeof(scalar_t));
@@ -612,10 +643,15 @@ int sign_prepared_request(account_t *account, prepared_request_t *request)
     display_progression(5);
 
 end:
+    explicit_bzero(&request->r, sizeof(request->r));
     explicit_bzero(&g_temp, sizeof(g_temp));
+    explicit_bzero(&s_res, sizeof(s_res));
     explicit_bzero(&nonce, sizeof(nonce));
     explicit_bzero(hash_input, sizeof(hash_input));
     explicit_bzero(message, sizeof(message));
+    explicit_bzero(randomizer_fields, sizeof(randomizer_fields));
+    explicit_bzero(plaintext_fields, sizeof(plaintext_fields));
+    explicit_bzero(bit_buffer, sizeof(bit_buffer));
 
     return status;
 }

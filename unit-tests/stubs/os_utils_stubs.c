@@ -17,3 +17,8 @@ void pic_init(void *pic_flash_start, void *pic_ram_start)
     (void) pic_flash_start;
     (void) pic_ram_start;
 }
+
+void os_sched_exit(int status)
+{
+    (void) status;
+}

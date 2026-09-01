@@ -13,7 +13,10 @@
 /**
  * Application specific swap error code
  */
-#define SWAP_ERROR_CODE 0x00
+typedef enum swap_error_application_specific_code_t {
+    SWAP_ERROR_CODE             = 0x00,
+    SWAP_ERROR_WRONG_TOKEN_INFO = 0x01,
+} swap_error_application_specific_code_t;
 
 /**
  * OS status word for OK

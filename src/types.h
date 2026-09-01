@@ -181,7 +181,7 @@ typedef struct {
 
     account_t account;
 
-    uint32_t                 fees_waiting_time_ms;
+    uint32_t                 next_step_waiting_time_ms;
     signing_state_e          signing_state;
     uint8_t                  nested_call_count;
     uint8_t                  nested_call_offset;
