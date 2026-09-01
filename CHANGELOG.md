@@ -5,10 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.0] - 2026-08-27
+## [1.3.1] - 2026-09-01
 
 ### Fixed
 
+- Fee timeout blocking for touch devices
+
+## [1.3.0] - 2026-08-28
+
+### Fixed
+
+- V-063: View key remains in global UI context after confirmation or rejection
+- V-180: Precomputed Schnorr nonces retained in global `r_list` after use
+- V-205: Malformed nested APDUs can keep a user approval alive indefinitely
+- V-041: Key derivation and signing leave secret intermediates uncleared on stack
+- V-036: Private scalar material left on stack in `group_scalar_multiply`
+- V-152: Out-of-bounds write in public plaintext hashing for struct/array inputs
+- V-123: Sensitive signing intermediates persist in static buffers after successful operations
+- V-186: Terminal swap return skips erasure of account private keys and signing nonces
+- V-135: `GET_TVK` leaves derived account private keys in global context after `r_list` expiry
+- V-125: Poseidon global sponge retains secret-derived hash state across APDU calls
+- V-118: Signing state advances after failed transaction signature in review callback
+- V-117: Fee prepared requests can be signed through nested-call APDU without fee-limit validation
 - Audit-2-3-5: Overlapping root `SIGN_TRANSACTION` APDUs
 - Audit-6: Fee prepared requests could be signed through a nested-call APDU; root tx processing is now blocked when not in the right state, and a 15s delay is enforced before the next nested call
 - Audit-4: Premature execution signature release before fee finalization
