@@ -47,6 +47,7 @@ target_include_directories(
          ${APP_SRC}/transaction
          ${APP_SRC}/ui
          ${APP_SRC}/ui/action
+         ${APP_SRC}/swap
          ${MSGPACK_SRC}
 )
 

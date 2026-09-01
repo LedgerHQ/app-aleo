@@ -32,9 +32,6 @@
 
 #include "account.h"
 
-/*#define HASH_INPUT_MAX_LENGTH (8)
-
-static field_t hash_input[HASH_INPUT_MAX_LENGTH];*/
 static char text_buffer[32];
 
 const field_t ACCOUNT_SK_SIG_DOMAIN = {
@@ -100,7 +97,6 @@ end:
 
 static int private_key_from_seed(const field_t *seed, scalar_t *sk_sig, scalar_t *r_sig)
 {
-    //_Static_assert(HASH_INPUT_MAX_LENGTH >= 4, "hash_input size won't fit");
     int     status = -1;
     field_t hash_input[4];
 
@@ -158,7 +154,6 @@ static int view_key_from_private_and_compute_key(const private_key_t *private_ke
                                                  compute_key_t       *compute_key,
                                                  scalar_t            *view_key)
 {
-    //_Static_assert(HASH_INPUT_MAX_LENGTH >= 6, "hash_input size won't fit");
     int     status = -1;
     field_t hash_input[6];
 
@@ -197,7 +192,6 @@ static int address_from_view_key(const scalar_t *view_key, group_t *address)
 
 static int graph_key_from_view_key(const scalar_t *view_key, field_t *graph_key)
 {
-    //_Static_assert(HASH_INPUT_MAX_LENGTH >= 7, "hash_input size won't fit");
     int     status = -1;
     field_t hash_input[7];
     field_t f_view_key;
@@ -439,7 +433,6 @@ int r_list_set(account_t *account, uint8_t index)
         r = &G_context.r_list.array[index];
 
         // Compute a `r0` as `hash_to_scalar_psd4(domain || sk_sig || nonce)`
-        //_Static_assert(HASH_INPUT_MAX_LENGTH >= 7, "hash_input size won't fit");
         memset(hash_input, 0, sizeof(hash_input));
         memcpy(&hash_input[4], &LEDGER_APP_ALEO_DOMAIN, sizeof(field_t));
         scalar_to_field(&account->private_key.sk_sig, &hash_input[5]);
@@ -471,7 +464,6 @@ int r_list_set(account_t *account, uint8_t index)
         }
 
         // Compute a `rx` as `hash_to_scalar_psd4(domain || sk_sig || nonce || index)`
-        //_Static_assert(HASH_INPUT_MAX_LENGTH >= 8, "hash_input size won't fit");
         memset(hash_input, 0, sizeof(hash_input));
         memcpy(&hash_input[4], &LEDGER_APP_ALEO_DOMAIN, sizeof(field_t));
         scalar_to_field(&account->private_key.sk_sig, &hash_input[5]);

@@ -96,6 +96,10 @@ static int plaintext_to_field(uint8_t       *plaintext,
                 PRINTF("PLAINTEXT_TYPE_LITERAL_U128\n");
                 bit_size = 128;
                 break;
+            case PLAINTEXT_TYPE_LITERAL_IDENTIFIER:
+                PRINTF("PLAINTEXT_TYPE_LITERAL_IDENTIFIER\n");
+                bit_size = PLAINTEXT_TYPE_LITERAL_IDENTIFER_VALUE_LENGTH * 8;
+                break;
             default:
                 return -1;
                 break;
@@ -440,6 +444,10 @@ static int prepare_inputs(account_t *account, prepared_request_t *request)
                 break;
 
             case INPUT_ID_EXTERNAL_RECORD:
+                status = hash_external_record_input(request, input_index);
+                break;
+
+            case INPUT_ID_DYNAMIC_RECORD:
                 status = hash_external_record_input(request, input_index);
                 break;
 

@@ -8,6 +8,7 @@
 #include <cmocka.h>
 
 #include "os.h"
+#include "db.h"
 #include "tx.h"
 
 global_ctx_t G_context;
@@ -189,6 +190,15 @@ static void test_tx_parse(void **state)
     datas_public.prepared_request.inputs_count = 1;
     assert_int_equal(tx_parse(&datas_public, &tx), -1);
     datas_public.prepared_request.inputs_count = 2;
+
+    // network_id must be rejected as soon as it reaches or exceeds NETWORK_ID_COUNT,
+    // even though bhp_1024_hashes[] is a wider byte array: indexing must be bounded
+    // by the element count, not sizeof(array).
+    datas_public.prepared_request.network_id = NETWORK_ID_COUNT;
+    assert_int_equal(tx_parse(&datas_public, &tx), -1);
+    datas_public.prepared_request.network_id = NETWORK_ID_COUNT - 1;
+    assert_int_equal(tx_parse(&datas_public, &tx), 0);
+    datas_public.prepared_request.network_id = 0;
 
     // get_u64
     datas_public.prepared_request.inputs[1].type_length = 2;
@@ -613,11 +623,186 @@ static void test_tx_token_parse(void **state)
     assert_int_equal(tx_parse(&datas_token_batch_private, &tx), 0);
 }
 
+
+static void test_tx_token_arc20_parse(void **state)
+{
+    (void) state;
+    memset(&G_context, 0, sizeof(G_context));
+    tx_t tx;
+
+    sign_transaction_datas_t datas_arc20_public = {
+        .max_base_fee             = 100,
+        .max_priority_fee         = 500,
+        .fee_function_name_length = 10,
+        .fee_function_name        = "fee_public",
+        .fee_program_id_length    = 12,
+        .fee_program_id           = "credits.aleo",
+        .prepared_request         = {
+                                     .program_id_length    = 15,
+                                     .program_id           = "arc20_usdt.aleo",
+                                     .function_name_length = 15,
+                                     .function_name        = "transfer_public",
+                                     .inputs_count         = 2,
+                                     .inputs
+            = {{.value_length = 32,
+                .value
+                = (uint8_t *) "\x82\x48\xd5\xe8\x5a\xc4\xc1\x23\x46\xf8\x45\x8b\xd9\x39\xf1\xce"
+                              "\x25\xae\x03\xe9\xc6\xcb\xc8\x86\x28\x6d\xf1\x61\x63\x0a\x75\x0c",
+                .type_length = 3,
+                .type        = (uint8_t *) "\x01\x00\x00"},
+               {.value_length = 16,
+                .value
+                = (uint8_t *) "\xe8\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+                .type_length = 3,
+                .type        = (uint8_t *) "\x01\x00\x0d"}},
+                                     }
+    };
+
+    assert_int_equal(tx_parse(&datas_arc20_public, &tx), 0);
+
+    datas_arc20_public.prepared_request.inputs[1].type_length = 2;
+    assert_int_equal(tx_parse(&datas_arc20_public, &tx), -1);
+    datas_arc20_public.prepared_request.inputs[1].type_length = 3;
+
+    uint8_t type_1[3]                                  = "\x01\x00\x0d";
+    uint8_t type_2[3]                                  = "\x02\x00\x0d";
+    uint8_t type_3[3]                                  = "\x01\x01\x0d";
+    datas_arc20_public.prepared_request.inputs[1].type = type_2;
+    assert_int_equal(tx_parse(&datas_arc20_public, &tx), -1);
+    datas_arc20_public.prepared_request.inputs[1].type = type_3;
+    assert_int_equal(tx_parse(&datas_arc20_public, &tx), -1);
+    datas_arc20_public.prepared_request.inputs[1].type = type_1;
+
+    uint8_t type_11[3]                                       = "\x01\x00\x00";
+    uint8_t type_12[3]                                       = "\x02\x00\x00";
+    char    function_name_2[26]                              = "transfer_public_to_private";
+    datas_arc20_public.prepared_request.function_name_length = sizeof(function_name_2);
+    datas_arc20_public.prepared_request.function_name        = function_name_2;
+    datas_arc20_public.prepared_request.inputs[0].type       = type_12;
+    assert_int_equal(tx_parse(&datas_arc20_public, &tx), 0);
+    datas_arc20_public.prepared_request.inputs[0].type = type_11;
+    assert_int_equal(tx_parse(&datas_arc20_public, &tx), -1);
+
+    const uint8_t hash_record_c[96]
+        = "\xf4\x69\x19\x61\x50\x7b\x8f\x32\x92\xaf\x47\xac\x64\xdf\x59\xf7"
+          "\xc4\x39\xf6\xb2\x48\xa9\x55\x10\xfa\x95\xcc\x96\x25\xe7\xfd\x07"
+          "\x2a\xe1\x18\xb5\x2d\x46\xd6\x0b\x96\x63\x06\x72\x73\x3d\x25\x2c"
+          "\xa9\x3f\xbb\x8d\x56\xd5\x26\x1c\x0c\x4c\xbb\x8c\xf2\x92\x5d\x05"
+          "\xd9\x75\x64\x3e\x43\x24\x5c\x7a\xf2\x8d\xb2\xa8\x5b\x54\x59\xb4"
+          "\xb7\x7b\x38\x2a\x0c\x74\x33\x0c\x1d\x53\x7a\xa9\x22\xe1\x7c\x00";
+    uint8_t hash_record[96];
+    memcpy(hash_record, hash_record_c, sizeof(hash_record));
+
+    // For ARC20 tokens, the record input (index 0) is not parsed for
+    // transfer_private/transfer_private_to_public: the address and amount are
+    // read from indexes 1 and 2 instead of 0 and 1 as for ARC22 tokens.
+    sign_transaction_datas_t datas_arc20_private = {
+        .max_base_fee             = 100,
+        .max_priority_fee         = 500,
+        .fee_function_name_length = 11,
+        .fee_function_name        = "fee_private",
+        .fee_program_id_length    = 12,
+        .fee_program_id           = "credits.aleo",
+        .prepared_request
+        = {.program_id_length    = 15,
+           .program_id           = "arc20_usdt.aleo",
+           .function_name_length = 16,
+           .function_name        = "transfer_private",
+           .inputs_count         = 3,
+           .inputs               = {
+               {.value_length = 96,
+                .value        = hash_record,
+                .type_length  = 9,
+                .type         = (uint8_t *) "\x03\x07\x63\x72\x65\x64\x69\x74\x73"},
+               {.value_length = 32,
+                .value
+                = (uint8_t *) "\x82\x48\xd5\xe8\x5a\xc4\xc1\x23\x46\xf8\x45\x8b\xd9\x39\xf1\xce"
+                              "\x25\xae\x03\xe9\xc6\xcb\xc8\x86\x28\x6d\xf1\x61\x63\x0a\x75\x0c",
+                .type_length = 3,
+                .type        = (uint8_t *) "\x02\x00\x00"},
+               {.value_length = 16,
+                .value
+                = (uint8_t *) "\xe8\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+                .type_length = 3,
+                .type        = (uint8_t *) "\x02\x00\x0d"},
+           }}
+    };
+
+    assert_int_equal(tx_parse(&datas_arc20_private, &tx), 0);
+
+    datas_arc20_private.prepared_request.inputs[1].type = type_11;
+    assert_int_equal(tx_parse(&datas_arc20_private, &tx), -1);
+    datas_arc20_private.prepared_request.inputs[1].type = type_12;
+
+    char function_name_3[26]                                  = "transfer_private_to_public";
+    datas_arc20_private.prepared_request.function_name_length = sizeof(function_name_3);
+    datas_arc20_private.prepared_request.function_name        = function_name_3;
+    assert_int_equal(tx_parse(&datas_arc20_private, &tx), 0);
+
+    datas_arc20_private.prepared_request.inputs[2].type = type_11;
+    assert_int_equal(tx_parse(&datas_arc20_private, &tx), -1);
+
+    sign_transaction_datas_t datas_arc20_batch_private = {
+        .max_base_fee             = 100,
+        .max_priority_fee         = 500,
+        .fee_function_name_length = 11,
+        .fee_function_name        = "fee_private",
+        .fee_program_id_length    = 12,
+        .fee_program_id           = "credits.aleo",
+        .prepared_request
+        = {.program_id_length    = 20,
+           .program_id           = "ldg_arc20_p_213.aleo",
+           .function_name_length = 18,
+           .function_name        = "transfer_private_2",
+           .inputs_count         = 5,
+           .inputs               = {
+               {.value_length = 31,
+                .value        = (uint8_t *)"arc20_eth\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                                           "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+                .type_length  = 3,
+                .type         = (uint8_t *) "\x02\x00\x11"},
+               {.value_length = 96,
+                .value        = hash_record,
+                .type_length  = 9,
+                .type         = (uint8_t *) "\x06"},
+               {.value_length = 96,
+                .value        = hash_record,
+                .type_length  = 9,
+                .type         = (uint8_t *) "\x06"},
+               {.value_length = 32,
+                .value
+                = (uint8_t *) "\x82\x48\xd5\xe8\x5a\xc4\xc1\x23\x46\xf8\x45\x8b\xd9\x39\xf1\xce"
+                              "\x25\xae\x03\xe9\xc6\xcb\xc8\x86\x28\x6d\xf1\x61\x63\x0a\x75\x0c",
+                .type_length = 3,
+                .type        = (uint8_t *) "\x02\x00\x00"},
+               {.value_length = 16,
+                .value
+                = (uint8_t *) "\xe8\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+                .type_length = 3,
+                .type        = (uint8_t *) "\x02\x00\x0d"},
+           }}
+    };
+    memcpy(hash_record, hash_record_c, sizeof(hash_record));
+    assert_int_equal(tx_parse(&datas_arc20_batch_private, &tx), 0);
+
+    char program_id_5[22]                                        = "ldg_arc20_p2p_213.aleo";
+    datas_arc20_batch_private.prepared_request.program_id_length = sizeof(program_id_5);
+    datas_arc20_batch_private.prepared_request.program_id        = program_id_5;
+    char function_name_5[28]                                     = "transfer_private_to_public_2";
+    datas_arc20_batch_private.prepared_request.function_name_length = sizeof(function_name_5);
+    datas_arc20_batch_private.prepared_request.function_name        = function_name_5;
+    datas_arc20_batch_private.prepared_request.inputs[3].type       = type_11;
+    datas_arc20_batch_private.prepared_request.inputs[4].type       = type_1;
+    assert_int_equal(tx_parse(&datas_arc20_batch_private, &tx), 0);
+}
+
 int main()
 {
-    const struct CMUnitTest tests[] = {cmocka_unit_test(test_tx_extract),
-                                       cmocka_unit_test(test_tx_parse),
-                                       cmocka_unit_test(test_tx_token_parse)};
+    const struct CMUnitTest tests[]
+        = {cmocka_unit_test(test_tx_extract),
+           cmocka_unit_test(test_tx_parse),
+           cmocka_unit_test(test_tx_token_parse),
+           cmocka_unit_test(test_tx_token_arc20_parse)};
 
     return cmocka_run_group_tests(tests, NULL, NULL);
 }

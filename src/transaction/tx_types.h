@@ -11,6 +11,7 @@ typedef enum {
     INPUT_ID_RECORD          = 3,
     INPUT_ID_EXTERNAL_RECORD = 4,
     INPUT_ID_FUTURE          = 5,
+    INPUT_ID_DYNAMIC_RECORD  = 6,
 } input_id_e;
 
 typedef enum {
@@ -20,8 +21,11 @@ typedef enum {
 } input_value_type_e;
 
 typedef enum {
-    PLAINTEXT_TYPE_LITERAL_ADDRESS = 0,
-    PLAINTEXT_TYPE_LITERAL_FIELD   = 2,
-    PLAINTEXT_TYPE_LITERAL_U64     = 12,
-    PLAINTEXT_TYPE_LITERAL_U128    = 13,
+    PLAINTEXT_TYPE_LITERAL_ADDRESS    = 0,
+    PLAINTEXT_TYPE_LITERAL_FIELD      = 2,
+    PLAINTEXT_TYPE_LITERAL_U64        = 12,
+    PLAINTEXT_TYPE_LITERAL_U128       = 13,
+    PLAINTEXT_TYPE_LITERAL_IDENTIFIER = 17,
 } plaintext_type_literal_e;
+
+#define PLAINTEXT_TYPE_LITERAL_IDENTIFER_VALUE_LENGTH (31)

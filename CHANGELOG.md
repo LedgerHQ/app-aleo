@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.3] - 2026-09-01
+
+### Added
+
+- ARC20 tokens support: ETH, SOL, WBTC and USDT
+- ARC20 tokens batch private transfer support
+- Logic to forbid test/temporary programs on mainnet
+- Unit tests, Ragger tests and swap tests for ARC20 tokens and batch transfers
+
+### Fixed
+
+- ARC20 batch transfer parsing out-of-band issue
+- Out-of-bounds issue with `network_id`
+- Unit tests after rebasing
+- Ruff format issues and some CodeQL findings
+
 ## [1.3.1] - 2026-09-01
 
 ### Fixed
