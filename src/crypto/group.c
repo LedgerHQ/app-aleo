@@ -166,6 +166,7 @@ int group_scalar_multiply(const group_t *a, const scalar_t *b, group_t *r)
     status = 0;
 
 end:
+    (void) error;
     explicit_bzero(bn_x, sizeof(bn_x));
     explicit_bzero(bn_y, sizeof(bn_y));
     explicit_bzero(bn_scalar, sizeof(bn_scalar));
