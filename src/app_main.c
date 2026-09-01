@@ -119,11 +119,19 @@ void app_ticker_event_callback(void)
                     nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
                 }
                 else {
+#ifdef HAVE_SE_TOUCH
+                    nbgl_useCaseAction(
+                        &LARGE_WARNING_ICON,
+                        "Fees signature timeout!\nTx signed but not broadcasted on the network",
+                        "Dismiss",
+                        ui_menu_main);
+#else   // !HAVE_SE_TOUCH
                     nbgl_useCaseAction(
                         &LARGE_WARNING_ICON,
                         "Fees signature timeout!\nTx signed but not broadcasted on the network",
                         NULL,
                         ui_menu_main);
+#endif  // !HAVE_SE_TOUCH
                 }
             }
             else {
