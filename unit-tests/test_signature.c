@@ -751,7 +751,7 @@ static void test_signature(void **state)
     };
 
     scalar_t r_14 = {
-        .big.u64 = {0xd12073752c196d6d, 0x6f96db151559f1ff, 0x25a34b586f7f9723, 0x2697302b89ed397}
+        .big.u64 = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}
     };
     field_t tvk_14 = {
         .big.u64 = {0xfcd99dd33fd711b9, 0x3085372523a8663b, 0x69091782d0a1eb9e, 0x56f3af574b36c6a}
