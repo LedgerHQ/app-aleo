@@ -427,7 +427,7 @@ static int parse_token_arc20_batch_transfer_private(sign_transaction_datas_t *da
     if (status < 0) {
         return status;
     }
-    if (status > (PROGRAM_ID_NAME_MAX_LEN + 6)) {
+    if (status > (PROGRAM_ID_NAME_MAX_LEN - 5)) {
         return -1;
     }
     memcpy(&program_id[status], ".aleo", 5);
@@ -467,7 +467,7 @@ static int parse_token_arc20_batch_transfer_private_to_public(sign_transaction_d
     if (status < 0) {
         return status;
     }
-    if (status > (PROGRAM_ID_NAME_MAX_LEN + 6)) {
+    if (status > (PROGRAM_ID_NAME_MAX_LEN - 5)) {
         return -1;
     }
     memcpy(&program_id[status], ".aleo", 5);
