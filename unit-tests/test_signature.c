@@ -12,6 +12,9 @@
 #include "signature.h"
 
 global_ctx_t G_context;
+bool         G_called_from_swap    = false;
+bool         G_swap_response_ready = false;
+uint8_t     *G_swap_signing_return_value_address;
 
 static void prepare_random_ok(uint8_t *random_bn)
 {
@@ -130,11 +133,13 @@ static void test_signature(void **state)
 
     prepare_random_ok(random_bn);
     will_return(cx_bn_lock, -1);
+    will_return(cx_bn_unlock, CX_OK);
     assert_int_equal(sign_prepared_request(&G_context.account, &request), -1);
 
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     will_return(cx_bn_lock, -1);
+    will_return(cx_bn_unlock, CX_OK);
     assert_int_equal(sign_prepared_request(&G_context.account, &request), -1);
 
     request.program_id
@@ -186,7 +191,7 @@ static void test_signature(void **state)
     request.inputs[0].type = (uint8_t *) "\x01\x00\x00";
 
     scalar_t r_1 = {
-        .big.u64 = {0xd12073752c196d6d, 0x6f96db151559f1ff, 0x25a34b586f7f9723, 0x2697302b89ed397}
+        .big.u64 = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}
     };
     field_t tvk_1 = {
         .big.u64 = {0xfcd99dd33fd711b9, 0x3085372523a8663b, 0x69091782d0a1eb9e, 0x56f3af574b36c6a}
@@ -303,6 +308,7 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     will_return(cx_bn_lock, -1);
+    will_return(cx_bn_unlock, CX_OK);
     assert_int_equal(sign_prepared_request(&G_context.account, &request_private), -1);
 
     memcpy(hash_record, hash_record_c, 96);
@@ -310,6 +316,7 @@ static void test_signature(void **state)
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
     will_return(cx_bn_lock, -1);
+    will_return(cx_bn_unlock, CX_OK);
     assert_int_equal(sign_prepared_request(&G_context.account, &request_private), -1);
 
     memcpy(hash_record, hash_record_c, 96);
@@ -318,6 +325,7 @@ static void test_signature(void **state)
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
     will_return(cx_bn_lock, -1);
+    will_return(cx_bn_unlock, CX_OK);
     assert_int_equal(sign_prepared_request(&G_context.account, &request_private), -1);
 
     memcpy(hash_record, hash_record_c, 96);
@@ -337,7 +345,7 @@ static void test_signature(void **state)
     request.inputs[1].type = (uint8_t *) "\x02\x00\x00";
 
     scalar_t r_10 = {
-        .big.u64 = {0xd12073752c196d6d, 0x6f96db151559f1ff, 0x25a34b586f7f9723, 0x2697302b89ed397}
+        .big.u64 = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}
     };
     field_t tvk_10 = {
         .big.u64 = {0xfcd99dd33fd711b9, 0x3085372523a8663b, 0x69091782d0a1eb9e, 0x56f3af574b36c6a}
@@ -440,6 +448,7 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     will_return(cx_bn_lock, -1);
+    will_return(cx_bn_unlock, CX_OK);
     assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), -1);
 
     memcpy(hash_record, hash_record_c, 96);
@@ -462,12 +471,12 @@ static void test_signature(void **state)
     prepare_random_ok(random_bn);
     prepare_scalar_mult_ok();
     prepare_scalar_mult_ok();
-    request_batch_private.inputs[0].value_length = (12+34)*32;
+    request_batch_private.inputs[0].value_length = (12 + 34) * 32;
     assert_int_equal(sign_prepared_request(&G_context.account, &request_batch_private), -1);
     request_batch_private.inputs[0].value_length = 96;
 
     scalar_t r_11 = {
-        .big.u64 = {0xd12073752c196d6d, 0x6f96db151559f1ff, 0x25a34b586f7f9723, 0x2697302b89ed397}
+        .big.u64 = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}
     };
     field_t tvk_11 = {
         .big.u64 = {0xfcd99dd33fd711b9, 0x3085372523a8663b, 0x69091782d0a1eb9e, 0x56f3af574b36c6a}
@@ -581,6 +590,136 @@ static void test_signature(void **state)
     memcpy(hash_record, hash_record_c, 96);
     request_join.gammas_count = 0;
     assert_int_equal(sign_prepared_request(&G_context.account, &request_join), -1);
+
+    r_list_erase();
+
+    prepared_request_t request_usad = {
+        .is_root              = true,
+        .network_id           = 1,
+        .program_id_length    = 20,
+        .program_id           = "usad_stablecoin.aleo",
+        .function_name_length = 15,
+        .function_name        = "transfer_public",
+        .inputs_count         = 2,
+        .inputs
+        = {{.value_length = 32,
+            .value = (uint8_t *) "\x82\x48\xd5\xe8\x5a\xc4\xc1\x23\x46\xf8\x45\x8b\xd9\x39\xf1\xce"
+                                 "\x25\xae\x03\xe9\xc6\xcb\xc8\x86\x28\x6d\xf1\x61\x63\x0a\x75\x0c",
+            .type_length = 3,
+            .type        = (uint8_t *) "\x01\x00\x00"},
+           {.value_length = 16,
+            .value = (uint8_t *) "\xe8\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+            .type_length = 3,
+            .type        = (uint8_t *) "\x01\x00\x0d"}},
+        .program_checksum  = NULL,
+        .nested_call_count = 0,
+    };
+
+    scalar_t r_12 = {
+        .big.u64 = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}
+    };
+    field_t tvk_12 = {
+        .big.u64 = {0xfcd99dd33fd711b9, 0x3085372523a8663b, 0x69091782d0a1eb9e, 0x56f3af574b36c6a}
+    };
+    group_t tpk_12 = {
+        .x.big.u64
+        = {0xe8b1b5b13b95e77d, 0xe55190c120afffca, 0x903d7a482cacfa01, 0xb25f7526348007b},
+        .y.big.u64
+        = {0x9cf6379fb4164e10, 0x2c579edeb53e4c5e, 0xe937cc4854754624, 0xbcaeaa8087b3b4b}
+    };
+    field_t tcm_12 = {
+        .big.u64 = {0x25910ef54db490ed, 0x1748ffd6736145e7, 0x288b9a16ca91d094, 0x220b2a6efe46d2c}
+    };
+    scalar_t challenge_12 = {
+        .big.u64 = {0xd11f10a923a10ac, 0x417449f34914b783, 0x8f62f5c287a26210, 0x468b5a1207e50c9}
+    };
+    scalar_t response_12 = {
+        .big.u64 = {0x9b9cef07353ba903, 0xe90e92e958402acc, 0x4ad839f2e339b45f, 0x3a7bb40692b4b81}
+    };
+
+    prepare_random_ok(random_bn);
+    prepare_scalar_mult_ok();
+    prepare_scalar_mult_ok();
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_usad), 0);
+    assert_int_equal(request_usad.gammas_count, 0);
+    check_scalar(&request_usad.r, &r_12);
+    check_field(&request_usad.tvk, &tvk_12);
+    check_group(&request_usad.tpk, &tpk_12);
+    check_field(&request_usad.tcm, &tcm_12);
+    check_scalar(&request_usad.challenge, &challenge_12);
+    check_scalar(&request_usad.response, &response_12);
+
+    const uint8_t merkle_proof_c[32]
+        = "\xe9\xfb\x10\x07\xc0\x69\xe1\x1d\xda\x4a\x4c\x3f\x6e\x1d\x5a\x8c"
+          "\x6f\xcb\xfb\x0a\x1f\x55\x6f\xf6\x29\x71\x9f\x09\x59\x02\xe1\x07";
+    uint8_t merkle_proof[96];
+
+    prepared_request_t request_usad_batch_private = {
+        .is_root              = true,
+        .network_id           = 1,
+        .program_id_length    = 18,
+        .program_id           = "ldg_usad_p_28.aleo",
+        .function_name_length = 18,
+        .function_name        = "transfer_private_2",
+        .inputs_count         = 5,
+        .inputs
+        = {{.value_length = 96, .value = hash_record, .type_length = 1, .type = (uint8_t *) "\x04"},
+           {.value_length = 96, .value = hash_record, .type_length = 1, .type = (uint8_t *) "\x04"},
+           {.value_length = 32,
+            .value = (uint8_t *) "\x82\x48\xd5\xe8\x5a\xc4\xc1\x23\x46\xf8\x45\x8b\xd9\x39\xf1\xce"
+                                 "\x25\xae\x03\xe9\xc6\xcb\xc8\x86\x28\x6d\xf1\x61\x63\x0a\x75\x0c",
+            .type_length = 3,
+            .type        = (uint8_t *) "\x02\x00\x00"},
+           {.value_length = 16,
+            .value = (uint8_t *) "\xe8\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+            .type_length = 3,
+            .type        = (uint8_t *) "\x01\x00\x0c"},
+           {.value_length = 32,
+            .value        = (uint8_t *) merkle_proof,
+            .type_length  = 3,
+            .type         = (uint8_t *) "\x02\x01\x00"}},
+        .program_checksum  = NULL,
+        .nested_call_count = 2,
+    };
+
+    scalar_t r_13 = {
+        .big.u64 = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}
+    };
+    field_t tvk_13 = {
+        .big.u64 = {0xfcd99dd33fd711b9, 0x3085372523a8663b, 0x69091782d0a1eb9e, 0x56f3af574b36c6a}
+    };
+    group_t tpk_13 = {
+        .x.big.u64
+        = {0xe8b1b5b13b95e77d, 0xe55190c120afffca, 0x903d7a482cacfa01, 0xb25f7526348007b},
+        .y.big.u64
+        = {0x9cf6379fb4164e10, 0x2c579edeb53e4c5e, 0xe937cc4854754624, 0xbcaeaa8087b3b4b}
+    };
+    field_t tcm_13 = {
+        .big.u64 = {0x25910ef54db490ed, 0x1748ffd6736145e7, 0x288b9a16ca91d094, 0x220b2a6efe46d2c}
+    };
+    scalar_t challenge_13 = {
+        .big.u64 = {0x3840c2b92ede3c50, 0x461a410d87c460ab, 0xa6ff42acbdcebdd7, 0x181c543417b01df}
+    };
+    scalar_t response_13 = {
+        .big.u64 = {0x8a22f27ac4c54949, 0x62a22736ebef88f9, 0x44d2e75bf45e0226, 0x101653c0f58b1dd}
+    };
+
+    memcpy(program_checksum, program_checksum_c, 32);
+    request.program_checksum = program_checksum;
+    memcpy(hash_record, hash_record_c, 96);
+    memcpy(merkle_proof, merkle_proof_c, 32);
+    request_usad_batch_private.gammas_count = 0;
+    prepare_random_ok(random_bn);
+    prepare_scalar_mult_ok();
+    prepare_scalar_mult_ok();
+    assert_int_equal(sign_prepared_request(&G_context.account, &request_usad_batch_private), 0);
+    assert_int_equal(request_usad_batch_private.gammas_count, 0);
+    check_scalar(&request_usad_batch_private.r, &r_13);
+    check_field(&request_usad_batch_private.tvk, &tvk_13);
+    check_group(&request_usad_batch_private.tpk, &tpk_13);
+    check_field(&request_usad_batch_private.tcm, &tcm_13);
+    check_scalar(&request_usad_batch_private.challenge, &challenge_13);
+    check_scalar(&request_usad_batch_private.response, &response_13);
 }
 
 int main()

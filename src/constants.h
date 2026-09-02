@@ -104,5 +104,10 @@
  */
 #define R_LIST_MAX_VALIDITY_TIME_MS (5 * 1000)
 
+/**
+ * Maximum size for amount formatting (39 chars for u128 + 2 for '0.').
+ */
+#define MAX_AMOUNT_SIZE (41)
+
 #define ALEO_DECIMALS (6)
 #define ALEO_TICKER   "ALEO"

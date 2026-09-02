@@ -41,6 +41,7 @@ target_include_directories(
          ${APP_SRC}/account
          ${APP_SRC}/crypto
          ${APP_SRC}/db
+         ${APP_SRC}/format
          ${APP_SRC}/handler
          ${APP_SRC}/helper
          ${APP_SRC}/transaction

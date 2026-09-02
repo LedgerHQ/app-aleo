@@ -14,6 +14,9 @@
 #include "send_response.h"
 
 global_ctx_t G_context;
+bool         G_called_from_swap    = false;
+bool         G_swap_response_ready = false;
+uint8_t     *G_swap_signing_return_value_address;
 
 int io_send_response_buffers(const buffer_t *rdatalist, size_t count, uint16_t sw)
 {
@@ -35,7 +38,9 @@ int io_legacy_apdu_tx(const unsigned char *buffer, unsigned short length)
     uint8_t *mocked_ptr    = mock_type(uint8_t *);
     size_t   mocked_length = mock_type(size_t);
 
-    assert_int_equal(length, mocked_length);
+    if (length != mocked_length) {
+        return -1;
+    }
     assert_memory_equal(buffer, mocked_ptr, 32);
 
     return 0;
@@ -136,11 +141,54 @@ static void test_send_response(void **state)
     will_return(io_legacy_apdu_tx, 247);
     assert_int_equal(helper_send_response_sign_transaction(), 0);
 
+    G_context.signing_state = SIGNING_STATE_FEES;
+    will_return(io_legacy_apdu_tx, sign_apdu);
+    will_return(io_legacy_apdu_tx, 247);
+    assert_int_equal(helper_send_response_sign_transaction(), 0);
+    assert_int_equal(G_swap_response_ready == true, 1);
+
+    G_context.signing_state                           = SIGNING_STATE_INTENT;
+    G_context.nested_call_count                       = 0;
+    G_context.sign_transaction_datas.max_base_fee     = 0;
+    G_context.sign_transaction_datas.max_priority_fee = 0;
+    will_return(io_legacy_apdu_tx, sign_apdu);
+    will_return(io_legacy_apdu_tx, 247);
+    assert_int_equal(helper_send_response_sign_transaction(), 0);
+    assert_int_equal(G_swap_response_ready == true, 1);
+
+    G_called_from_swap                                = true;
+    G_context.signing_state                           = SIGNING_STATE_NESTED_CALL;
+    G_context.nested_call_offset                      = 1;
+    G_context.nested_call_count                       = 2;
+    G_context.sign_transaction_datas.max_base_fee     = 0;
+    G_context.sign_transaction_datas.max_priority_fee = 0;
+    uint8_t return_value_address                      = 0;
+    G_swap_signing_return_value_address               = &return_value_address;
+
+    will_return(io_legacy_apdu_tx, sign_apdu);
+    will_return(io_legacy_apdu_tx, 247);
+    assert_int_equal(helper_send_response_sign_transaction(), 0);
+    assert_int_equal(G_swap_response_ready == true, 1);
+
+    G_called_from_swap                                = true;
+    G_context.signing_state                           = SIGNING_STATE_NESTED_CALL;
+    G_context.nested_call_offset                      = 1;
+    G_context.nested_call_count                       = 2;
+    G_context.sign_transaction_datas.max_base_fee     = 0;
+    G_context.sign_transaction_datas.max_priority_fee = 0;
+    will_return(io_legacy_apdu_tx, sign_apdu);
+    will_return(io_legacy_apdu_tx, 0);
+    assert_int_equal(helper_send_response_sign_transaction(), -1);
+    assert_int_equal(G_swap_response_ready == true, 1);
+
     // helper_send_response_get_tvk
     const char *tvk_apdu
-        = "\x20\xda\x7a\x28\xb6\x78\xa5\x07\x38\x57\xf4\x2b\x4a\x32\x27\xdd\xb3\x37\xcd\x29\x3c\x6b\xc0\x3b\x6e\xb5\x6b\xc8\xeb\xde\x83\x38\x90\x00";
-    will_return(io_legacy_apdu_tx, tvk_apdu);
-    will_return(io_legacy_apdu_tx, 35);
+        = "\x20\xda\x7a\x28\xb6\x78\xa5\x07\x38\x57\xf4\x2b\x4a\x32\x27\xdd\xb3\x37\xcd\x29\x3c\x6b"
+          "\xc0\x3b\x6e\xb5\x6b\xc8\xeb\xde\x83\x38\x90\x00";
+    will_return(io_send_response_buffers, tvk_apdu);
+    will_return(io_send_response_buffers, 33);
+    will_return(io_send_response_buffers, 1);
+    will_return(io_send_response_buffers, 0x9000);
     assert_int_equal(helper_send_response_get_tvk(&tvk), 0);
 }
 

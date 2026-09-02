@@ -86,6 +86,7 @@ The following standard Status Words are returned for all APDUs.
 
 | SW       | SW name                        | Description                                                |
 | ---      | ---                            | ---                                                        |
+|   0x6400   | SWO_EXECUTION_ERROR          | Execution error during APDU process                        |
 |   0x6985   | SWO_CONDITIONS_NOT_SATISFIED | The app is not in the right state to execute the cmd       |
 |   0x69f0   | SWO_PERMISSION_DENIED        | Rejected by user                                           |
 |   0x6a80   | SWO_INCORRECT_DATA           | Given data is incorrect                                    |

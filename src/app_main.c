@@ -21,6 +21,7 @@
 #include "os.h"
 #include "ux.h"
 #include "swap.h"
+#include "swap_error_code_helpers.h"
 
 #include "types.h"
 #include "globals.h"
@@ -55,14 +56,10 @@ void app_main(void)
     io_init();
     time_ms = 0;
 
-#ifdef HAVE_SWAP
     // When called in swap context as a library, we don't want to show the menu
     if (!G_called_from_swap) {
-#endif
         ui_menu_main();
-#ifdef HAVE_SWAP
     }
-#endif
 
     // Reset context
     explicit_bzero(&G_context, sizeof(G_context));
@@ -111,13 +108,37 @@ void app_ticker_event_callback(void)
 {
     time_ms += 100;
     if (G_context.signing_state > SIGNING_STATE_INTENT) {
-        G_context.fees_waiting_time_ms += 100;
-        if (G_context.fees_waiting_time_ms > 15 * 1000) {
+        G_context.next_step_waiting_time_ms += 100;
+        if (G_context.next_step_waiting_time_ms > 15 * 1000) {
             G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
             account_erase(&G_context.account);
             r_list_erase();
 #ifndef FUZZ
-            nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
+            if (!G_called_from_swap) {
+                if (G_context.signing_state == SIGNING_STATE_WAIT_NESTED_CALL) {
+                    nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
+                }
+                else {
+#ifdef HAVE_SE_TOUCH
+                    nbgl_useCaseAction(
+                        &LARGE_WARNING_ICON,
+                        "Fees signature timeout!\nTx signed but not broadcasted on the network",
+                        "Dismiss",
+                        ui_menu_main);
+#else   // !HAVE_SE_TOUCH
+                    nbgl_useCaseAction(
+                        &LARGE_WARNING_ICON,
+                        "Fees signature timeout!\nTx signed but not broadcasted on the network",
+                        NULL,
+                        ui_menu_main);
+#endif  // !HAVE_SE_TOUCH
+                }
+            }
+            else {
+                send_swap_error_simple(SW_SWAP_FAIL, SWAP_EC_ERROR_INTERNAL, SWAP_ERROR_CODE);
+                // unreachable
+                os_sched_exit(0);
+            }
 #endif  // FUZZ
         }
     }
@@ -126,8 +147,16 @@ void app_ticker_event_callback(void)
         G_context.r_list_alive_remaining_time_ms -= 100;
         if (G_context.r_list_alive_remaining_time_ms < 100) {
             G_context.r_list_alive_remaining_time_ms = 0;
+            account_erase(&G_context.account);
             r_list_erase();
-            ui_menu_main();
+            if (!G_called_from_swap) {
+                ui_menu_main();
+            }
+            else {
+                send_swap_error_simple(SW_SWAP_FAIL, SWAP_EC_ERROR_INTERNAL, SWAP_ERROR_CODE);
+                // unreachable
+                os_sched_exit(0);
+            }
         }
     }
 }
