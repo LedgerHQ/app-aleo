@@ -57,7 +57,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Sanity checks
-    if args.file == None:
+    if args.file is None:
         exit(-1)
 
     json_file = open(args.file)
@@ -105,9 +105,7 @@ if __name__ == "__main__":
         program_id_network = sp_program_id[1]
         str_program_id = program_id_name + "_" + program_id_network
         print(
-            "#define NB_OF_{}_FUNCTIONS ({:d})".format(
-                str_program_id.upper(), len(token["functions"])
-            ),
+            "#define NB_OF_{}_FUNCTIONS ({:d})".format(str_program_id.upper(), len(token["functions"])),
             file=c_file,
         )
         print(
@@ -119,9 +117,7 @@ if __name__ == "__main__":
             print("    " + function_name)
             print(f'    {{.name        = "{function_name}",', file=c_file)
             print("     .tx_type     = {},".format(function["tx_type"]), file=c_file)
-            print(
-                "     .input_count = {:d},".format(function["input_count"]), file=c_file
-            )
+            print("     .input_count = {:d},".format(function["input_count"]), file=c_file)
             print("     .bhp_1024_hashes", file=c_file)
             function["hashes"] = []
             for network_id in range(2):
@@ -142,14 +138,15 @@ if __name__ == "__main__":
                 digest = bhp.hash(input, len(input) * 8)
                 function["hashes"].append(digest)
 
+                d = digest.value.value
                 if network_id == 1:
                     print(
-                        f"         = {{0x{digest.value.value[0]:016x}, 0x{digest.value.value[1]:016x}, 0x{digest.value.value[2]:016x}, 0x{digest.value.value[3]:016x}}}}}}}}},",
+                        f"         = {{0x{d[0]:016x}, 0x{d[1]:016x}, 0x{d[2]:016x}, 0x{d[3]:016x}}}}}}}}},",
                         file=c_file,
                     )
                 else:
                     print(
-                        f"         = {{0x{digest.value.value[0]:016x}, 0x{digest.value.value[1]:016x}, 0x{digest.value.value[2]:016x}, 0x{digest.value.value[3]:016x}}}}},",
+                        f"         = {{0x{d[0]:016x}, 0x{d[1]:016x}, 0x{d[2]:016x}, 0x{d[3]:016x}}}}},",
                         file=c_file,
                     )
 
@@ -177,8 +174,9 @@ if __name__ == "__main__":
         )
         print("     .token_id", file=c_file)
         print("     = {.big.u64", file=c_file)
+        t = token_id.value.value
         print(
-            f"        = {{0x{token_id.value.value[0]:016x}, 0x{token_id.value.value[1]:016x}, 0x{token_id.value.value[2]:016x}, 0x{token_id.value.value[3]:016x}}}}},",
+            f"        = {{0x{t[0]:016x}, 0x{t[1]:016x}, 0x{t[2]:016x}, 0x{t[3]:016x}}}}},",
             file=c_file,
         )
         print(
@@ -186,9 +184,7 @@ if __name__ == "__main__":
             file=c_file,
         )
         print(
-            "     .functions       = {}{}}},".format(
-                str_program_id, " " * (max_len - len(str_program_id))
-            ),
+            "     .functions       = {}{}}},".format(str_program_id, " " * (max_len - len(str_program_id))),
             file=c_file,
         )
 
