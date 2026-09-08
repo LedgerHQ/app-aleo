@@ -364,7 +364,7 @@ def forge_arc20_token_public_transfer(
     program_checksum: str = "",
 ) -> dict:
 
-    data = {
+    data: dict[str, Any] = {
         "type": "intent",
         "max_base_fee": max_base_fee,
         "max_priority_fee": max_priority_fee,
@@ -395,7 +395,7 @@ def forge_arc20_token_public_to_private_transfer(
     program_checksum: str = "",
 ) -> dict:
 
-    data = {
+    data: dict[str, Any] = {
         "type": "intent",
         "max_base_fee": max_base_fee,
         "max_priority_fee": max_priority_fee,
@@ -427,7 +427,7 @@ def forge_arc20_token_private_transfer(
     program_checksum: str = "",
 ) -> dict:
 
-    data = {
+    data: dict[str, Any] = {
         "type": "intent",
         "max_base_fee": max_base_fee,
         "max_priority_fee": max_priority_fee,
@@ -462,7 +462,7 @@ def forge_arc20_token_private_to_public_transfer(
     program_checksum: str = "",
 ) -> dict:
 
-    data = {
+    data: dict[str, Any] = {
         "type": "intent",
         "max_base_fee": max_base_fee,
         "max_priority_fee": max_priority_fee,
@@ -494,7 +494,7 @@ def forge_arc20_token_batch_private_transfer(
     identifier: str,
     program_checksum: str = "",
 ) -> dict:
-    data = {
+    data: dict[str, Any] = {
         "type": "intent",
         "max_base_fee": max_base_fee,
         "max_priority_fee": max_priority_fee,
@@ -526,7 +526,7 @@ def forge_nested_call_arc20_token_private_transfer(
     program_name: str,
     program_checksum: str = "",
 ) -> dict:
-    data = {"type": "nested_call"}
+    data: dict[str, Any] = {"type": "nested_call"}
     data["request"] = {
         "network_id": "mainnet",
         "program_id": program_name,
@@ -2054,9 +2054,7 @@ def test_sign_transaction_token_arc22_transfer_public_to_private(
     assert check_response(unpacked, expected)
 
 
-def test_sign_transaction_fees_in_nested_call(
-    backend: BackendInterface, scenario_navigator: NavigateWithScenario
-) -> None:
+def test_sign_transaction_fees_in_nested_call(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
 
     tx_datas = {"type": "get_tvk", "path": "m/44'/683'/0'/0'", "index": 0}
@@ -2070,7 +2068,6 @@ def test_sign_transaction_fees_in_nested_call(
     tx_datas = {"type": "get_tvk", "path": "m/44'/683'/0'/0'", "index": 2}
     response = client.get_tvk(tx_datas=tx_datas).data
     unpacked = unpack_get_tvk_response(response)
-    tvk_2 = unpacked["tvk"]
 
     external_record = [
         "d5f4b9312020d52c6752cb927e00771b300e8742e7cbe2cffe79a2a9f1641e03f1020000b6a58dc9bd8dc99591a5d1cd0503100019000000000000806381fe03232753113751635f57729543c73e2ab3641901f57fec18b1e560b28b80000000",
@@ -2120,7 +2117,7 @@ def test_sign_transaction_fees_in_nested_call(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Prepare Tx 10/15",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -2150,7 +2147,7 @@ def test_sign_transaction_fees_in_nested_call(
         record,
         "7266375125414209082394925781071362722506946030314916664133746682226945366259field",
     )
-    tx_datas['type'] = 'nested_call'
+    tx_datas["type"] = "nested_call"
     with pytest.raises(ExceptionRAPDU) as e:
         with client.sign_transaction(tx_datas=tx_datas):
             if scenario_navigator.device.is_nano:
@@ -2159,7 +2156,7 @@ def test_sign_transaction_fees_in_nested_call(
                 instruction = NavInsID.USE_CASE_REVIEW_TAP
             scenario_navigator.navigator.navigate_until_text(
                 navigate_instruction=instruction,
-                validation_instructions=None,
+                validation_instructions=[],
                 text="Transaction signed",
                 timeout=3,
                 screen_change_before_first_instruction=False,
@@ -2169,9 +2166,7 @@ def test_sign_transaction_fees_in_nested_call(
     assert e.value.status == StatusWords.SWO_INCORRECT_DATA
 
 
-def test_sign_transaction_token_arc20_unknown(
-    backend: BackendInterface, scenario_navigator: NavigateWithScenario
-) -> None:
+def test_sign_transaction_token_arc20_unknown(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
     tx_datas = forge_arc20_token_public_transfer(
         500,
@@ -2190,7 +2185,7 @@ def test_sign_transaction_token_arc20_unknown(
                 instruction = NavInsID.USE_CASE_REVIEW_TAP
             scenario_navigator.navigator.navigate_until_text(
                 navigate_instruction=instruction,
-                validation_instructions=None,
+                validation_instructions=[],
                 text="Transaction rejected",
                 timeout=3,
                 screen_change_before_first_instruction=False,
@@ -2240,7 +2235,7 @@ def test_sign_transaction_token_arc20_transfer_public(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Transaction signed",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -2310,7 +2305,7 @@ def test_sign_transaction_token_arc20_transfer_private(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Transaction signed",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -2381,7 +2376,7 @@ def test_sign_transaction_token_arc20_transfer_private_to_public(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Transaction signed",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -2443,7 +2438,7 @@ def test_sign_transaction_token_arc20_transfer_public_to_private(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Transaction signed",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -2532,7 +2527,7 @@ def test_sign_transaction_token_arc20_transfer_batch_private(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Prepare Tx 10/15",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -2570,7 +2565,7 @@ def test_sign_transaction_token_arc20_transfer_batch_private(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Calculating fees",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -2604,7 +2599,7 @@ def test_sign_transaction_token_arc20_transfer_batch_private(
             instruction = NavInsID.USE_CASE_REVIEW_TAP
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
-            validation_instructions=None,
+            validation_instructions=[],
             text="Transaction signed",
             timeout=3,
             screen_change_before_first_instruction=False,
@@ -2633,16 +2628,12 @@ def test_sign_transaction_token_arc20_unknown_transfer_batch_private(
 
     tx_datas = {"type": "get_tvk", "path": "m/44'/683'/0'/0'", "index": 0}
     response = client.get_tvk(tx_datas=tx_datas).data
-    unpacked = unpack_get_tvk_response(response)
-    tvk_0 = unpacked["tvk"]
     tx_datas = {"type": "get_tvk", "path": "m/44'/683'/0'/0'", "index": 1}
     response = client.get_tvk(tx_datas=tx_datas).data
-    unpacked = unpack_get_tvk_response(response)
-    tvk_1 = unpacked["tvk"]
     tx_datas = {"type": "get_tvk", "path": "m/44'/683'/0'/0'", "index": 2}
     response = client.get_tvk(tx_datas=tx_datas).data
-    unpacked = unpack_get_tvk_response(response)
-    tvk_2 = unpacked["tvk"]
+
+    assert response is not None
 
     external_record = [
         "d5f4b9312020d52c6752cb927e00771b300e8742e7cbe2cffe79a2a9f1641e03f1020000b6a58dc9bd8dc99591a5d1cd0503100019000000000000806381fe03232753113751635f57729543c73e2ab3641901f57fec18b1e560b28b80000000",
@@ -2668,7 +2659,7 @@ def test_sign_transaction_token_arc20_unknown_transfer_batch_private(
                 instruction = NavInsID.USE_CASE_REVIEW_TAP
             scenario_navigator.navigator.navigate_until_text(
                 navigate_instruction=instruction,
-                validation_instructions=None,
+                validation_instructions=[],
                 text="Transaction rejected",
                 timeout=3,
                 screen_change_before_first_instruction=False,

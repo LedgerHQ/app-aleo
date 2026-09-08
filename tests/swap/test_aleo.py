@@ -99,7 +99,7 @@ def forge_arc20_token_public_transfer(
     program_checksum: str = "",
 ) -> dict:
 
-    data = {
+    data: dict[str, Any] = {
         "type": "intent",
         "max_base_fee": max_base_fee,
         "max_priority_fee": max_priority_fee,
@@ -238,13 +238,11 @@ class ARC20USDCTokenTests(GenericAleoTests):
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         client = CommandSender(self.backend)
-        tx_datas = forge_arc20_token_public_transfer(
-            0, fees, destination, send_amount, "arc20_usdt.aleo"
-        )
+        tx_datas = forge_arc20_token_public_transfer(0, fees, destination, send_amount, "arc20_usdt.aleo")
         tx_datas["path"] = "m/44'/683'/0'/0'"
         with client.sign_transaction(tx_datas=tx_datas):
             pass
-        rapdu = client.get_async_response()
+        client.get_async_response()
 
         if fees != 0:
             tx_datas = forge_public_fee(
@@ -254,7 +252,7 @@ class ARC20USDCTokenTests(GenericAleoTests):
             )
             with client.sign_transaction(tx_datas=tx_datas):
                 pass
-            rapdu = client.get_async_response()
+            client.get_async_response()
 
 
 class ZeroFeeARC20USDCTokenTests(ARC20USDCTokenTests):
@@ -271,13 +269,11 @@ class ARC20FAKETokenTests2(GenericAleoTests):
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         client = CommandSender(self.backend)
-        tx_datas = forge_arc20_token_public_transfer(
-            0, fees, destination, send_amount, "fake_stablecoin.aleo"
-        )
+        tx_datas = forge_arc20_token_public_transfer(0, fees, destination, send_amount, "fake_stablecoin.aleo")
         tx_datas["path"] = "m/44'/683'/0'/0'"
         with client.sign_transaction(tx_datas=tx_datas):
             pass
-        rapdu = client.get_async_response()
+        client.get_async_response()
 
         if fees != 0:
             tx_datas = forge_public_fee(
@@ -287,7 +283,7 @@ class ARC20FAKETokenTests2(GenericAleoTests):
             )
             with client.sign_transaction(tx_datas=tx_datas):
                 pass
-            rapdu = client.get_async_response()
+            client.get_async_response()
 
 
 class TestsAleo:
@@ -318,25 +314,17 @@ class TestsAleo:
         assert e.value.status in [0xC000, 0x6A80]
 
     def test_aleo_swap_arc20_usdt(self, backend, exchange_navigation_helper):
-        ARC20USDCTokenTests(backend, exchange_navigation_helper).run_test(
-            "swap_valid_1"
-        )
+        ARC20USDCTokenTests(backend, exchange_navigation_helper).run_test("swap_valid_1")
 
     def test_aleo_swap_arc20_usdt_zero_fee(self, backend, exchange_navigation_helper):
-        ZeroFeeARC20USDCTokenTests(backend, exchange_navigation_helper).run_test(
-            "swap_valid_1"
-        )
+        ZeroFeeARC20USDCTokenTests(backend, exchange_navigation_helper).run_test("swap_valid_1")
 
     def test_aleo_swap_arc20_fake_1(self, backend, exchange_navigation_helper):
         with pytest.raises(ExceptionRAPDU) as e:
-            ARC20FAKETokenTests(backend, exchange_navigation_helper).run_test(
-                "swap_valid_1"
-            )
+            ARC20FAKETokenTests(backend, exchange_navigation_helper).run_test("swap_valid_1")
         assert e.value.status in [0xC000]
 
     def test_aleo_swap_arc20_fake_2(self, backend, exchange_navigation_helper):
         with pytest.raises(ExceptionRAPDU) as e:
-            ARC20FAKETokenTests2(backend, exchange_navigation_helper).run_test(
-                "swap_valid_1"
-            )
+            ARC20FAKETokenTests2(backend, exchange_navigation_helper).run_test("swap_valid_1")
         assert e.value.status in [0xC000, 0x6A80]

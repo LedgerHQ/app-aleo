@@ -42,9 +42,7 @@ ALEO_FAKE_CURRENCY_CONFIGURATION = CurrencyConfiguration(
 )
 
 # ALEO ARC20 USDC token configuration - USDC with 6 decimals
-ALEO_ARC20_USDT_CONF = create_currency_config(
-    "USDT", "Aleo", sub_coin_config=("USDT", 6)
-)
+ALEO_ARC20_USDT_CONF = create_currency_config("USDT", "Aleo", sub_coin_config=("USDT", 6))
 ALEO_ARC20_USDT_PACKED_DERIVATION_PATH = ALEO_PACKED_DERIVATION_PATH
 ALEO_ARC20_USDT_CURRENCY_CONFIGURATION = CurrencyConfiguration(
     ticker="USDT",
