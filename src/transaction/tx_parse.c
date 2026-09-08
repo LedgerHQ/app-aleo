@@ -73,6 +73,10 @@ static int parse_token_arc20_batch_transfer_private_to_public(sign_transaction_d
 static int parse_fee_public(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx);
 
+static int parse_staking_bond(sign_transaction_datas_t *data, tx_t *tx);
+static int parse_staking_unbond(sign_transaction_datas_t *data, tx_t *tx);
+static int parse_staking_claim(sign_transaction_datas_t *data, tx_t *tx);
+
 static int get_u64(input_t *input, bool is_private, uint64_t *value)
 {
     if ((input->type_length != U64_TYPE_LENGTH) || (input->value_length != U64_VALUE_LENGTH)) {
@@ -513,6 +517,38 @@ static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx)
     return status;
 }
 
+static int parse_staking_bond(sign_transaction_datas_t *data, tx_t *tx)
+{
+    int status
+        = get_address(&data->prepared_request.inputs[0], false, tx->staking.validator_address);
+    if (status == 0) {
+        status
+            = get_address(&data->prepared_request.inputs[1], false, tx->staking.withdrawal_address);
+    }
+    if (status == 0) {
+        status = get_u64(&data->prepared_request.inputs[2], false, &tx->staking.amount);
+    }
+
+    return status;
+}
+
+static int parse_staking_unbond(sign_transaction_datas_t *data, tx_t *tx)
+{
+    int status = get_address(&data->prepared_request.inputs[0], false, tx->staking.staker_address);
+    if (status == 0) {
+        status = get_u64(&data->prepared_request.inputs[1], false, &tx->staking.amount);
+    }
+
+    return status;
+}
+
+static int parse_staking_claim(sign_transaction_datas_t *data, tx_t *tx)
+{
+    int status = get_address(&data->prepared_request.inputs[0], false, tx->staking.staker_address);
+
+    return status;
+}
+
 int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
 {
     LEDGER_ASSERT(data != NULL, "NULL data");
@@ -613,6 +649,15 @@ int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
         case TX_FEE_PRIVATE:
             G_context.r_list.count = 0;
             return parse_fee_private(data, tx);
+
+        case TX_STAKING_BOND:
+            return parse_staking_bond(data, tx);
+
+        case TX_STAKING_UNBOND:
+            return parse_staking_unbond(data, tx);
+
+        case TX_STAKING_CLAIM:
+            return parse_staking_claim(data, tx);
 
         default:
             break;

@@ -23,7 +23,16 @@
 			"input_count" : 2},
 		{"function" : "join",
 			"tx_type" : "TX_JOIN",
-			"input_count" : 2}
+			"input_count" : 2},
+		{"function" : "bond_public",
+			"tx_type" : "TX_STAKING_BOND",
+			"input_count" : 3},
+		{"function" : "unbond_public",
+			"tx_type" : "TX_STAKING_UNBOND",
+			"input_count" : 2},
+		{"function" : "claim_unbond_public",
+			"tx_type" : "TX_STAKING_CLAIM",
+			"input_count" : 1}
 	],
 	"ldg_p_28.aleo" : [
 		{"function" : "transfer_private_2",
