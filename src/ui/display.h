@@ -43,4 +43,12 @@ int ui_display_view_key(void);
  * @return 0 if success, negative integer otherwise.
  *
  */
-int ui_display_transaction(void);
+int ui_display_review_transfer(void);
+
+/**
+ * Display staking information on the device and ask confirmation to sign.
+ *
+ * @return 0 if success, negative integer otherwise.
+ *
+ */
+int ui_display_review_staking(void);

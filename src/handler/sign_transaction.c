@@ -110,18 +110,24 @@ static int sign_root_tx(buffer_t *cdata)
         goto rejected;
     }
 
-    if ((G_context.tx.type < TX_TRANSFER_START) || (G_context.tx.type > TX_TRANSFER_END)) {
+    if ((G_context.tx.type >= TX_TRANSFER_START) && (G_context.tx.type <= TX_TRANSFER_END)) {
+        G_context.signing_state = SIGNING_STATE_INTENT;
+        // Display & sign transfer
+        if ((status = ui_display_review_transfer()) < 0) {
+            goto rejected;
+        }
+    }
+    else if ((G_context.tx.type >= TX_STAKING_START) && (G_context.tx.type <= TX_STAKING_END)) {
+        G_context.signing_state = SIGNING_STATE_INTENT;
+        // Display & sign staking
+        if ((status = ui_display_review_staking()) < 0) {
+            goto rejected;
+        }
+    }
+    else {
         status = -1;
         goto rejected;
     }
-
-    G_context.signing_state = SIGNING_STATE_INTENT;
-
-    // Display & sign transaction
-    if ((status = ui_display_transaction()) < 0) {
-        goto rejected;
-    }
-
     goto end;
 
 rejected:
@@ -193,6 +199,13 @@ static int sign_nested_call_tx(buffer_t *cdata)
     if ((function_parameters->tx_type >= TX_FEE_START)
         && (function_parameters->tx_type <= TX_FEE_END)) {
         // Fee type request rejected
+        status = -1;
+        goto end;
+    }
+
+    if ((function_parameters->tx_type >= TX_STAKING_START)
+        && (function_parameters->tx_type <= TX_STAKING_END)) {
+        // Staking type request rejected
         status = -1;
         goto end;
     }
