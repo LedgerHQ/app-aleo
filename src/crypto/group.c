@@ -144,7 +144,7 @@ int group_scalar_multiply(const group_t *a, const scalar_t *b, group_t *r)
         goto end;
     }
 
-    if ((error = cx_ecpoint_scalarmul(&point, bn_scalar, sizeof(bn_scalar))) != CX_OK) {
+    if ((error = cx_ecpoint_rnd_scalarmul(&point, bn_scalar, sizeof(bn_scalar))) != CX_OK) {
         status = -1;
         goto end;
     }

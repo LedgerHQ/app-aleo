@@ -32,7 +32,7 @@ static void prepare_scalar_mult_ok(void)
     will_return(cx_bn_lock, CX_OK);
     will_return(cx_ecpoint_alloc, CX_OK);
     will_return(cx_ecpoint_init, CX_OK);
-    will_return(cx_ecpoint_scalarmul, CX_OK);
+    will_return(cx_ecpoint_rnd_scalarmul, CX_OK);
     will_return(cx_ecpoint_export, CX_OK);
     will_return(cx_ecpoint_destroy, CX_OK);
     will_return(cx_bn_unlock, CX_OK);
@@ -80,7 +80,7 @@ static void test_signature(void **state)
     will_return_count(cx_bn_lock, CX_OK, 3);
     will_return_count(cx_ecpoint_alloc, CX_OK, 3);
     will_return_count(cx_ecpoint_init, CX_OK, 3);
-    will_return_count(cx_ecpoint_scalarmul, CX_OK, 3);
+    will_return_count(cx_ecpoint_rnd_scalarmul, CX_OK, 3);
     will_return_count(cx_ecpoint_export, CX_OK, 3);
     will_return_count(cx_ecpoint_destroy, CX_OK, 3);
     will_return_count(cx_bn_unlock, CX_OK, 3);

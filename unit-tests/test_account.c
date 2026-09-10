@@ -61,7 +61,7 @@ static void test_account(void **state)
     will_return_always(cx_bn_lock, CX_OK);
     will_return_always(cx_ecpoint_alloc, CX_OK);
     will_return_always(cx_ecpoint_init, CX_OK);
-    will_return_always(cx_ecpoint_scalarmul, CX_OK);
+    will_return_always(cx_ecpoint_rnd_scalarmul, CX_OK);
     will_return_always(cx_ecpoint_export, CX_OK);
     will_return_always(cx_ecpoint_destroy, CX_OK);
     will_return_always(cx_bn_unlock, CX_OK);
@@ -173,7 +173,7 @@ static void test_r_list(void **state)
     will_return_always(cx_bn_lock, CX_OK);
     will_return_always(cx_ecpoint_alloc, CX_OK);
     will_return_always(cx_ecpoint_init, CX_OK);
-    will_return_always(cx_ecpoint_scalarmul, CX_OK);
+    will_return_always(cx_ecpoint_rnd_scalarmul, CX_OK);
     will_return_always(cx_ecpoint_export, CX_OK);
     will_return_always(cx_ecpoint_destroy, CX_OK);
     will_return_always(cx_bn_unlock, CX_OK);
