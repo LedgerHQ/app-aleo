@@ -12,16 +12,7 @@
 
 #include <stdint.h>
 
-typedef struct swap_validated_s {
-    bool     initialized;
-    u128_t   amount;
-    uint64_t max_fee;
-    char     recipient[ADDRESS_LEN + 1];
-    char     ticker[MAX_TICKER_SIZE + 1];
-    uint8_t  decimals;
-} swap_validated_t;
-
-static swap_validated_t G_swap_validated;
+swap_validated_t G_swap_validated;
 
 bool swap_copy_transaction_parameters(create_transaction_parameters_t *params)
 {
@@ -94,6 +85,11 @@ bool swap_copy_transaction_parameters(create_transaction_parameters_t *params)
     }
     PRINTF("Validated max fee: %.*H\n", sizeof(swap_validated.max_fee), &swap_validated.max_fee);
 
+    // Save account address
+    memcpy(swap_validated.account_address,
+           G_swap_validated.account_address,
+           sizeof(swap_validated.account_address));
+
     swap_validated.initialized = true;
 
     // Full reset the global variables
@@ -105,7 +101,9 @@ bool swap_copy_transaction_parameters(create_transaction_parameters_t *params)
     return true;
 }
 
-bool swap_check_validity(const tx_transfer_t *tx_transfer, const uint64_t max_fee)
+bool swap_check_validity(char                 account_address[ADDRESS_LEN + 1],
+                         const tx_transfer_t *tx_transfer,
+                         const uint64_t       max_fee)
 {
     PRINTF("Inside swap_check_validity\n");
 
@@ -177,6 +175,24 @@ bool swap_check_validity(const tx_transfer_t *tx_transfer, const uint64_t max_fe
     else {
         PRINTF("Destination is valid\n");
     }
+
+    // If a check address has been issued before, verify it is the same account address
+    if (strlen(G_swap_validated.account_address)
+        && strncmp(G_swap_validated.account_address,
+                   account_address,
+                   sizeof(G_swap_validated.account_address))) {
+        PRINTF("Account addresses do not match\n");
+        PRINTF("Validated: %s\n", G_swap_validated.account_address);
+        PRINTF("Received: %s \n", account_address);
+        send_swap_error_simple(SW_SWAP_FAIL, SWAP_EC_ERROR_INTERNAL, SWAP_ERROR_CODE);
+        // unreachable
+        os_sched_exit(0);
+    }
+    else {
+        PRINTF("Account address is valid\n");
+    }
+
+    explicit_bzero(&G_swap_validated, sizeof(G_swap_validated));
 
     return true;
 }

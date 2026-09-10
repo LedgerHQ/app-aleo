@@ -199,7 +199,8 @@ int ui_display_review_transfer(void)
              G_context.tx.transfer.token_info->ticker);
 
     if (G_called_from_swap) {
-        review_transaction(swap_check_validity(&G_context.tx.transfer, total_fees));
+        review_transaction(
+            swap_check_validity(G_context.account.address_str, &G_context.tx.transfer, total_fees));
         return 0;
     }
 
