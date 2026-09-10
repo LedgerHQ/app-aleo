@@ -105,6 +105,21 @@ static int sign_root_tx(buffer_t *cdata)
     G_context.nested_call_count
         = G_context.sign_transaction_datas.prepared_request.nested_call_count;
 
+    if (G_called_from_swap) {
+        // Forbid smarcontract thus private batch transfer for swaps
+        if (G_context.nested_call_count) {
+            status = -1;
+            goto rejected;
+        }
+        // Forbid private transfer for swaps
+        if (strnstr(G_context.sign_transaction_datas.prepared_request.function_name,
+                    "private",
+                    G_context.sign_transaction_datas.prepared_request.function_name_length)) {
+            status = -1;
+            goto rejected;
+        }
+    }
+
     // Parse intent
     if ((status = tx_parse(&G_context.sign_transaction_datas, &G_context.tx)) < 0) {
         goto rejected;
