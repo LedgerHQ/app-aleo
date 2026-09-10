@@ -38,14 +38,14 @@ bool format_u128(char *out, size_t out_len, u128_t in)
     }
 
     while (high || low) {
+        if (i >= out_len - 1) {
+            return false;
+        }
         uint64_t mid   = ((high % 10) << 32) | (low >> 32);
         uint64_t inter = ((mid % 10) << 32) | (low & 0xFFFFFFFF);
 
         out[i++] = (char) ('0' + (inter % 10));
 
-        if (i >= out_len - 1) {
-            return false;
-        }
         high /= 10;
         low = ((mid / 10) << 32) | (inter / 10);
     }

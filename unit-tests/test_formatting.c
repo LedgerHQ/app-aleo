@@ -56,6 +56,56 @@ static void test_formatting(void **state)
     assert_false(format_fpu128(temp, 9, amount, 12));
 }
 
+// Regression tests for V-202: format_u128() used to perform its capacity check
+// after writing each digit, rejecting values whose decimal representation
+// exactly saturates the output buffer (i.e. digits == out_len - 1) even
+// though the terminating NUL still fits. This must succeed for every value
+// up to and including UINT128_MAX in a buffer sized for the 39 decimal
+// digits of a u128 plus NUL, and must still reject values (or buffers) that
+// genuinely don't fit.
+static void test_format_u128_boundary(void **state)
+{
+    (void) state;
+
+    char temp[40] = {0};
+    char small[39] = {0};
+
+    // 10^38 - 1 : 38 digits, fits with room to spare in a 40-byte buffer.
+    u128_t ten_pow_38_minus_1 = {.high = 0x4B3B4CA85A86C47A, .low = 0x098A223FFFFFFFFF};
+    memset(temp, 0, sizeof(temp));
+    assert_true(format_u128(temp, sizeof(temp), ten_pow_38_minus_1));
+    assert_string_equal(temp, "99999999999999999999999999999999999999");
+
+    // 10^38 : 39 digits, exactly saturates a 40-byte buffer (39 digits + NUL).
+    u128_t ten_pow_38 = {.high = 0x4B3B4CA85A86C47A, .low = 0x098A224000000000};
+    memset(temp, 0, sizeof(temp));
+    assert_true(format_u128(temp, sizeof(temp), ten_pow_38));
+    assert_string_equal(temp, "100000000000000000000000000000000000000");
+
+    // UINT128_MAX : 39 digits, exactly saturates a 40-byte buffer.
+    u128_t max = {.high = 0xFFFFFFFFFFFFFFFF, .low = 0xFFFFFFFFFFFFFFFF};
+    memset(temp, 0, sizeof(temp));
+    assert_true(format_u128(temp, sizeof(temp), max));
+    assert_string_equal(temp, "340282366920938463463374607431768211455");
+
+    // 10^38 - 1 has exactly 38 digits, which still fits (with the NUL) in a
+    // 39-byte buffer.
+    memset(small, 0, sizeof(small));
+    assert_true(format_u128(small, sizeof(small), ten_pow_38_minus_1));
+    assert_string_equal(small, "99999999999999999999999999999999999999");
+
+    // UINT128_MAX needs 39 digits, which cannot fit alongside the NUL in a
+    // 39-byte buffer (only 38 digit slots are available): must be rejected.
+    memset(small, 0, sizeof(small));
+    assert_false(format_u128(small, sizeof(small), max));
+
+    // format_fpu128() relies on the same 40-byte intermediate buffer and
+    // must therefore also succeed for the maximal amount.
+    memset(temp, 0, sizeof(temp));
+    assert_true(format_fpu128(temp, sizeof(temp), max, 0));
+    assert_string_equal(temp, "340282366920938463463374607431768211455");
+}
+
 static void test_swap_str_to_u128(void **state)
 {
     (void) state;
@@ -118,6 +168,7 @@ int main()
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_formatting),
+        cmocka_unit_test(test_format_u128_boundary),
         cmocka_unit_test(test_swap_str_to_u128),
     };
 
