@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.4] - 2026-09-11
+
+### Added
+
+- Staking/bonding support: bond, unbond and claim transactions with dedicated review UI
+- Fuzzing coverage for staking transactions
+- Unit and Ragger tests for bonding functions and UI
+
+### Fixed
+
+- V-223: Swap token substitution via ticker/decimal-only validation in `SIGN_TRANSACTION`
+- V-202: 39-digit u128 transaction amounts rejected by `format_u128`
+- V-189: Swap signing path not bound to the account verified by `CHECK_ADDRESS`
+- V-035: Secret scalar multiplications used a non-randomized SDK primitive
+- V-187: Overlapping root `SIGN_TRANSACTION` APDUs could replace the transaction during user review
+
 ## [1.3.3] - 2026-09-01
 
 ### Added
