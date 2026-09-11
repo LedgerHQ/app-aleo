@@ -38,6 +38,10 @@ int handler_get_view_key(buffer_t *cdata)
 {
     LEDGER_ASSERT(cdata != NULL, "NULL cdata");
 
+    if (G_context.signing_state != SIGNING_STATE_WAIT_INTENT) {
+        return io_send_sw(SWO_CONDITIONS_NOT_SATISFIED);
+    }
+
     explicit_bzero(&G_context, sizeof(G_context));
     G_context.req_type = CONFIRM_VIEW_KEY;
     G_context.state    = STATE_NONE;
