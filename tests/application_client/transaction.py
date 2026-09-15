@@ -92,8 +92,18 @@ class Transaction:
         else:
             t = Transaction.TlvTypes(0)
 
-        length = int(tlv[offset : offset + 2], base=16)
+        element = int(tlv[offset : offset + 2], base=16)
         offset += 2
+        if element < 0x80:
+            length = element
+        elif element == 0x81:
+            length = int(tlv[offset : offset + 2], base=16)
+            offset += 2
+        elif element == 0x82:
+            length = int(tlv[offset : offset + 4], base=16)
+            offset += 4
+        else:
+            length = element
 
         v = tlv[offset : offset + 2 * length]
         offset += 2 * length
