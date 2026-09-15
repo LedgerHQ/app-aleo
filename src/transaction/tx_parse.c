@@ -356,9 +356,9 @@ static int parse_token_transfer_private_to_public(sign_transaction_datas_t *data
         }
     }
     else if (tx->transfer.token_info->type == TOKEN_TYPE_ARC20) {
-        status = get_address(&data->prepared_request.inputs[1], true, tx->transfer.address_to);
+        status = get_address(&data->prepared_request.inputs[1], false, tx->transfer.address_to);
         if (status == 0) {
-            status = get_u128(&data->prepared_request.inputs[2], true, &tx->transfer.amount);
+            status = get_u128(&data->prepared_request.inputs[2], false, &tx->transfer.amount);
         }
     }
     else {

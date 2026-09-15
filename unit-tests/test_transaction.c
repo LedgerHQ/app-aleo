@@ -623,7 +623,6 @@ static void test_tx_token_parse(void **state)
     assert_int_equal(tx_parse(&datas_token_batch_private, &tx), 0);
 }
 
-
 static void test_tx_token_arc20_parse(void **state)
 {
     (void) state;
@@ -732,14 +731,15 @@ static void test_tx_token_arc20_parse(void **state)
 
     datas_arc20_private.prepared_request.inputs[1].type = type_11;
     assert_int_equal(tx_parse(&datas_arc20_private, &tx), -1);
-    datas_arc20_private.prepared_request.inputs[1].type = type_12;
 
     char function_name_3[26]                                  = "transfer_private_to_public";
     datas_arc20_private.prepared_request.function_name_length = sizeof(function_name_3);
     datas_arc20_private.prepared_request.function_name        = function_name_3;
+    datas_arc20_private.prepared_request.inputs[1].type       = type_11;
+    datas_arc20_private.prepared_request.inputs[2].type       = type_1;
     assert_int_equal(tx_parse(&datas_arc20_private, &tx), 0);
 
-    datas_arc20_private.prepared_request.inputs[2].type = type_11;
+    datas_arc20_private.prepared_request.inputs[1].type = type_12;
     assert_int_equal(tx_parse(&datas_arc20_private, &tx), -1);
 
     sign_transaction_datas_t datas_arc20_batch_private = {
@@ -757,8 +757,8 @@ static void test_tx_token_arc20_parse(void **state)
            .inputs_count         = 5,
            .inputs               = {
                {.value_length = 31,
-                .value        = (uint8_t *)"arc20_eth\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-                                           "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+                .value        = (uint8_t *) "arc20_eth\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                                            "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
                 .type_length  = 3,
                 .type         = (uint8_t *) "\x02\x00\x11"},
                {.value_length = 96,
@@ -798,11 +798,10 @@ static void test_tx_token_arc20_parse(void **state)
 
 int main()
 {
-    const struct CMUnitTest tests[]
-        = {cmocka_unit_test(test_tx_extract),
-           cmocka_unit_test(test_tx_parse),
-           cmocka_unit_test(test_tx_token_parse),
-           cmocka_unit_test(test_tx_token_arc20_parse)};
+    const struct CMUnitTest tests[] = {cmocka_unit_test(test_tx_extract),
+                                       cmocka_unit_test(test_tx_parse),
+                                       cmocka_unit_test(test_tx_token_parse),
+                                       cmocka_unit_test(test_tx_token_arc20_parse)};
 
     return cmocka_run_group_tests(tests, NULL, NULL);
 }

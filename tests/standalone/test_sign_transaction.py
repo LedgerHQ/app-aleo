@@ -476,8 +476,8 @@ def forge_arc20_token_private_to_public_transfer(
     }
     data["request"]["inputs"] = [
         {"type": "token.record", "value": record},
-        {"type": "address.private", "value": address_to},
-        {"type": "u128.private", "value": amount},
+        {"type": "address.public", "value": address_to},
+        {"type": "u128.public", "value": amount},
     ]
     data["request"]["nested_call_count"] = 0
     data["request"]["program_checksum"] = program_checksum
