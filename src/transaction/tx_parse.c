@@ -149,6 +149,12 @@ static int get_address(input_t *input, bool is_private, char address[ADDRESS_LEN
         return -1;
     }
 
+    // Only the low FIELD_MODULUS_BITS bits are signed, so rendering a non-canonical encoding
+    // would show an address the signature does not commit to.
+    if (!field_is_canonical(input->value)) {
+        return -1;
+    }
+
     uint8_t data[ADDRESS_LEN + 1];
     size_t  datalen = 0;
 

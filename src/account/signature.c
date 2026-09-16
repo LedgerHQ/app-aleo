@@ -107,6 +107,13 @@ static int plaintext_to_field(uint8_t       *plaintext,
         if ((plaintext_length * 8) < bit_size) {
             return -1;
         }
+        // A 32-byte field-typed value carries 3 bits above the modulus that are never signed;
+        // refuse any encoding that uses them rather than sign a value that was not displayed.
+        if (((variant == PLAINTEXT_TYPE_LITERAL_ADDRESS)
+             || (variant == PLAINTEXT_TYPE_LITERAL_FIELD))
+            && !field_is_canonical(plaintext)) {
+            return -1;
+        }
         int bit_length = bits_from_plaintext_literal(
             plaintext, bit_size, variant, bit_buffer, BIT_BUFFER_MAX_LENGTH * 8);
         if (bit_length < 0) {

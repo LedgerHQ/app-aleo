@@ -144,6 +144,28 @@ int field_random(field_t *a)
     return fp256_random(&field_parameters, a);
 }
 
+bool field_is_canonical(const uint8_t *value)
+{
+    uint8_t      big_endian[BN_LENGTH];
+    bigint_256_t integer;
+    bool         canonical;
+
+    LEDGER_ASSERT(value != NULL, "NULL value");
+
+    // The wire encoding is little endian, bn_to_big_int() expects big endian and bn_reverse()
+    // works in place, so the caller's buffer must not be touched.
+    memcpy(big_endian, value, sizeof(big_endian));
+    bn_reverse(big_endian);
+    bn_to_big_int(big_endian, &integer);
+
+    canonical = (big_int_compare(&integer, &field_parameters.MODULUS.big) < 0);
+
+    explicit_bzero(big_endian, sizeof(big_endian));
+    explicit_bzero(&integer, sizeof(integer));
+
+    return canonical;
+}
+
 #ifdef HAVE_PRINTF
 void field_print(const field_t *a)
 {

@@ -729,6 +729,41 @@ def test_sign_transaction_wrong_fee(backend: BackendInterface, scenario_navigato
     assert e.value.status == StatusWords.SWO_INCORRECT_DATA
 
 
+def test_sign_transaction_non_canonical_address(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
+    # Same recipient as test_sign_transaction_transfer_public, but with bit 255 of its 32-byte
+    # field encoding set. Only the low FIELD_MODULUS_BITS (253) bits of an address input are
+    # covered by the signature, so an encoding that uses the 3 spare high bits would be rendered
+    # on the review screen while the signature commits to a different value. The device must
+    # refuse it instead of displaying one address and signing another.
+    non_canonical_address = "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2wkxqg47k6q"
+
+    client = CommandSender(backend)
+    tx_datas = forge_public_transfer(
+        500,
+        100,
+        non_canonical_address,
+        1000,
+    )
+    tx_datas["path"] = "m/44'/683'/0'/0'"
+
+    with pytest.raises(ExceptionRAPDU) as e:
+        with client.sign_transaction(tx_datas=tx_datas):
+            if scenario_navigator.device.is_nano:
+                instruction = NavInsID.BOTH_CLICK
+            else:
+                instruction = NavInsID.USE_CASE_REVIEW_TAP
+            scenario_navigator.navigator.navigate_until_text(
+                navigate_instruction=instruction,
+                validation_instructions=[],
+                text="Transaction rejected",
+                timeout=3,
+                screen_change_before_first_instruction=False,
+                screen_change_after_last_instruction=True,
+            )
+
+    assert e.value.status == StatusWords.SWO_INCORRECT_DATA
+
+
 def test_sign_transaction_transfer_public(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
     tx_datas = forge_public_transfer(
