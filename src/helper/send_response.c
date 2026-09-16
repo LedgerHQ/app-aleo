@@ -93,14 +93,14 @@ static int add_tlv_uint8(uint8_t *in_buffer, size_t in_buffer_size, uint8_t type
     return offset;
 }
 
-static size_t add_tlv_signature(uint8_t             *in_buffer,
-                                size_t               in_buffer_size,
-                                uint8_t              type,
-                                const scalar_t      *challenge,
-                                const scalar_t      *response,
-                                const compute_key_t *compute_key)
+static int add_tlv_signature(uint8_t             *in_buffer,
+                             size_t               in_buffer_size,
+                             uint8_t              type,
+                             const scalar_t      *challenge,
+                             const scalar_t      *response,
+                             const compute_key_t *compute_key)
 {
-    size_t       offset = 0;
+    int          offset = 0;
     bigint_256_t b;
 
     if (type <= 0x7f) {
