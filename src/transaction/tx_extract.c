@@ -139,7 +139,15 @@ static bool get_input_type(const tlv_data_t *data, prepared_request_t *cookie)
 
 static bool get_nested_call_count(const tlv_data_t *data, prepared_request_t *cookie)
 {
-    return get_uint8_t_from_tlv_data(data, &cookie->nested_call_count);
+    if (!get_uint8_t_from_tlv_data(data, &cookie->nested_call_count)) {
+        return false;
+    }
+    if (cookie->nested_call_count >= R_LIST_MAX_LENGTH) {
+        cookie->nested_call_count = 0;
+        return false;
+    }
+
+    return true;
 }
 
 static bool get_program_checksum(const tlv_data_t *data, prepared_request_t *cookie)
