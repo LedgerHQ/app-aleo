@@ -54,101 +54,367 @@ static void test_tx_extract(void **state)
     buffer.offset = 0;
     assert_int_equal(tx_extract_intent(&buffer), -1);
 
+    // Malformed prepared request
+    uint8_t payload_2[51]
+        = "\x01\x01\x28\x02\x01\x01\x81\xB0\x04\x00\x00\x01\xF4\x81\xB1\x04\x00\x00\x00\x64\x81\xB2"
+          "\x0A\x66\x65\x65\x5F\x70\x75\x62\x6C\x69\x63\x81\xB3\x0C\x63\x72\x65\x64\x69\x74\x73\x2E"
+          "\x61\x6C\x65\x6F\x81\xB4\x00";
+    buffer.ptr    = payload_2;
+    buffer.size   = sizeof(payload_2);
+    buffer.offset = 0;
+    assert_int_equal(tx_extract_intent(&buffer), -1);
+
     // tx_extract_prepared_request
-    uint8_t program_id[73]
-        = "\x81\xb5\x46\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69"
+    // Program ID & function name
+    uint8_t prepared_request_10[8] = "\x81\xb5\x01\x64\x81\xb6\x01\x64";
+    buffer.ptr                     = prepared_request_10;
+    buffer.size                    = sizeof(prepared_request_10);
+    buffer.offset                  = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        0);
+
+    uint8_t prepared_request_11[134]
+        = "\x81\xb5\x40\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69"
           "\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74"
           "\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73"
-          "\x63\x72\x65\x64\x69\x74\x73";
-    buffer.ptr    = program_id;
-    buffer.size   = sizeof(program_id);
-    buffer.offset = 0;
-    assert_int_equal(
-        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
-        -1);
-
-    uint8_t function_name[73]
-        = "\x81\xb6\x46\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69"
+          "\x63\x81\xb6\x40\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x72\x65\x64\x69"
           "\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74"
-          "\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73"
-          "\x63\x72\x65\x64\x69\x74\x73";
-    buffer.ptr    = function_name;
-    buffer.size   = sizeof(function_name);
-    buffer.offset = 0;
-    assert_int_equal(
-        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
-        -1);
-
-    uint8_t input_value[144]
-        = "\x81\xb8\x81\x8c\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64"
-          "\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69"
           "\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74"
-          "\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73"
-          "\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63"
-          "\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72"
-          "\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73";
-    buffer.ptr    = input_value;
-    buffer.size   = sizeof(input_value);
-    buffer.offset = 0;
-    assert_int_equal(
-        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
-        -1);
-
-    uint8_t input_values[78]
-        = "\x81\xb8\x01\x01\x81\xb8\x01\x02\x81\xb8\x01\x03\x81\xb8\x01\x04\x81\xb8\x01\x05\x81\xb8"
-          "\x01\x06\x81\xb8\x01\x07\x81\xb8\x01\x08\x81\xb8\x01\x09\x81\xb8\x01\x0a\x81\xb8\x01\x0b"
-          "\x81\xb8\x01\x0c\x81\xb8\x01\x0d\x81\xb8\x01\x0e\x81\xb8\x01\x0f\x81\xb8\x01\x10\x81\xb8"
-          "\x01\x11";
-    buffer.ptr    = input_values;
-    buffer.size   = sizeof(input_values);
-    buffer.offset = 0;
-    assert_int_equal(
-        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
-        -1);
-
-    uint8_t input_type[144]
-        = "\x81\xb9\x81\x8c\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64"
-          "\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69"
-          "\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74"
-          "\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73"
-          "\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63"
-          "\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72"
-          "\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73";
-    buffer.ptr    = input_type;
-    buffer.size   = sizeof(input_type);
-    buffer.offset = 0;
-    assert_int_equal(
-        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
-        -1);
-
-    uint8_t input_types[78]
-        = "\x81\xb9\x01\x01\x81\xb9\x01\x02\x81\xb9\x01\x03\x81\xb9\x01\x04\x81\xb9\x01\x05\x81\xb9"
-          "\x01\x06\x81\xb9\x01\x07\x81\xb9\x01\x08\x81\xb9\x01\x09\x81\xb9\x01\x0a\x81\xb9\x01\x0b"
-          "\x81\xb9\x01\x0c\x81\xb9\x01\x0d\x81\xb9\x01\x0e\x81\xb9\x01\x0f\x81\xb9\x01\x10\x81\xb9"
-          "\x01\x11";
-    buffer.ptr    = input_types;
-    buffer.size   = sizeof(input_types);
-    buffer.offset = 0;
-    assert_int_equal(
-        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
-        -1);
-
-    uint8_t program_checksum[35]
-        = "\x81\xc4\x20\x01\x81\xb9\x01\x02\x81\xb9\x01\x03\x81\xb9\x01\x04\x81\xb9\x01\x05\x81\xb9"
-          "\x01\x06\x81\xb9\x01\x07\x81\xb9\x01\x08\x81\xb9\x01";
-    buffer.ptr    = program_checksum;
-    buffer.size   = sizeof(program_checksum);
+          "\x63\x72";
+    buffer.ptr    = prepared_request_11;
+    buffer.size   = sizeof(prepared_request_11);
     buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         0);
 
-    uint8_t program_checksum_2[34]
-        = "\x81\xc4\x1f\x01\x81\xb9\x01\x02\x81\xb9\x01\x03\x81\xb9\x01\x04\x81\xb9\x01\x05\x81\xb9"
-          "\x01\x06\x81\xb9\x01\x07\x81\xb9\x01\x08\x81\xb9";
-    buffer.ptr    = program_checksum_2;
-    buffer.size   = sizeof(program_checksum_2);
+    // Wrong program id
+    uint8_t prepared_request_12[72]
+        = "\x81\xb5\x41\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69"
+          "\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74"
+          "\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73"
+          "\x63\x72\x81\xb6\x01\x01";
+    buffer.ptr    = prepared_request_12;
+    buffer.size   = sizeof(prepared_request_12);
     buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
+    // Wrong function name
+    uint8_t prepared_request_13[72]
+        = "\x81\xb6\x41\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69"
+          "\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74"
+          "\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73"
+          "\x63\x72\x81\xb5\x01\x01";
+    buffer.ptr    = prepared_request_13;
+    buffer.size   = sizeof(prepared_request_13);
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
+    // Missing program id
+    uint8_t prepared_request_14[4] = "\x81\xb6\x01\x64";
+    buffer.ptr                     = prepared_request_14;
+    buffer.size                    = sizeof(prepared_request_14);
+    buffer.offset                  = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
+    // Empty program id
+    uint8_t prepared_request_15[7] = "\x81\xb5\x00\x81\xb6\x01\x64";
+    buffer.ptr                     = prepared_request_15;
+    buffer.size                    = sizeof(prepared_request_15);
+    buffer.offset                  = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
+    // Missing function name
+    uint8_t prepared_request_16[4] = "\x81\xb5\x01\x64";
+    buffer.ptr                     = prepared_request_16;
+    buffer.size                    = sizeof(prepared_request_16);
+    buffer.offset                  = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
+    // Empty function name
+    uint8_t prepared_request_17[7] = "\x81\xb5\x01\x64\x81\xb6\x00";
+    buffer.ptr                     = prepared_request_17;
+    buffer.size                    = sizeof(prepared_request_17);
+    buffer.offset                  = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
+    // Inputs
+    // input count
+    uint8_t prepared_request_20[12] = "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x00";
+    buffer.ptr                      = prepared_request_20;
+    buffer.size                     = sizeof(prepared_request_20);
+    buffer.offset                   = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        0);
+    uint8_t prepared_request_21[12] = "\x81\xb5\x01\x01\x81\xb6\x01\x01\x81\xb7\x01\x01";
+    buffer.ptr                      = prepared_request_21;
+    buffer.size                     = sizeof(prepared_request_21);
+    buffer.offset                   = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+    uint8_t prepared_request_22[11] = "\x81\xb5\x01\x01\x81\xb6\x01\x01\x81\xb7\x00";
+    buffer.ptr                      = prepared_request_22;
+    buffer.size                     = sizeof(prepared_request_22);
+    buffer.offset                   = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+    uint8_t prepared_request_23[200];
+    memset(prepared_request_23, 0, sizeof(prepared_request_23));
+    memcpy(prepared_request_23,
+           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x10",
+           12);  // program/function/input count
+    memcpy(
+        &prepared_request_23[12],
+        "\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8"
+        "\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01"
+        "\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9"
+        "\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01"
+        "\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8"
+        "\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01",
+        128);  // input type/value
+    buffer.ptr    = prepared_request_23;
+    buffer.size   = 140;
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        0);
+
+    memset(prepared_request_23, 0, sizeof(prepared_request_23));
+    memcpy(prepared_request_23,
+           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x11",
+           12);  // program/function/input count
+    memcpy(
+        &prepared_request_23[12],
+        "\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8"
+        "\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01"
+        "\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9"
+        "\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01"
+        "\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8"
+        "\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01"
+        "\x81\xb8\x01\x01",
+        136);  // input type/value
+    buffer.ptr    = prepared_request_23;
+    buffer.size   = 148;
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
+    memset(prepared_request_23, 0, sizeof(prepared_request_23));
+    memcpy(prepared_request_23,
+           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x10",
+           12);  // program/function/input count
+    memcpy(
+        &prepared_request_23[12],
+        "\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8"
+        "\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01"
+        "\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9"
+        "\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01"
+        "\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8"
+        "\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01"
+        "\x81\xb8\x01\x01",
+        136);  // input type/value
+    buffer.ptr    = prepared_request_23;
+    buffer.size   = 148;
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
+    memset(prepared_request_23, 0, sizeof(prepared_request_23));
+    memcpy(prepared_request_23,
+           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x10",
+           12);  // program/function/input count
+    memcpy(
+        &prepared_request_23[12],
+        "\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8"
+        "\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01"
+        "\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9"
+        "\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01"
+        "\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8"
+        "\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb8\x01\x01"
+        "\x81\xb9\x01\x01",
+        136);  // input type/value
+    buffer.ptr    = prepared_request_23;
+    buffer.size   = 148;
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
+    // input value
+    uint8_t prepared_request_28[1600];
+    memset(prepared_request_28, 0, sizeof(prepared_request_22));
+    memcpy(prepared_request_28,
+           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
+           12);                                               // program/function
+    memcpy(&prepared_request_28[12], "\x81\xb9\x01\x01", 4);  // input type
+    memcpy(&prepared_request_28[16], "\x81\xb8\x01\x01", 4);  // input value
+    buffer.ptr    = prepared_request_28;
+    buffer.size   = 20;
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        0);
+
+    memset(prepared_request_28, 0, sizeof(prepared_request_28));
+    memcpy(prepared_request_28,
+           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
+           12);                                                   // program/function
+    memcpy(&prepared_request_28[12], "\x81\xb9\x01\x01", 4);      // input type
+    memcpy(&prepared_request_28[16], "\x81\xb8\x82\x06\x00", 5);  // input value
+    buffer.ptr    = prepared_request_28;
+    buffer.size   = 1557;
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        0);
+
+    memset(prepared_request_28, 0, sizeof(prepared_request_28));
+    memcpy(prepared_request_28,
+           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
+           12);                                                   // program/function
+    memcpy(&prepared_request_28[12], "\x81\xb9\x01\x01", 4);      // input type
+    memcpy(&prepared_request_28[16], "\x81\xb8\x82\x06\x01", 5);  // input value
+    buffer.ptr    = prepared_request_28;
+    buffer.size   = 1558;
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
+    memset(prepared_request_28, 0, sizeof(prepared_request_28));
+    memcpy(prepared_request_28,
+           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
+           12);                                               // program/function
+    memcpy(&prepared_request_28[12], "\x81\xb9\x01\x01", 4);  // input type
+    memcpy(&prepared_request_28[16], "\x81\xb8\x01\x01", 4);  // input value
+    memcpy(&prepared_request_28[20], "\x81\xb8\x01\x01", 4);  // input value
+    buffer.ptr    = prepared_request_28;
+    buffer.size   = 24;
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
+    // input type
+    memset(prepared_request_28, 0, sizeof(prepared_request_28));
+    memcpy(prepared_request_28,
+           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
+           12);                                               // program/function
+    memcpy(&prepared_request_28[12], "\x81\xb8\x01\x01", 4);  // input value
+    memcpy(&prepared_request_28[16], "\x81\xb9\x81\x80", 4);  // input type
+    buffer.ptr    = prepared_request_28;
+    buffer.size   = 148;
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        0);
+
+    memset(prepared_request_28, 0, sizeof(prepared_request_28));
+    memcpy(prepared_request_28,
+           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
+           12);                                               // program/function
+    memcpy(&prepared_request_28[12], "\x81\xb8\x01\x01", 4);  // input value
+    memcpy(&prepared_request_28[16], "\x81\xb9\x81\x81", 4);  // input type
+    buffer.ptr    = prepared_request_28;
+    buffer.size   = 149;
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
+    memset(prepared_request_28, 0, sizeof(prepared_request_28));
+    memcpy(prepared_request_28,
+           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
+           12);                                               // program/function
+    memcpy(&prepared_request_28[12], "\x81\xb9\x01\x01", 4);  // input type
+    memcpy(&prepared_request_28[16], "\x81\xb8\x01\x01", 4);  // input value
+    memcpy(&prepared_request_28[20], "\x81\xb9\x01\x01", 4);  // input type
+    buffer.ptr    = prepared_request_28;
+    buffer.size   = 24;
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
+    // Program checksum
+    uint8_t prepared_request_30[47]
+        = "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x00"
+          "\x81\xc4\x20\x01\x81\xb9\x01\x02\x81\xb9\x01\x03\x81\xb9\x01\x04\x81\xb9\x01\x05\x81\xb9"
+          "\x01\x06\x81\xb9\x01\x07\x81\xb9\x01\x08\x81\xb9\x01";
+    buffer.ptr    = prepared_request_30;
+    buffer.size   = sizeof(prepared_request_30);
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        0);
+
+    // Wrong program checksum
+    uint8_t prepared_request_31[46]
+        = "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x00"
+          "\x81\xc4\x1f\x01\x81\xb9\x01\x02\x81\xb9\x01\x03\x81\xb9\x01\x04\x81\xb9\x01\x05\x81\xb9"
+          "\x01\x06\x81\xb9\x01\x07\x81\xb9\x01\x08\x81\xb9";
+    buffer.ptr    = prepared_request_31;
+    buffer.size   = sizeof(prepared_request_31);
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
+    uint8_t prepared_request_32[48]
+        = "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x00"
+          "\x81\xc4\x1f\x01\x81\xb9\x01\x02\x81\xb9\x01\x03\x81\xb9\x01\x04\x81\xb9\x01\x05\x81\xb9"
+          "\x01\x06\x81\xb9\x01\x07\x81\xb9\x01\x08\x81\xb9\x01\x05";
+    buffer.ptr    = prepared_request_32;
+    buffer.size   = sizeof(prepared_request_32);
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
+    // Nested call count
+    uint8_t prepared_request_40[12] = "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xba\x01\x01";
+    buffer.ptr                      = prepared_request_40;
+    buffer.size                     = sizeof(prepared_request_40);
+    buffer.offset                   = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        0);
+    uint8_t prepared_request_42[12] = "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xba\x01\x1f";
+    buffer.ptr                      = prepared_request_42;
+    buffer.size                     = sizeof(prepared_request_42);
+    buffer.offset                   = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        0);
+    uint8_t prepared_request_41[11] = "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xba\x00";
+    buffer.ptr                      = prepared_request_41;
+    buffer.size                     = sizeof(prepared_request_41);
+    buffer.offset                   = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+    uint8_t prepared_request_43[12] = "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xba\x01\x20";
+    buffer.ptr                      = prepared_request_43;
+    buffer.size                     = sizeof(prepared_request_43);
+    buffer.offset                   = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         -1);

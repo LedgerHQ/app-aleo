@@ -242,11 +242,17 @@ int tx_extract_prepared_request(const buffer_t *cdata, prepared_request_t *prepa
     }
     print_signature_data(&G_context.sign_transaction_datas);
 
-    if (prepared_request->inputs_value_offset != prepared_request->inputs_type_offset) {
+    // Ensure input consistency
+    if ((prepared_request->inputs_value_offset != prepared_request->inputs_type_offset)
+        || (prepared_request->inputs_value_offset != prepared_request->inputs_count)) {
         explicit_bzero(prepared_request, sizeof(prepared_request_t));
         return -1;
     }
-    if (prepared_request->inputs_value_offset != prepared_request->inputs_count) {
+
+    // Ensure program/function consistency
+    if ((prepared_request->program_id == NULL) || (prepared_request->program_id_length == 0)
+        || (prepared_request->function_name == NULL)
+        || (prepared_request->function_name_length == 0)) {
         explicit_bzero(prepared_request, sizeof(prepared_request_t));
         return -1;
     }
