@@ -329,8 +329,8 @@ int helper_send_response_sign_transaction(void)
     status = io_legacy_apdu_tx(response_buffer, offset);
 
 end:
-    explicit_bzero(response_buffer, sizeof(response_buffer));
-
+    // Don't clean response_buffer here as if the send need several chunks then all chunks after the
+    // first one will be only zeros
     return status;
 }
 
