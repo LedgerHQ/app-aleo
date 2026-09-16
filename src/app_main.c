@@ -110,15 +110,16 @@ void app_ticker_event_callback(void)
     if (G_context.signing_state > SIGNING_STATE_INTENT) {
         G_context.next_step_waiting_time_ms += 100;
         if (G_context.next_step_waiting_time_ms > 15 * 1000) {
-            G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
             account_erase(&G_context.account);
             r_list_erase();
 #ifndef FUZZ
             if (!G_called_from_swap) {
                 if (G_context.signing_state == SIGNING_STATE_WAIT_NESTED_CALL) {
+                    G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
                     nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
                 }
                 else {
+                    G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
 #ifdef HAVE_SE_TOUCH
                     nbgl_useCaseAction(
                         &LARGE_WARNING_ICON,
@@ -135,11 +136,13 @@ void app_ticker_event_callback(void)
                 }
             }
             else {
+                G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
                 send_swap_error_simple(SW_SWAP_FAIL, SWAP_EC_ERROR_INTERNAL, SWAP_ERROR_CODE);
                 // unreachable
                 os_sched_exit(0);
             }
 #endif  // FUZZ
+            G_context.signing_state = SIGNING_STATE_WAIT_INTENT;
         }
     }
     else if ((G_context.signing_state == SIGNING_STATE_WAIT_INTENT)

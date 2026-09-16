@@ -1232,7 +1232,7 @@ def test_sign_transaction_transfer_batch_private_timeout(
         scenario_navigator.navigator.navigate_until_text(
             navigate_instruction=instruction,
             validation_instructions=[],
-            text="Fees signature",
+            text="Transaction rejected",
             timeout=20,
             screen_change_before_first_instruction=False,
             screen_change_after_last_instruction=True,
