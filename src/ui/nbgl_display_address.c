@@ -47,8 +47,7 @@ static void review_choice(bool confirm)
 
 int ui_display_address(void)
 {
-    if (G_context.req_type != CONFIRM_ADDRESS || G_context.state != STATE_NONE) {
-        G_context.state = STATE_NONE;
+    if (G_context.req_type != CONFIRM_ADDRESS) {
         return io_send_sw(SWO_CONDITIONS_NOT_SATISFIED);
     }
 

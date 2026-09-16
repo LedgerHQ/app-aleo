@@ -48,8 +48,7 @@ static void review_choice(bool confirm)
 
 int ui_display_view_key(void)
 {
-    if (G_context.req_type != CONFIRM_VIEW_KEY || G_context.state != STATE_NONE) {
-        G_context.state = STATE_NONE;
+    if (G_context.req_type != CONFIRM_VIEW_KEY) {
         return io_send_sw(SWO_CONDITIONS_NOT_SATISFIED);
     }
 

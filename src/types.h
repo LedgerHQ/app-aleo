@@ -37,15 +37,6 @@ typedef enum {
 } signing_state_e;
 
 /**
- * Enumeration with parsing state.
- */
-typedef enum {
-    STATE_NONE,     /// No state
-    STATE_PARSED,   /// Transaction data parsed
-    STATE_APPROVED  /// Transaction data approved
-} state_e;
-
-/**
  * Enumeration with user request type.
  */
 typedef enum {
@@ -186,7 +177,6 @@ typedef struct {
  * Structure for global context.
  */
 typedef struct {
-    state_e state;  /// state of the context
     union {
         char address[ADDRESS_LEN + 1];
         char view_key[VIEW_KEY_LEN + 1];

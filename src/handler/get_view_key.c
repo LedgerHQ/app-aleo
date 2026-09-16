@@ -44,7 +44,6 @@ int handler_get_view_key(buffer_t *cdata)
 
     explicit_bzero(&G_context, sizeof(G_context));
     G_context.req_type = CONFIRM_VIEW_KEY;
-    G_context.state    = STATE_NONE;
 
     if (!buffer_read_u8(cdata, &G_context.bip32_path_len)
         || !buffer_read_bip32_path(
