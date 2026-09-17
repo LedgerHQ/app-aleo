@@ -65,11 +65,6 @@ void field_mul_assign(field_t *a, const field_t *b)
     fp256_mul_assign(&field_parameters, a, b);
 }
 
-void field_inverse_assign(field_t *a)
-{
-    fp256_inverse_assign(&field_parameters, a);
-}
-
 void field_pow_assign(field_t *a, uint8_t alpha)
 {
     fp256_pow_assign(&field_parameters, a, alpha);

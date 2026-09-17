@@ -59,17 +59,6 @@ static void test_field(void **state)
     assert_int_equal(a.big.u64[2], 0xade171814dd2ad1e);
     assert_int_equal(a.big.u64[3], 0x06760a8bd1309115);
 
-    // field_inverse_assign
-    a.big.u64[0] = 0x1bd97226fc1c4fb3;
-    a.big.u64[1] = 0xe094ababa2bed992;
-    a.big.u64[2] = 0x64d9a482f2f08f5c;
-    a.big.u64[3] = 0x0bf8c834b2aa2870;
-    field_inverse_assign(&a);
-    assert_int_equal(a.big.u64[0], 0xf2149802cf06fb3d);
-    assert_int_equal(a.big.u64[1], 0x86e433c0497f4b2a);
-    assert_int_equal(a.big.u64[2], 0xb2c8269a7c8c77b7);
-    assert_int_equal(a.big.u64[3], 0x051a587248cddfa0);
-
     // field_pow_assign
     a.big.u64[0] = 0x1bd97226fc1c4fb3;
     a.big.u64[1] = 0xe094ababa2bed992;

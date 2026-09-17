@@ -16,7 +16,6 @@ extern const field_t FIELD_ONE;
 void field_assign(field_t *a, const field_t *b);
 void field_add_assign(field_t *a, const field_t *b);
 void field_mul_assign(field_t *a, const field_t *b);
-void field_inverse_assign(field_t *a);
 void field_pow_assign(field_t *a, uint8_t alpha);
 void field_sum_of_products(const field_t *a, const field_t *b, uint8_t length, field_t *r);
 void field_from_int(field_t *a, uint64_t i);

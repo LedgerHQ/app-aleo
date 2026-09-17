@@ -19,7 +19,6 @@ typedef struct {
 void fp256_add_assign(const fp256_parameters_t *p, fp256_t *a, const fp256_t *b);
 void fp256_sub_assign(const fp256_parameters_t *p, fp256_t *a, const fp256_t *b);
 void fp256_mul_assign(const fp256_parameters_t *p, fp256_t *a, const fp256_t *b);
-void fp256_inverse_assign(const fp256_parameters_t *p, fp256_t *a);
 
 void fp256_from_big_int(const fp256_parameters_t *p, fp256_t *a, const bigint_256_t *bigint);
 void fp256_to_big_int(const fp256_parameters_t *p, const fp256_t *a, bigint_256_t *bigint);
