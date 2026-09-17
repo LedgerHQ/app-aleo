@@ -1062,12 +1062,297 @@ static void test_tx_token_arc20_parse(void **state)
     assert_int_equal(tx_parse(&datas_arc20_batch_private, &tx), 0);
 }
 
+// ─── credits.aleo staking ────────────────────────────────────────────────────
+// Address vectors below were produced by the application's own bech32_convert_bits() +
+// bech32_encode(), so the expected strings are exactly what the review screen renders.
+
+/* aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe */
+static uint8_t ADDR_VALIDATOR[32]
+    = "\x82\x48\xd5\xe8\x5a\xc4\xc1\x23\x46\xf8\x45\x8b\xd9\x39\xf1\xce"
+      "\x25\xae\x03\xe9\xc6\xcb\xc8\x86\x28\x6d\xf1\x61\x63\x0a\x75\x0c";
+static const char ADDR_VALIDATOR_STR[]
+    = "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe";
+
+/* aleo1quvzjwjtt3kharaqk8pd8e84qctjsw22tdk8mr5lkrqa9cl5q5psq6tr7y */
+static uint8_t ADDR_WITHDRAWAL[32]
+    = "\x07\x18\x29\x3a\x4b\x5c\x6d\x7e\x8f\xa0\xb1\xc2\xd3\xe4\xf5\x06"
+      "\x17\x28\x39\x4a\x5b\x6c\x7d\x8e\x9f\xb0\xc1\xd2\xe3\xf4\x05\x03";
+static const char ADDR_WITHDRAWAL_STR[]
+    = "aleo1quvzjwjtt3kharaqk8pd8e84qctjsw22tdk8mr5lkrqa9cl5q5psq6tr7y";
+
+/* aleo17rk74elyu80dhkx46t8uejwxc0qtmw4hkjc6a2ag5k3fl8yejczslgp4l4 */
+static uint8_t ADDR_STAKER[32]
+    = "\xf0\xed\xea\xe7\xe4\xe1\xde\xdb\xd8\xd5\xd2\xcf\xcc\xc9\xc6\xc3"
+      "\xc0\xbd\xba\xb7\xb4\xb1\xae\xab\xa8\xa5\xa2\x9f\x9c\x99\x96\x05";
+static const char ADDR_STAKER_STR[]
+    = "aleo17rk74elyu80dhkx46t8uejwxc0qtmw4hkjc6a2ag5k3fl8yejczslgp4l4";
+
+// ADDR_VALIDATOR with bit 255 set. Only the low FIELD_MODULUS_BITS bits of an address input are
+// signed, so this renders as a different address than it commits to and must be refused.
+static uint8_t ADDR_NON_CANONICAL[32]
+    = "\x82\x48\xd5\xe8\x5a\xc4\xc1\x23\x46\xf8\x45\x8b\xd9\x39\xf1\xce"
+      "\x25\xae\x03\xe9\xc6\xcb\xc8\x86\x28\x6d\xf1\x61\x63\x0a\x75\x8c";
+
+// 123456789 as a little endian u64
+static uint8_t AMOUNT_LE[8] = "\x15\xcd\x5b\x07\x00\x00\x00\x00";
+#define AMOUNT_VALUE (123456789ULL)
+
+static uint8_t TYPE_ADDRESS_PUBLIC[3]  = "\x01\x00\x00";
+static uint8_t TYPE_ADDRESS_PRIVATE[3] = "\x02\x00\x00";
+static uint8_t TYPE_U64_PUBLIC[3]      = "\x01\x00\x0c";
+static uint8_t TYPE_U64_PRIVATE[3]     = "\x02\x00\x0c";
+static uint8_t TYPE_U128_PUBLIC[3]     = "\x01\x00\x0d";
+static uint8_t TYPE_STRUCT_PUBLIC[3]   = "\x01\x01\x00";
+
+static void test_tx_staking_bond_parse(void **state)
+{
+    (void) state;
+    memset(&G_context, 0, sizeof(G_context));
+    tx_t tx;
+
+    sign_transaction_datas_t datas_bonding = {
+        .max_base_fee             = 100,
+        .max_priority_fee         = 500,
+        .fee_function_name_length = 10,
+        .fee_function_name        = "fee_public",
+        .fee_program_id_length    = 12,
+        .fee_program_id           = "credits.aleo",
+        .prepared_request
+        = {.program_id_length    = 12,
+           .program_id           = "credits.aleo",
+           .function_name_length = 11,
+           .function_name        = "bond_public",
+           .inputs_count         = 3,
+           .inputs
+           = {{.value_length = 32,
+               .value        = ADDR_VALIDATOR,
+               .type_length  = 3,
+               .type         = TYPE_ADDRESS_PUBLIC},
+              {.value_length = 32,
+               .value        = ADDR_WITHDRAWAL,
+               .type_length  = 3,
+               .type         = TYPE_ADDRESS_PUBLIC},
+              {.value_length = 8, .value = AMOUNT_LE, .type_length = 3, .type = TYPE_U64_PUBLIC}}}
+    };
+
+    // Happy path: every field reaching the review screen must be decoded correctly.
+    assert_int_equal(tx_parse(&datas_bonding, &tx), 0);
+    assert_int_equal(tx.type, TX_STAKING_BOND);
+    assert_string_equal(tx.staking.validator_address, ADDR_VALIDATOR_STR);
+    assert_string_equal(tx.staking.withdrawal_address, ADDR_WITHDRAWAL_STR);
+    assert_int_equal(tx.staking.amount, AMOUNT_VALUE);
+    // bond_public has no staker input, so that screen field must stay empty
+    assert_int_equal(tx.staking.staker_address[0], '\0');
+
+    // Validator and withdrawal must not be transposed: swapping the inputs must swap the output.
+    datas_bonding.prepared_request.inputs[0].value = ADDR_WITHDRAWAL;
+    datas_bonding.prepared_request.inputs[1].value = ADDR_VALIDATOR;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), 0);
+    assert_string_equal(tx.staking.validator_address, ADDR_WITHDRAWAL_STR);
+    assert_string_equal(tx.staking.withdrawal_address, ADDR_VALIDATOR_STR);
+    datas_bonding.prepared_request.inputs[0].value = ADDR_VALIDATOR;
+    datas_bonding.prepared_request.inputs[1].value = ADDR_WITHDRAWAL;
+
+    // inputs_count must match the database entry for bond_public
+    datas_bonding.prepared_request.inputs_count = 2;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs_count = 4;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs_count = 3;
+
+    // Both addresses are public inputs
+    datas_bonding.prepared_request.inputs[0].type = TYPE_ADDRESS_PRIVATE;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[0].type = TYPE_STRUCT_PUBLIC;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[0].type = TYPE_U64_PUBLIC;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[0].type = TYPE_ADDRESS_PUBLIC;
+
+    datas_bonding.prepared_request.inputs[1].type = TYPE_ADDRESS_PRIVATE;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[1].type = TYPE_ADDRESS_PUBLIC;
+
+    // Address type and value lengths are exact
+    datas_bonding.prepared_request.inputs[0].type_length = 2;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[0].type_length  = 3;
+    datas_bonding.prepared_request.inputs[0].value_length = 31;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[0].value_length = 33;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[0].value_length = 32;
+
+    // A non-canonical address encoding is displayed but not signed, so it must be refused
+    datas_bonding.prepared_request.inputs[0].value = ADDR_NON_CANONICAL;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[0].value = ADDR_VALIDATOR;
+    datas_bonding.prepared_request.inputs[1].value = ADDR_NON_CANONICAL;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[1].value = ADDR_WITHDRAWAL;
+
+    // The amount is a public u64
+    datas_bonding.prepared_request.inputs[2].type = TYPE_U64_PRIVATE;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[2].type = TYPE_U128_PUBLIC;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[2].type         = TYPE_U64_PUBLIC;
+    datas_bonding.prepared_request.inputs[2].value_length = 16;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[2].value_length = 8;
+
+    // Amount boundaries must survive the little endian decode
+    uint8_t amount_zero[8]                         = "\x00\x00\x00\x00\x00\x00\x00\x00";
+    uint8_t amount_max[8]                          = "\xff\xff\xff\xff\xff\xff\xff\xff";
+    datas_bonding.prepared_request.inputs[2].value = amount_zero;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), 0);
+    assert_int_equal(tx.staking.amount, 0);
+    datas_bonding.prepared_request.inputs[2].value = amount_max;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), 0);
+    assert_true(tx.staking.amount == UINT64_MAX);
+    datas_bonding.prepared_request.inputs[2].value = AMOUNT_LE;
+
+    // An unknown function on a known program must not resolve to a staking parser
+    char unknown_function[11]                    = "bind_public";
+    datas_bonding.prepared_request.function_name = unknown_function;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.function_name = "bond_public";
+
+    assert_int_equal(tx_parse(&datas_bonding, &tx), 0);
+}
+
+static void test_tx_staking_unbond_parse(void **state)
+{
+    (void) state;
+    memset(&G_context, 0, sizeof(G_context));
+    tx_t tx;
+
+    sign_transaction_datas_t datas_bonding = {
+        .max_base_fee             = 100,
+        .max_priority_fee         = 500,
+        .fee_function_name_length = 10,
+        .fee_function_name        = "fee_public",
+        .fee_program_id_length    = 12,
+        .fee_program_id           = "credits.aleo",
+        .prepared_request
+        = {.program_id_length    = 12,
+           .program_id           = "credits.aleo",
+           .function_name_length = 13,
+           .function_name        = "unbond_public",
+           .inputs_count         = 2,
+           .inputs
+           = {{.value_length = 32,
+               .value        = ADDR_STAKER,
+               .type_length  = 3,
+               .type         = TYPE_ADDRESS_PUBLIC},
+              {.value_length = 8, .value = AMOUNT_LE, .type_length = 3, .type = TYPE_U64_PUBLIC}}}
+    };
+
+    assert_int_equal(tx_parse(&datas_bonding, &tx), 0);
+    assert_int_equal(tx.type, TX_STAKING_UNBOND);
+    assert_string_equal(tx.staking.staker_address, ADDR_STAKER_STR);
+    assert_int_equal(tx.staking.amount, AMOUNT_VALUE);
+    // unbond_public displays Staker and Amount only; the bond-only fields must stay empty
+    assert_int_equal(tx.staking.validator_address[0], '\0');
+    assert_int_equal(tx.staking.withdrawal_address[0], '\0');
+
+    datas_bonding.prepared_request.inputs_count = 1;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs_count = 3;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs_count = 2;
+
+    datas_bonding.prepared_request.inputs[0].type = TYPE_ADDRESS_PRIVATE;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[0].type = TYPE_ADDRESS_PUBLIC;
+
+    datas_bonding.prepared_request.inputs[0].value_length = 31;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[0].value_length = 32;
+
+    datas_bonding.prepared_request.inputs[0].value = ADDR_NON_CANONICAL;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[0].value = ADDR_STAKER;
+
+    datas_bonding.prepared_request.inputs[1].type = TYPE_U64_PRIVATE;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[1].type = TYPE_U64_PUBLIC;
+
+    datas_bonding.prepared_request.inputs[1].value_length = 4;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[1].value_length = 8;
+
+    assert_int_equal(tx_parse(&datas_bonding, &tx), 0);
+}
+
+static void test_tx_staking_claim_parse(void **state)
+{
+    (void) state;
+    memset(&G_context, 0, sizeof(G_context));
+    tx_t tx;
+
+    sign_transaction_datas_t datas_bonding = {
+        .max_base_fee             = 100,
+        .max_priority_fee         = 500,
+        .fee_function_name_length = 10,
+        .fee_function_name        = "fee_public",
+        .fee_program_id_length    = 12,
+        .fee_program_id           = "credits.aleo",
+        .prepared_request         = {.program_id_length    = 12,
+                                     .program_id           = "credits.aleo",
+                                     .function_name_length = 19,
+                                     .function_name        = "claim_unbond_public",
+                                     .inputs_count         = 1,
+                                     .inputs               = {{.value_length = 32,
+                                                               .value        = ADDR_STAKER,
+                                                               .type_length  = 3,
+                                                               .type         = TYPE_ADDRESS_PUBLIC}}}
+    };
+
+    assert_int_equal(tx_parse(&datas_bonding, &tx), 0);
+    assert_int_equal(tx.type, TX_STAKING_CLAIM);
+    assert_string_equal(tx.staking.staker_address, ADDR_STAKER_STR);
+    // claim_unbond_public carries no amount; the review screen must not inherit a stale one
+    assert_int_equal(tx.staking.amount, 0);
+    assert_int_equal(tx.staking.validator_address[0], '\0');
+    assert_int_equal(tx.staking.withdrawal_address[0], '\0');
+
+    datas_bonding.prepared_request.inputs_count = 0;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs_count = 2;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs_count = 1;
+
+    datas_bonding.prepared_request.inputs[0].type = TYPE_ADDRESS_PRIVATE;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[0].type = TYPE_U64_PUBLIC;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[0].type = TYPE_ADDRESS_PUBLIC;
+
+    datas_bonding.prepared_request.inputs[0].type_length = 2;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[0].type_length = 3;
+
+    datas_bonding.prepared_request.inputs[0].value_length = 31;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[0].value_length = 32;
+
+    datas_bonding.prepared_request.inputs[0].value = ADDR_NON_CANONICAL;
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[0].value = ADDR_STAKER;
+
+    assert_int_equal(tx_parse(&datas_bonding, &tx), 0);
+}
+
 int main()
 {
     const struct CMUnitTest tests[] = {cmocka_unit_test(test_tx_extract),
                                        cmocka_unit_test(test_tx_parse),
                                        cmocka_unit_test(test_tx_token_parse),
-                                       cmocka_unit_test(test_tx_token_arc20_parse)};
+                                       cmocka_unit_test(test_tx_token_arc20_parse),
+                                       cmocka_unit_test(test_tx_staking_bond_parse),
+                                       cmocka_unit_test(test_tx_staking_unbond_parse),
+                                       cmocka_unit_test(test_tx_staking_claim_parse)};
 
     return cmocka_run_group_tests(tests, NULL, NULL);
 }
