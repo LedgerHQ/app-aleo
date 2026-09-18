@@ -166,6 +166,7 @@ void fp256_pow_assign(const fp256_parameters_t *p, fp256_t *a, uint8_t alpha)
     for (uint8_t i = 0; i < (alpha - 1); i++) {
         fp256_mul_assign(p, a, &r);
     }
+    explicit_bzero(&r, sizeof(r));
 }
 
 void fp256_sum_of_products(const fp256_parameters_t *p,

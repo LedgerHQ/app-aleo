@@ -132,6 +132,7 @@ static void apply_mds(void)
                               &new_state[i]);
     }
     memcpy(sponge.state, new_state, sizeof(field_t) * sponge.state_length);
+    explicit_bzero(&new_state, sizeof(new_state));
 }
 
 static void sponge_permute(void)
