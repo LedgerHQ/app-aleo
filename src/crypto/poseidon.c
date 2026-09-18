@@ -415,6 +415,7 @@ int hash_to_scalar_psd2(field_t *input, size_t input_length, scalar_t *r)
         scalar_from_field_lossy(r, &output[0]);
     }
 
+    explicit_bzero(&output, sizeof(output));
     return status;
 }
 
@@ -431,6 +432,7 @@ int hash_to_scalar_psd4(field_t *input, size_t input_length, scalar_t *r)
         scalar_from_field_lossy(r, &output[0]);
     }
 
+    explicit_bzero(&output, sizeof(output));
     return status;
 }
 
@@ -447,6 +449,7 @@ int hash_to_scalar_psd8(field_t *input, size_t input_length, scalar_t *r)
         scalar_from_field_lossy(r, &output[0]);
     }
 
+    explicit_bzero(&output, sizeof(output));
     return status;
 }
 
@@ -463,6 +466,7 @@ int hash_psd2(field_t *input, size_t input_length, field_t *r)
         memcpy(r, &output[0], sizeof(field_t));
     }
 
+    explicit_bzero(&output, sizeof(output));
     return status;
 }
 
@@ -479,6 +483,7 @@ int hash_psd4(field_t *input, size_t input_length, field_t *r)
         memcpy(r, &output[0], sizeof(field_t));
     }
 
+    explicit_bzero(&output, sizeof(output));
     return status;
 }
 
@@ -495,6 +500,7 @@ int hash_psd8(field_t *input, size_t input_length, field_t *r)
         memcpy(r, &output[0], sizeof(field_t));
     }
 
+    explicit_bzero(&output, sizeof(output));
     return status;
 }
 
