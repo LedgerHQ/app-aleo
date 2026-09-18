@@ -37,6 +37,7 @@
 #include "tokens.h"
 #include "handle_swap.h"
 #include "format_u128.h"
+#include "db.h"
 
 // Buffer where the transaction amount string is written
 static char g_amount[MAX_AMOUNT_SIZE + 1 + MAX_TICKER_SIZE];
@@ -110,32 +111,64 @@ int ui_display_review_transfer(void)
     uint8_t     pair_index              = 0;
     char        amount[MAX_AMOUNT_SIZE] = {0};
     const char *review_subtitle         = NULL;
+    bool        testnet_network
+        = (G_context.sign_transaction_datas.prepared_request.network_id == NETWORK_ID_TESTNET);
 
     if ((G_context.tx.type == TX_ALEO_TRANSFER_PUBLIC)
         || (G_context.tx.type == TX_TOKEN_TRANSFER_PUBLIC)) {
-        review_subtitle = "Public transfer";
+        if (testnet_network) {
+            review_subtitle = "Public transfer on testnet";
+        }
+        else {
+            review_subtitle = "Public transfer";
+        }
     }
     else if ((G_context.tx.type == TX_ALEO_TRANSFER_PRIVATE)
              || (G_context.tx.type == TX_TOKEN_TRANSFER_PRIVATE)) {
-        review_subtitle = "Private transfer";
+        if (testnet_network) {
+            review_subtitle = "Private transfer on testnet";
+        }
+        else {
+            review_subtitle = "Private transfer";
+        }
     }
     else if ((G_context.tx.type == TX_ALEO_TRANSFER_BATCH_PRIVATE)
              || (G_context.tx.type == TX_TOKEN_TRANSFER_BATCH_PRIVATE)
              || (G_context.tx.type == TX_TOKEN_ARC20_TRANSFER_BATCH_PRIVATE)) {
-        review_subtitle = "Private batch transfer";
+        if (testnet_network) {
+            review_subtitle = "Private batch transfer on testnet";
+        }
+        else {
+            review_subtitle = "Private batch transfer";
+        }
     }
     else if ((G_context.tx.type == TX_ALEO_TRANSFER_PRIVATE_TO_PUBLIC)
              || (G_context.tx.type == TX_TOKEN_TRANSFER_PRIVATE_TO_PUBLIC)) {
-        review_subtitle = "Transfer from private to public address";
+        if (testnet_network) {
+            review_subtitle = "Transfer from private to public address on testnet";
+        }
+        else {
+            review_subtitle = "Transfer from private to public address";
+        }
     }
     else if ((G_context.tx.type == TX_ALEO_TRANSFER_BATCH_PRIVATE_TO_PUBLIC)
              || (G_context.tx.type == TX_TOKEN_TRANSFER_BATCH_PRIVATE_TO_PUBLIC)
              || (G_context.tx.type == TX_TOKEN_ARC20_TRANSFER_BATCH_PRIVATE_TO_PUBLIC)) {
-        review_subtitle = "Batch transfer from private to public address";
+        if (testnet_network) {
+            review_subtitle = "Batch transfer from private to public address on testnet";
+        }
+        else {
+            review_subtitle = "Batch transfer from private to public address";
+        }
     }
     else if ((G_context.tx.type == TX_ALEO_TRANSFER_PUBLIC_TO_PRIVATE)
              || (G_context.tx.type == TX_TOKEN_TRANSFER_PUBLIC_TO_PRIVATE)) {
-        review_subtitle = "Transfer from public to private address";
+        if (testnet_network) {
+            review_subtitle = "Transfer from public to private address on testnet";
+        }
+        else {
+            review_subtitle = "Transfer from public to private address";
+        }
     }
     else {
         return -1;
@@ -230,13 +263,20 @@ int ui_display_review_staking(void)
 {
     uint8_t     pair_index      = 0;
     const char *review_subtitle = NULL;
+    bool        testnet_network
+        = (G_context.sign_transaction_datas.prepared_request.network_id == NETWORK_ID_TESTNET);
 
     if (G_called_from_swap) {
         return -1;
     }
 
     if (G_context.tx.type == TX_STAKING_BOND) {
-        review_subtitle = "Public bond";
+        if (testnet_network) {
+            review_subtitle = "Public bond on testnet";
+        }
+        else {
+            review_subtitle = "Public bond";
+        }
         snprintf(g_review_title, sizeof(g_review_title), "Review transaction to bond ALEO?");
 
         snprintf(g_finish_title, sizeof(g_finish_title), "Sign transaction to bond ALEO?");
@@ -254,7 +294,12 @@ int ui_display_review_staking(void)
         pair_index++;
     }
     else if (G_context.tx.type == TX_STAKING_UNBOND) {
-        review_subtitle = "Public unbond";
+        if (testnet_network) {
+            review_subtitle = "Public unbond on testnet";
+        }
+        else {
+            review_subtitle = "Public unbond";
+        }
         snprintf(g_review_title, sizeof(g_review_title), "Review transaction to unbond ALEO?");
 
         snprintf(g_finish_title, sizeof(g_finish_title), "Sign transaction to unbond ALEO?");
@@ -269,7 +314,12 @@ int ui_display_review_staking(void)
         pair_index++;
     }
     else if (G_context.tx.type == TX_STAKING_CLAIM) {
-        review_subtitle = "Claim public unbond";
+        if (testnet_network) {
+            review_subtitle = "Claim public unbond on testnet";
+        }
+        else {
+            review_subtitle = "Claim public unbond";
+        }
         snprintf(g_review_title, sizeof(g_review_title), "Review transaction to claim ALEO?");
 
         snprintf(g_finish_title, sizeof(g_finish_title), "Sign transaction to claim ALEO?");

@@ -38,58 +38,90 @@ EXEC_ID = "726637512541420908239492578107136272250694603031491666413374668222694
 
 def _request(function_name: str, inputs: list) -> dict:
     return {
-        'network_id': 'mainnet', 'program_id': 'credits.aleo',
-        'function_name': function_name, 'inputs': inputs,
-        'nested_call_count': 0, 'program_checksum': '',
+        "network_id": "mainnet",
+        "program_id": "credits.aleo",
+        "function_name": function_name,
+        "inputs": inputs,
+        "nested_call_count": 0,
+        "program_checksum": "",
     }
 
 
 def intent(function_name: str, inputs: list, fee_function_name: str) -> dict:
     return {
-        'type': 'intent', 'path': PATH,
-        'max_base_fee': 500, 'max_priority_fee': 100,
-        'fee_program_id': 'credits.aleo', 'fee_function_name': fee_function_name,
-        'request': _request(function_name, inputs),
+        "type": "intent",
+        "path": PATH,
+        "max_base_fee": 500,
+        "max_priority_fee": 100,
+        "fee_program_id": "credits.aleo",
+        "fee_function_name": fee_function_name,
+        "request": _request(function_name, inputs),
     }
 
 
 def fee(function_name: str, inputs: list) -> dict:
-    return {'type': 'fee', 'request': _request(function_name, inputs)}
+    return {"type": "fee", "request": _request(function_name, inputs)}
 
 
 CASES = {
-    'bond_public': intent('bond_public', [
-        {'type': 'address.public', 'value': ADDR},
-        {'type': 'address.public', 'value': ADDR_WITHDRAW},
-        {'type': 'u64.public', 'value': 10000000000},
-    ], 'fee_public'),
-    'unbond_public': intent('unbond_public', [
-        {'type': 'address.public', 'value': ADDR},
-        {'type': 'u64.public', 'value': 5000000000},
-    ], 'fee_public'),
-    'claim_unbond_public': intent('claim_unbond_public', [
-        {'type': 'address.public', 'value': ADDR},
-    ], 'fee_public'),
-    'transfer_public': intent('transfer_public', [
-        {'type': 'address.public', 'value': ADDR},
-        {'type': 'u64.public', 'value': 1000},
-    ], 'fee_public'),
-    'transfer_private': intent('transfer_private', [
-        {'type': 'credits.record', 'value': RECORD},
-        {'type': 'address.private', 'value': ADDR},
-        {'type': 'u64.private', 'value': 1000},
-    ], 'fee_private'),
-    'fee_public': fee('fee_public', [
-        {'type': 'u64.public', 'value': 500},
-        {'type': 'u64.public', 'value': 100},
-        {'type': 'field.public', 'value': EXEC_ID},
-    ]),
-    'fee_private': fee('fee_private', [
-        {'type': 'credits.record', 'value': RECORD},
-        {'type': 'u64.public', 'value': 500},
-        {'type': 'u64.public', 'value': 100},
-        {'type': 'field.public', 'value': EXEC_ID},
-    ]),
+    "bond_public": intent(
+        "bond_public",
+        [
+            {"type": "address.public", "value": ADDR},
+            {"type": "address.public", "value": ADDR_WITHDRAW},
+            {"type": "u64.public", "value": 10000000000},
+        ],
+        "fee_public",
+    ),
+    "unbond_public": intent(
+        "unbond_public",
+        [
+            {"type": "address.public", "value": ADDR},
+            {"type": "u64.public", "value": 5000000000},
+        ],
+        "fee_public",
+    ),
+    "claim_unbond_public": intent(
+        "claim_unbond_public",
+        [
+            {"type": "address.public", "value": ADDR},
+        ],
+        "fee_public",
+    ),
+    "transfer_public": intent(
+        "transfer_public",
+        [
+            {"type": "address.public", "value": ADDR},
+            {"type": "u64.public", "value": 1000},
+        ],
+        "fee_public",
+    ),
+    "transfer_private": intent(
+        "transfer_private",
+        [
+            {"type": "credits.record", "value": RECORD},
+            {"type": "address.private", "value": ADDR},
+            {"type": "u64.private", "value": 1000},
+        ],
+        "fee_private",
+    ),
+    "fee_public": fee(
+        "fee_public",
+        [
+            {"type": "u64.public", "value": 500},
+            {"type": "u64.public", "value": 100},
+            {"type": "field.public", "value": EXEC_ID},
+        ],
+    ),
+    "fee_private": fee(
+        "fee_private",
+        [
+            {"type": "credits.record", "value": RECORD},
+            {"type": "u64.public", "value": 500},
+            {"type": "u64.public", "value": 100},
+            {"type": "field.public", "value": EXEC_ID},
+        ],
+    ),
 }
 
 HEADER_HEX_CHARS = 10  # CLA INS P1 P2 Lc = 5 bytes
