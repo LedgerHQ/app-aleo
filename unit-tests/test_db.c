@@ -75,23 +75,33 @@ static void test_db(void **state)
     token_id = (field_t *) &FIELD_ZERO;
     strncpy(program_id, "usad_stablecoin.aleo", sizeof(program_id));
     program_length = strlen(program_id);
-    status = db_get_token_display_info(program_id, program_length, token_id, &token_display_info);
+    status = db_get_token_display_info(program_id, program_length, NETWORK_ID_MAINNET, token_id, &token_display_info);
     assert_int_equal(status, 0);
 
     strncpy(program_id, "usad_stablecoi.aleo", sizeof(program_id));
     program_length = strlen(program_id);
-    status = db_get_token_display_info(program_id, program_length, token_id, &token_display_info);
+    status = db_get_token_display_info(program_id, program_length, NETWORK_ID_MAINNET, token_id, &token_display_info);
     assert_int_equal(status, -1);
 
     strncpy(program_id, "usad_stablecois.aleo", sizeof(program_id));
     program_length = strlen(program_id);
-    status = db_get_token_display_info(program_id, program_length, token_id, &token_display_info);
+    status = db_get_token_display_info(program_id, program_length, NETWORK_ID_MAINNET, token_id, &token_display_info);
     assert_int_equal(status, -1);
 
     token_id = (field_t *) &FIELD_ONE;
     strncpy(program_id, "usad_stablecoin.aleo", sizeof(program_id));
     program_length = strlen(program_id);
-    status = db_get_token_display_info(program_id, program_length, token_id, &token_display_info);
+    status = db_get_token_display_info(program_id, program_length, NETWORK_ID_MAINNET, token_id, &token_display_info);
+    assert_int_equal(status, -1);
+
+    strncpy(program_id, "test_arc20_sol.aleo", sizeof(program_id));
+    program_length = strlen(program_id);
+    status = db_get_token_display_info(program_id, program_length, NETWORK_ID_TESTNET, NULL, &token_display_info);
+    assert_int_equal(status, 0);
+
+    strncpy(program_id, "test_arc20_sol.aleo", sizeof(program_id));
+    program_length = strlen(program_id);
+    status = db_get_token_display_info(program_id, program_length, NETWORK_ID_MAINNET, NULL, &token_display_info);
     assert_int_equal(status, -1);
 }
 

@@ -870,155 +870,177 @@ const function_parameters_t test_arc20_usdt_aleo[NB_OF_TEST_ARC20_USDT_ALEO_FUNC
 };
 
 const token_parameter_t token_parameters[NB_OF_TOKENS] = {
-    {.program_id   = "usad_stablecoin.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC22, .ticker = "USAD", .decimals = 6},
+    {.program_id           = "usad_stablecoin.aleo",
+     .mainnet_availability = true,
+     .display_info         = {.type = TOKEN_TYPE_ARC22, .ticker = "USAD", .decimals = 6},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_USAD_STABLECOIN_ALEO_FUNCTIONS,
      .functions       = usad_stablecoin_aleo   },
-    {.program_id   = "ldg_usad_p_28.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC22, .ticker = "USAD", .decimals = 6},
+    {.program_id           = "ldg_usad_p_28.aleo",
+     .mainnet_availability = true,
+     .display_info         = {.type = TOKEN_TYPE_ARC22, .ticker = "USAD", .decimals = 6},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_LDG_USAD_P_28_ALEO_FUNCTIONS,
      .functions       = ldg_usad_p_28_aleo     },
-    {.program_id   = "ldg_usad_p_910.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC22, .ticker = "USAD", .decimals = 6},
+    {.program_id           = "ldg_usad_p_910.aleo",
+     .mainnet_availability = true,
+     .display_info         = {.type = TOKEN_TYPE_ARC22, .ticker = "USAD", .decimals = 6},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_LDG_USAD_P_910_ALEO_FUNCTIONS,
      .functions       = ldg_usad_p_910_aleo    },
-    {.program_id   = "ldg_usad_p_1113.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC22, .ticker = "USAD", .decimals = 6},
+    {.program_id           = "ldg_usad_p_1113.aleo",
+     .mainnet_availability = true,
+     .display_info         = {.type = TOKEN_TYPE_ARC22, .ticker = "USAD", .decimals = 6},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_LDG_USAD_P_1113_ALEO_FUNCTIONS,
      .functions       = ldg_usad_p_1113_aleo   },
-    {.program_id   = "ldg_usad_p2p_28.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC22, .ticker = "USAD", .decimals = 6},
+    {.program_id           = "ldg_usad_p2p_28.aleo",
+     .mainnet_availability = true,
+     .display_info         = {.type = TOKEN_TYPE_ARC22, .ticker = "USAD", .decimals = 6},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_LDG_USAD_P2P_28_ALEO_FUNCTIONS,
      .functions       = ldg_usad_p2p_28_aleo   },
-    {.program_id   = "ldg_usad_p2p_910.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC22, .ticker = "USAD", .decimals = 6},
+    {.program_id           = "ldg_usad_p2p_910.aleo",
+     .mainnet_availability = true,
+     .display_info         = {.type = TOKEN_TYPE_ARC22, .ticker = "USAD", .decimals = 6},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_LDG_USAD_P2P_910_ALEO_FUNCTIONS,
      .functions       = ldg_usad_p2p_910_aleo  },
-    {.program_id   = "ldg_usad_p2p_1113.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC22, .ticker = "USAD", .decimals = 6},
+    {.program_id           = "ldg_usad_p2p_1113.aleo",
+     .mainnet_availability = true,
+     .display_info         = {.type = TOKEN_TYPE_ARC22, .ticker = "USAD", .decimals = 6},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_LDG_USAD_P2P_1113_ALEO_FUNCTIONS,
      .functions       = ldg_usad_p2p_1113_aleo },
-    {.program_id   = "usdcx_stablecoin.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC22, .ticker = "USDCx", .decimals = 6},
+    {.program_id           = "usdcx_stablecoin.aleo",
+     .mainnet_availability = true,
+     .display_info         = {.type = TOKEN_TYPE_ARC22, .ticker = "USDCx", .decimals = 6},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_USDCX_STABLECOIN_ALEO_FUNCTIONS,
      .functions       = usdcx_stablecoin_aleo  },
-    {.program_id   = "ldg_usdcx_p_28.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC22, .ticker = "USDCx", .decimals = 6},
+    {.program_id           = "ldg_usdcx_p_28.aleo",
+     .mainnet_availability = true,
+     .display_info         = {.type = TOKEN_TYPE_ARC22, .ticker = "USDCx", .decimals = 6},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_LDG_USDCX_P_28_ALEO_FUNCTIONS,
      .functions       = ldg_usdcx_p_28_aleo    },
-    {.program_id   = "ldg_usdcx_p_910.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC22, .ticker = "USDCx", .decimals = 6},
+    {.program_id           = "ldg_usdcx_p_910.aleo",
+     .mainnet_availability = true,
+     .display_info         = {.type = TOKEN_TYPE_ARC22, .ticker = "USDCx", .decimals = 6},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_LDG_USDCX_P_910_ALEO_FUNCTIONS,
      .functions       = ldg_usdcx_p_910_aleo   },
-    {.program_id   = "ldg_usdcx_p_1113.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC22, .ticker = "USDCx", .decimals = 6},
+    {.program_id           = "ldg_usdcx_p_1113.aleo",
+     .mainnet_availability = true,
+     .display_info         = {.type = TOKEN_TYPE_ARC22, .ticker = "USDCx", .decimals = 6},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_LDG_USDCX_P_1113_ALEO_FUNCTIONS,
      .functions       = ldg_usdcx_p_1113_aleo  },
-    {.program_id   = "ldg_usdcx_p2p_28.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC22, .ticker = "USDCx", .decimals = 6},
+    {.program_id           = "ldg_usdcx_p2p_28.aleo",
+     .mainnet_availability = true,
+     .display_info         = {.type = TOKEN_TYPE_ARC22, .ticker = "USDCx", .decimals = 6},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_LDG_USDCX_P2P_28_ALEO_FUNCTIONS,
      .functions       = ldg_usdcx_p2p_28_aleo  },
-    {.program_id   = "ldg_usdcx_p2p_910.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC22, .ticker = "USDCx", .decimals = 6},
+    {.program_id           = "ldg_usdcx_p2p_910.aleo",
+     .mainnet_availability = true,
+     .display_info         = {.type = TOKEN_TYPE_ARC22, .ticker = "USDCx", .decimals = 6},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_LDG_USDCX_P2P_910_ALEO_FUNCTIONS,
      .functions       = ldg_usdcx_p2p_910_aleo },
-    {.program_id   = "ldg_usdcx_p2p_1113.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC22, .ticker = "USDCx", .decimals = 6},
+    {.program_id           = "ldg_usdcx_p2p_1113.aleo",
+     .mainnet_availability = true,
+     .display_info         = {.type = TOKEN_TYPE_ARC22, .ticker = "USDCx", .decimals = 6},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_LDG_USDCX_P2P_1113_ALEO_FUNCTIONS,
      .functions       = ldg_usdcx_p2p_1113_aleo},
-    {.program_id   = "arc20_eth.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC20, .ticker = "ETH", .decimals = 18},
+    {.program_id           = "arc20_eth.aleo",
+     .mainnet_availability = true,
+     .display_info         = {.type = TOKEN_TYPE_ARC20, .ticker = "ETH", .decimals = 18},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_ARC20_ETH_ALEO_FUNCTIONS,
      .functions       = arc20_eth_aleo         },
-    {.program_id   = "arc20_sol.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC20, .ticker = "SOL", .decimals = 9},
+    {.program_id           = "arc20_sol.aleo",
+     .mainnet_availability = true,
+     .display_info         = {.type = TOKEN_TYPE_ARC20, .ticker = "SOL", .decimals = 9},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_ARC20_SOL_ALEO_FUNCTIONS,
      .functions       = arc20_sol_aleo         },
-    {.program_id   = "arc20_wbtc.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC20, .ticker = "WBTC", .decimals = 8},
+    {.program_id           = "arc20_wbtc.aleo",
+     .mainnet_availability = true,
+     .display_info         = {.type = TOKEN_TYPE_ARC20, .ticker = "WBTC", .decimals = 8},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_ARC20_WBTC_ALEO_FUNCTIONS,
      .functions       = arc20_wbtc_aleo        },
-    {.program_id   = "arc20_usdt.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC20, .ticker = "USDT", .decimals = 6},
+    {.program_id           = "arc20_usdt.aleo",
+     .mainnet_availability = true,
+     .display_info         = {.type = TOKEN_TYPE_ARC20, .ticker = "USDT", .decimals = 6},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_ARC20_USDT_ALEO_FUNCTIONS,
      .functions       = arc20_usdt_aleo        },
-    {.program_id   = "test_arc20_eth.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC20, .ticker = "ETH", .decimals = 18},
+    {.program_id           = "test_arc20_eth.aleo",
+     .mainnet_availability = false,
+     .display_info         = {.type = TOKEN_TYPE_ARC20, .ticker = "ETH", .decimals = 18},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_TEST_ARC20_ETH_ALEO_FUNCTIONS,
      .functions       = test_arc20_eth_aleo    },
-    {.program_id   = "test_arc20_sol.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC20, .ticker = "SOL", .decimals = 9},
+    {.program_id           = "test_arc20_sol.aleo",
+     .mainnet_availability = false,
+     .display_info         = {.type = TOKEN_TYPE_ARC20, .ticker = "SOL", .decimals = 9},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_TEST_ARC20_SOL_ALEO_FUNCTIONS,
      .functions       = test_arc20_sol_aleo    },
-    {.program_id   = "test_arc20_wbtc.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC20, .ticker = "WBTC", .decimals = 8},
+    {.program_id           = "test_arc20_wbtc.aleo",
+     .mainnet_availability = false,
+     .display_info         = {.type = TOKEN_TYPE_ARC20, .ticker = "WBTC", .decimals = 8},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},
      .nb_of_functions = NB_OF_TEST_ARC20_WBTC_ALEO_FUNCTIONS,
      .functions       = test_arc20_wbtc_aleo   },
-    {.program_id   = "test_arc20_usdt.aleo",
-     .display_info = {.type = TOKEN_TYPE_ARC20, .ticker = "USDT", .decimals = 6},
+    {.program_id           = "test_arc20_usdt.aleo",
+     .mainnet_availability = false,
+     .display_info         = {.type = TOKEN_TYPE_ARC20, .ticker = "USDT", .decimals = 6},
      .token_id
      = {.big.u64
         = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000}},

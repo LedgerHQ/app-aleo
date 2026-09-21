@@ -26,5 +26,6 @@ int db_get_function_parameters(char                   *program_id,
 
 int db_get_token_display_info(char                  *program_id,
                               uint8_t                program_id_length,
+                              uint16_t               network_id,
                               field_t               *token_id,
                               token_display_info_t **token_display_info);

@@ -9,6 +9,7 @@
 
 typedef struct {
     char                         program_id[PROGRAM_ID_NAME_MAX_LEN + 1];
+    bool                         mainnet_availability;
     token_display_info_t         display_info;
     field_t                      token_id;
     size_t                       nb_of_functions;

@@ -79,6 +79,7 @@ if __name__ == "__main__":
         "    char                         program_id[PROGRAM_ID_NAME_MAX_LEN + 1];",
         file=h_file,
     )
+    print("    bool                         mainnet_availability;", file=h_file)
     print("    token_display_info_t         display_info;", file=h_file)
     print("    field_t                      token_id;", file=h_file)
     print("    size_t                       nb_of_functions;", file=h_file)
@@ -170,9 +171,13 @@ if __name__ == "__main__":
         big = BigInteger256(int(value))
         token_id = Field()
         token_id.from_big_int(big)
-        print('    {{.program_id   = "{}",'.format(token["program_name"]), file=c_file)
+        print('    {{.program_id           = "{}",'.format(token["program_name"]), file=c_file)
+        if token["mainnet_availability"]:
+            print("     .mainnet_availability = true,", file=c_file)
+        else:
+            print("     .mainnet_availability = false,", file=c_file)
         print(
-            '     .display_info = {{.type = {}, .ticker = "{}", .decimals = {:d}}},'.format(
+            '     .display_info         = {{.type = {}, .ticker = "{}", .decimals = {:d}}},'.format(
                 token["token_type"], token["ticker"], token["decimals"]
             ),
             file=c_file,
