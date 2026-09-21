@@ -28,17 +28,34 @@
 #include "tx.h"
 
 #ifdef HAVE_PRINTF
+static void print_data_string(const char *label, char *value, uint8_t length)
+{
+    char buffer[FUNCTION_NAME_MAX_LEN + 1];
+    memset(buffer, 0, sizeof(buffer));
+    if (length <= FUNCTION_NAME_MAX_LEN) {
+        memcpy(buffer, value, length);
+    }
+    else {
+        memcpy(buffer, value, FUNCTION_NAME_MAX_LEN);
+    }
+    PRINTF("%s : %s\n", label, buffer);
+}
+
 static void print_signature_data(sign_transaction_datas_t *data)
 {
     PRINTF("max_base_fee      : %d\n", data->max_base_fee);
     PRINTF("max_priority_fee  : %d\n", data->max_priority_fee);
-    PRINTF("fee_function_name : %s\n", data->fee_function_name);
-    PRINTF("fee_program_id    : %s\n", data->fee_program_id);
+    print_data_string("fee_function_name", data->fee_function_name, data->fee_function_name_length);
+    print_data_string("fee_program_id   ", data->fee_program_id, data->fee_program_id_length);
     PRINTF("\n");
     PRINTF("is_root        : %d\n", data->prepared_request.is_root);
     PRINTF("network_id     : %d\n", data->prepared_request.network_id);
-    PRINTF("program_id     : %s\n", data->prepared_request.program_id);
-    PRINTF("function_name  : %s\n", data->prepared_request.function_name);
+    print_data_string("program_id    ",
+                      data->prepared_request.program_id,
+                      data->prepared_request.program_id_length);
+    print_data_string("function_name ",
+                      data->prepared_request.function_name,
+                      data->prepared_request.function_name_length);
     PRINTF("inputs_count   : %d\n", data->prepared_request.inputs_count);
     for (int i = 0; i < data->prepared_request.inputs_count; i++) {
         PRINTF("%d - type[%d]  : ", i, data->prepared_request.inputs[i].type_length);
