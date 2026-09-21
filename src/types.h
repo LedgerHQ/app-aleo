@@ -66,6 +66,8 @@ typedef struct {
 
 typedef struct {
     // input
+    uint8_t  structure_type;
+    uint8_t  version;
     bool     is_root;
     uint16_t network_id;
     uint8_t  program_id_length;
@@ -95,6 +97,8 @@ typedef struct {
 } prepared_request_t;
 
 typedef struct {
+    uint8_t  structure_type;
+    uint8_t  version;
     uint32_t max_base_fee;
     uint32_t max_priority_fee;
     uint8_t  fee_function_name_length;

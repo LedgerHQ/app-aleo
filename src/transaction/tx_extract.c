@@ -85,6 +85,16 @@ static void print_signature_data(sign_transaction_datas_t *data)
 // **** Prepared Request TLV parser ****
 
 // Callbacks
+static bool check_prepared_request_type(const tlv_data_t *data, prepared_request_t *cookie)
+{
+    return get_uint8_t_from_tlv_data(data, &cookie->structure_type);
+}
+
+static bool get_prepared_request_version(const tlv_data_t *data, prepared_request_t *cookie)
+{
+    return get_uint8_t_from_tlv_data(data, &cookie->version);
+}
+
 static bool get_network_id(const tlv_data_t *data, prepared_request_t *cookie)
 {
     return get_uint16_t_from_tlv_data(data, &cookie->network_id);
@@ -177,22 +187,33 @@ static bool get_program_checksum(const tlv_data_t *data, prepared_request_t *coo
     return true;
 }
 
-#define PREPARED_REQUEST_TLV_TAGS(X)                                                           \
-    X(0x01, TAG_PREPARED_REQUEST_STRUCTURE_TYPE, NULL, ENFORCE_UNIQUE_TAG)                     \
-    X(0x02, TAG_PREPARED_REQUEST_VERSION, NULL, ENFORCE_UNIQUE_TAG)                            \
-    X(0xc3, TAG_PREPARED_REQUEST_NETWORK_ID, get_network_id, ENFORCE_UNIQUE_TAG)               \
-    X(0xb5, TAG_PREPARED_REQUEST_PROGRAM_ID, get_program_id, ENFORCE_UNIQUE_TAG)               \
-    X(0xc4, TAG_PREPARED_REQUEST_PROGRAM_CHECKSUM, get_program_checksum, ENFORCE_UNIQUE_TAG)   \
-    X(0xb6, TAG_PREPARED_REQUEST_FUNCTION_NAME, get_function_name, ENFORCE_UNIQUE_TAG)         \
-    X(0xba, TAG_PREPARED_REQUEST_NESTED_CALL_COUNT, get_nested_call_count, ENFORCE_UNIQUE_TAG) \
-    X(0xb7, TAG_PREPARED_REQUEST_INPUT_COUNT, get_input_count, ENFORCE_UNIQUE_TAG)             \
-    X(0xb9, TAG_PREPARED_REQUEST_INPUT_TYPE, get_input_type, ALLOW_MULTIPLE_TAG)               \
+#define PREPARED_REQUEST_TLV_TAGS(X)                                                              \
+    X(0x01, TAG_PREPARED_REQUEST_STRUCTURE_TYPE, check_prepared_request_type, ENFORCE_UNIQUE_TAG) \
+    X(0x02, TAG_PREPARED_REQUEST_VERSION, get_prepared_request_version, ENFORCE_UNIQUE_TAG)       \
+    X(0xc3, TAG_PREPARED_REQUEST_NETWORK_ID, get_network_id, ENFORCE_UNIQUE_TAG)                  \
+    X(0xb5, TAG_PREPARED_REQUEST_PROGRAM_ID, get_program_id, ENFORCE_UNIQUE_TAG)                  \
+    X(0xc4, TAG_PREPARED_REQUEST_PROGRAM_CHECKSUM, get_program_checksum, ENFORCE_UNIQUE_TAG)      \
+    X(0xb6, TAG_PREPARED_REQUEST_FUNCTION_NAME, get_function_name, ENFORCE_UNIQUE_TAG)            \
+    X(0xba, TAG_PREPARED_REQUEST_NESTED_CALL_COUNT, get_nested_call_count, ENFORCE_UNIQUE_TAG)    \
+    X(0xb7, TAG_PREPARED_REQUEST_INPUT_COUNT, get_input_count, ENFORCE_UNIQUE_TAG)                \
+    X(0xb9, TAG_PREPARED_REQUEST_INPUT_TYPE, get_input_type, ALLOW_MULTIPLE_TAG)                  \
     X(0xb8, TAG_PREPARED_REQUEST_INPUT_VALUE, get_input_value, ALLOW_MULTIPLE_TAG)
 
 DEFINE_TLV_PARSER(PREPARED_REQUEST_TLV_TAGS, NULL, prepared_request_tlv_parser)
 
 // **** Intent TLV parser ****
+
 // Callbacks
+static bool get_intent_type(const tlv_data_t *data, sign_transaction_datas_t *cookie)
+{
+    return get_uint8_t_from_tlv_data(data, &cookie->structure_type);
+}
+
+static bool get_intent_version(const tlv_data_t *data, sign_transaction_datas_t *cookie)
+{
+    return get_uint8_t_from_tlv_data(data, &cookie->version);
+}
+
 static bool get_max_base_fee(const tlv_data_t *data, sign_transaction_datas_t *cookie)
 {
     return get_uint32_t_from_tlv_data(data, &cookie->max_base_fee);
@@ -235,8 +256,8 @@ static bool get_request(const tlv_data_t *data, sign_transaction_datas_t *cookie
 }
 
 #define INTENT_TLV_TAGS(X)                                                           \
-    X(0x01, TAG_INTENT_STRUCTURE_TYPE, NULL, ENFORCE_UNIQUE_TAG)                     \
-    X(0x02, TAG_INTENT_VERSION, NULL, ENFORCE_UNIQUE_TAG)                            \
+    X(0x01, TAG_INTENT_STRUCTURE_TYPE, get_intent_type, ENFORCE_UNIQUE_TAG)          \
+    X(0x02, TAG_INTENT_VERSION, get_intent_version, ENFORCE_UNIQUE_TAG)              \
     X(0xb0, TAG_INTENT_MAX_BASE_FEE, get_max_base_fee, ENFORCE_UNIQUE_TAG)           \
     X(0xb1, TAG_INTENT_MAX_PRIORITY_FEE, get_max_priority_fee, ENFORCE_UNIQUE_TAG)   \
     X(0xb2, TAG_INTENT_FEE_FUNCTION_NAME, get_fee_function_name, ENFORCE_UNIQUE_TAG) \
@@ -258,6 +279,12 @@ int tx_extract_prepared_request(const buffer_t *cdata, prepared_request_t *prepa
         return -1;
     }
     print_signature_data(&G_context.sign_transaction_datas);
+
+    // Ensure structure & version
+    if ((prepared_request->structure_type != 0x29) || (prepared_request->version != 0x01)) {
+        explicit_bzero(prepared_request, sizeof(prepared_request_t));
+        return -1;
+    }
 
     // Ensure input consistency
     if ((prepared_request->inputs_value_offset != prepared_request->inputs_type_offset)
@@ -285,6 +312,14 @@ int tx_extract_intent(buffer_t *cdata)
 
     explicit_bzero(&G_context.sign_transaction_datas, sizeof(G_context.sign_transaction_datas));
     if (!intent_tlv_parser(cdata, &G_context.sign_transaction_datas, &received_tags)) {
+        explicit_bzero(&G_context.sign_transaction_datas, sizeof(G_context.sign_transaction_datas));
+        return -1;
+    }
+
+    // Ensure structure & version
+    if ((G_context.sign_transaction_datas.structure_type != 0x28)
+        || (G_context.sign_transaction_datas.version != 0x01)) {
+        explicit_bzero(&G_context.sign_transaction_datas, sizeof(G_context.sign_transaction_datas));
         return -1;
     }
 

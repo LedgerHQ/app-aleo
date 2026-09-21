@@ -34,8 +34,42 @@ static void test_tx_extract(void **state)
     buffer.offset = 0;
     assert_int_equal(tx_extract_intent(&buffer), 0);
 
-    uint8_t fee_function_name[73]
-        = "\x81\xb2\x46\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69"
+    // Structure type
+    uint8_t payload_01[6] = "\x01\x01\x28\x02\x01\x01";
+    buffer.ptr            = payload_01;
+    buffer.size           = sizeof(payload_01);
+    buffer.offset         = 0;
+    assert_int_equal(tx_extract_intent(&buffer), 0);
+
+    uint8_t payload_02[6] = "\x01\x01\x29\x02\x01\x01";
+    buffer.ptr            = payload_02;
+    buffer.size           = sizeof(payload_02);
+    buffer.offset         = 0;
+    assert_int_equal(tx_extract_intent(&buffer), -1);
+
+    uint8_t payload_03[7] = "\x01\x02\x28\x00\x02\x01\x01";
+    buffer.ptr            = payload_03;
+    buffer.size           = sizeof(payload_03);
+    buffer.offset         = 0;
+    assert_int_equal(tx_extract_intent(&buffer), -1);
+
+    // Version
+    uint8_t payload_11[6] = "\x01\x01\x28\x02\x01\x00";
+    buffer.ptr            = payload_11;
+    buffer.size           = sizeof(payload_11);
+    buffer.offset         = 0;
+    assert_int_equal(tx_extract_intent(&buffer), -1);
+
+    uint8_t payload_12[7] = "\x01\x01\x28\x02\x02\x01\x00";
+    buffer.ptr            = payload_12;
+    buffer.size           = sizeof(payload_12);
+    buffer.offset         = 0;
+    assert_int_equal(tx_extract_intent(&buffer), -1);
+
+    // Fee
+    uint8_t fee_function_name[79]
+        = "\x01\x01\x28\x02\x01\x01"
+          "\x81\xb2\x46\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69"
           "\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74"
           "\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73"
           "\x63\x72\x65\x64\x69\x74\x73";
@@ -44,8 +78,9 @@ static void test_tx_extract(void **state)
     buffer.offset = 0;
     assert_int_equal(tx_extract_intent(&buffer), -1);
 
-    uint8_t fee_program_id[73]
-        = "\x81\xb3\x46\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69"
+    uint8_t fee_program_id[79]
+        = "\x01\x01\x28\x02\x01\x01"
+          "\x81\xb3\x46\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69"
           "\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74"
           "\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73"
           "\x63\x72\x65\x64\x69\x74\x73";
@@ -65,17 +100,63 @@ static void test_tx_extract(void **state)
     assert_int_equal(tx_extract_intent(&buffer), -1);
 
     // tx_extract_prepared_request
+
+    // Structure type
+    uint8_t prepared_request_01[14]
+        = "\x01\x01\x2a\x02\x01\x01"
+          "\x81\xb5\x01\x64\x81\xb6\x01\x64";
+    buffer.ptr    = prepared_request_01;
+    buffer.size   = sizeof(prepared_request_01);
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
+    uint8_t prepared_request_02[15]
+        = "\x01\x02\x29\x00\x02\x01\x01"
+          "\x81\xb5\x01\x64\x81\xb6\x01\x64";
+    buffer.ptr    = prepared_request_02;
+    buffer.size   = sizeof(prepared_request_01);
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
+    // Version
+    uint8_t prepared_request_03[14]
+        = "\x01\x01\x29\x02\x01\x00"
+          "\x81\xb5\x01\x64\x81\xb6\x01\x64";
+    buffer.ptr    = prepared_request_03;
+    buffer.size   = sizeof(prepared_request_03);
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
+    uint8_t prepared_request_04[15]
+        = "\x01\x01\x29\x02\x02\x01\x00"
+          "\x81\xb5\x01\x64\x81\xb6\x01\x64";
+    buffer.ptr    = prepared_request_04;
+    buffer.size   = sizeof(prepared_request_04);
+    buffer.offset = 0;
+    assert_int_equal(
+        tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
+        -1);
+
     // Program ID & function name
-    uint8_t prepared_request_10[8] = "\x81\xb5\x01\x64\x81\xb6\x01\x64";
-    buffer.ptr                     = prepared_request_10;
-    buffer.size                    = sizeof(prepared_request_10);
-    buffer.offset                  = 0;
+    uint8_t prepared_request_10[14]
+        = "\x01\x01\x29\x02\x01\x01"
+          "\x81\xb5\x01\x64\x81\xb6\x01\x64";
+    buffer.ptr    = prepared_request_10;
+    buffer.size   = sizeof(prepared_request_10);
+    buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         0);
 
-    uint8_t prepared_request_11[134]
-        = "\x81\xb5\x40\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69"
+    uint8_t prepared_request_11[140]
+        = "\x01\x01\x29\x02\x01\x01"
+          "\x81\xb5\x40\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69"
           "\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74"
           "\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73"
           "\x63\x81\xb6\x40\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x72\x65\x64\x69"
@@ -90,8 +171,9 @@ static void test_tx_extract(void **state)
         0);
 
     // Wrong program id
-    uint8_t prepared_request_12[72]
-        = "\x81\xb5\x41\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69"
+    uint8_t prepared_request_12[78]
+        = "\x01\x01\x29\x02\x01\x01"
+          "\x81\xb5\x41\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69"
           "\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74"
           "\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73"
           "\x63\x72\x81\xb6\x01\x01";
@@ -103,8 +185,9 @@ static void test_tx_extract(void **state)
         -1);
 
     // Wrong function name
-    uint8_t prepared_request_13[72]
-        = "\x81\xb6\x41\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69"
+    uint8_t prepared_request_13[78]
+        = "\x01\x01\x29\x02\x01\x01"
+          "\x81\xb6\x41\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69"
           "\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74"
           "\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73\x63\x72\x65\x64\x69\x74\x73"
           "\x63\x72\x81\xb5\x01\x01";
@@ -116,71 +199,85 @@ static void test_tx_extract(void **state)
         -1);
 
     // Missing program id
-    uint8_t prepared_request_14[4] = "\x81\xb6\x01\x64";
-    buffer.ptr                     = prepared_request_14;
-    buffer.size                    = sizeof(prepared_request_14);
-    buffer.offset                  = 0;
+    uint8_t prepared_request_14[10]
+        = "\x01\x01\x29\x02\x01\x01"
+          "\x81\xb6\x01\x64";
+    buffer.ptr    = prepared_request_14;
+    buffer.size   = sizeof(prepared_request_14);
+    buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         -1);
 
     // Empty program id
-    uint8_t prepared_request_15[7] = "\x81\xb5\x00\x81\xb6\x01\x64";
-    buffer.ptr                     = prepared_request_15;
-    buffer.size                    = sizeof(prepared_request_15);
-    buffer.offset                  = 0;
+    uint8_t prepared_request_15[13]
+        = "\x01\x01\x29\x02\x01\x01"
+          "\x81\xb5\x00\x81\xb6\x01\x64";
+    buffer.ptr    = prepared_request_15;
+    buffer.size   = sizeof(prepared_request_15);
+    buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         -1);
 
     // Missing function name
-    uint8_t prepared_request_16[4] = "\x81\xb5\x01\x64";
-    buffer.ptr                     = prepared_request_16;
-    buffer.size                    = sizeof(prepared_request_16);
-    buffer.offset                  = 0;
+    uint8_t prepared_request_16[10]
+        = "\x01\x01\x29\x02\x01\x01"
+          "\x81\xb5\x01\x64";
+    buffer.ptr    = prepared_request_16;
+    buffer.size   = sizeof(prepared_request_16);
+    buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         -1);
 
     // Empty function name
-    uint8_t prepared_request_17[7] = "\x81\xb5\x01\x64\x81\xb6\x00";
-    buffer.ptr                     = prepared_request_17;
-    buffer.size                    = sizeof(prepared_request_17);
-    buffer.offset                  = 0;
+    uint8_t prepared_request_17[13]
+        = "\x01\x01\x29\x02\x01\x01"
+          "\x81\xb5\x01\x64\x81\xb6\x00";
+    buffer.ptr    = prepared_request_17;
+    buffer.size   = sizeof(prepared_request_17);
+    buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         -1);
 
     // Inputs
     // input count
-    uint8_t prepared_request_20[12] = "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x00";
-    buffer.ptr                      = prepared_request_20;
-    buffer.size                     = sizeof(prepared_request_20);
-    buffer.offset                   = 0;
+    uint8_t prepared_request_20[18]
+        = "\x01\x01\x29\x02\x01\x01"
+          "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x00";
+    buffer.ptr    = prepared_request_20;
+    buffer.size   = sizeof(prepared_request_20);
+    buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         0);
-    uint8_t prepared_request_21[12] = "\x81\xb5\x01\x01\x81\xb6\x01\x01\x81\xb7\x01\x01";
-    buffer.ptr                      = prepared_request_21;
-    buffer.size                     = sizeof(prepared_request_21);
-    buffer.offset                   = 0;
+    uint8_t prepared_request_21[18]
+        = "\x01\x01\x29\x02\x01\x01"
+          "\x81\xb5\x01\x01\x81\xb6\x01\x01\x81\xb7\x01\x01";
+    buffer.ptr    = prepared_request_21;
+    buffer.size   = sizeof(prepared_request_21);
+    buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         -1);
-    uint8_t prepared_request_22[11] = "\x81\xb5\x01\x01\x81\xb6\x01\x01\x81\xb7\x00";
-    buffer.ptr                      = prepared_request_22;
-    buffer.size                     = sizeof(prepared_request_22);
-    buffer.offset                   = 0;
+    uint8_t prepared_request_22[17]
+        = "\x01\x01\x29\x02\x01\x01"
+          "\x81\xb5\x01\x01\x81\xb6\x01\x01\x81\xb7\x00";
+    buffer.ptr    = prepared_request_22;
+    buffer.size   = sizeof(prepared_request_22);
+    buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         -1);
     uint8_t prepared_request_23[200];
     memset(prepared_request_23, 0, sizeof(prepared_request_23));
     memcpy(prepared_request_23,
-           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x10",
-           12);  // program/function/input count
+           "\x01\x01\x29\x02\x01\x01\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x10",
+           18);  // struct/version/program/function/input count
     memcpy(
-        &prepared_request_23[12],
+        &prepared_request_23[18],
         "\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8"
         "\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01"
         "\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9"
@@ -189,7 +286,7 @@ static void test_tx_extract(void **state)
         "\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01",
         128);  // input type/value
     buffer.ptr    = prepared_request_23;
-    buffer.size   = 140;
+    buffer.size   = 146;
     buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
@@ -197,10 +294,10 @@ static void test_tx_extract(void **state)
 
     memset(prepared_request_23, 0, sizeof(prepared_request_23));
     memcpy(prepared_request_23,
-           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x11",
-           12);  // program/function/input count
+           "\x01\x01\x29\x02\x01\x01\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x11",
+           18);  // struct/version/program/function/input count
     memcpy(
-        &prepared_request_23[12],
+        &prepared_request_23[18],
         "\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8"
         "\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01"
         "\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9"
@@ -210,7 +307,7 @@ static void test_tx_extract(void **state)
         "\x81\xb8\x01\x01",
         136);  // input type/value
     buffer.ptr    = prepared_request_23;
-    buffer.size   = 148;
+    buffer.size   = 154;
     buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
@@ -218,10 +315,10 @@ static void test_tx_extract(void **state)
 
     memset(prepared_request_23, 0, sizeof(prepared_request_23));
     memcpy(prepared_request_23,
-           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x10",
-           12);  // program/function/input count
+           "\x01\x01\x29\x02\x01\x01\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x10",
+           18);  // struct/version/program/function/input count
     memcpy(
-        &prepared_request_23[12],
+        &prepared_request_23[18],
         "\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8"
         "\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01"
         "\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9"
@@ -231,7 +328,7 @@ static void test_tx_extract(void **state)
         "\x81\xb8\x01\x01",
         136);  // input type/value
     buffer.ptr    = prepared_request_23;
-    buffer.size   = 148;
+    buffer.size   = 154;
     buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
@@ -239,10 +336,10 @@ static void test_tx_extract(void **state)
 
     memset(prepared_request_23, 0, sizeof(prepared_request_23));
     memcpy(prepared_request_23,
-           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x10",
-           12);  // program/function/input count
+           "\x01\x01\x29\x02\x01\x01\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x10",
+           18);  // struct/version/program/function/input count
     memcpy(
-        &prepared_request_23[12],
+        &prepared_request_23[18],
         "\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8"
         "\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01"
         "\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9\x01\x01\x81\xb8\x01\x01\x81\xb9"
@@ -252,7 +349,7 @@ static void test_tx_extract(void **state)
         "\x81\xb9\x01\x01",
         136);  // input type/value
     buffer.ptr    = prepared_request_23;
-    buffer.size   = 148;
+    buffer.size   = 154;
     buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
@@ -262,12 +359,12 @@ static void test_tx_extract(void **state)
     uint8_t prepared_request_28[1600];
     memset(prepared_request_28, 0, sizeof(prepared_request_22));
     memcpy(prepared_request_28,
-           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
-           12);                                               // program/function
-    memcpy(&prepared_request_28[12], "\x81\xb9\x01\x01", 4);  // input type
-    memcpy(&prepared_request_28[16], "\x81\xb8\x01\x01", 4);  // input value
+           "\x01\x01\x29\x02\x01\x01\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
+           18);                                               // struct/version/pprogram/function
+    memcpy(&prepared_request_28[18], "\x81\xb9\x01\x01", 4);  // input type
+    memcpy(&prepared_request_28[22], "\x81\xb8\x01\x01", 4);  // input value
     buffer.ptr    = prepared_request_28;
-    buffer.size   = 20;
+    buffer.size   = 26;
     buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
@@ -275,12 +372,12 @@ static void test_tx_extract(void **state)
 
     memset(prepared_request_28, 0, sizeof(prepared_request_28));
     memcpy(prepared_request_28,
-           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
-           12);                                                   // program/function
-    memcpy(&prepared_request_28[12], "\x81\xb9\x01\x01", 4);      // input type
-    memcpy(&prepared_request_28[16], "\x81\xb8\x82\x06\x00", 5);  // input value
+           "\x01\x01\x29\x02\x01\x01\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
+           18);                                               // struct/version/pprogram/function
+    memcpy(&prepared_request_28[18], "\x81\xb9\x01\x01", 4);  // input type
+    memcpy(&prepared_request_28[22], "\x81\xb8\x82\x06\x00", 5);  // input value
     buffer.ptr    = prepared_request_28;
-    buffer.size   = 1557;
+    buffer.size   = 1563;
     buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
@@ -288,12 +385,12 @@ static void test_tx_extract(void **state)
 
     memset(prepared_request_28, 0, sizeof(prepared_request_28));
     memcpy(prepared_request_28,
-           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
-           12);                                                   // program/function
-    memcpy(&prepared_request_28[12], "\x81\xb9\x01\x01", 4);      // input type
-    memcpy(&prepared_request_28[16], "\x81\xb8\x82\x06\x01", 5);  // input value
+           "\x01\x01\x29\x02\x01\x01\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
+           18);                                               // struct/version/pprogram/function
+    memcpy(&prepared_request_28[18], "\x81\xb9\x01\x01", 4);  // input type
+    memcpy(&prepared_request_28[22], "\x81\xb8\x82\x06\x01", 5);  // input value
     buffer.ptr    = prepared_request_28;
-    buffer.size   = 1558;
+    buffer.size   = 1564;
     buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
@@ -301,13 +398,13 @@ static void test_tx_extract(void **state)
 
     memset(prepared_request_28, 0, sizeof(prepared_request_28));
     memcpy(prepared_request_28,
-           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
-           12);                                               // program/function
-    memcpy(&prepared_request_28[12], "\x81\xb9\x01\x01", 4);  // input type
-    memcpy(&prepared_request_28[16], "\x81\xb8\x01\x01", 4);  // input value
-    memcpy(&prepared_request_28[20], "\x81\xb8\x01\x01", 4);  // input value
+           "\x01\x01\x29\x02\x01\x01\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
+           18);                                               // struct/version/pprogram/function
+    memcpy(&prepared_request_28[18], "\x81\xb9\x01\x01", 4);  // input type
+    memcpy(&prepared_request_28[22], "\x81\xb8\x01\x01", 4);  // input value
+    memcpy(&prepared_request_28[26], "\x81\xb8\x01\x01", 4);  // input value
     buffer.ptr    = prepared_request_28;
-    buffer.size   = 24;
+    buffer.size   = 30;
     buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
@@ -316,12 +413,12 @@ static void test_tx_extract(void **state)
     // input type
     memset(prepared_request_28, 0, sizeof(prepared_request_28));
     memcpy(prepared_request_28,
-           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
-           12);                                               // program/function
-    memcpy(&prepared_request_28[12], "\x81\xb8\x01\x01", 4);  // input value
-    memcpy(&prepared_request_28[16], "\x81\xb9\x81\x80", 4);  // input type
+           "\x01\x01\x29\x02\x01\x01\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
+           18);                                               // struct/version/pprogram/function
+    memcpy(&prepared_request_28[18], "\x81\xb8\x01\x01", 4);  // input value
+    memcpy(&prepared_request_28[22], "\x81\xb9\x81\x80", 4);  // input type
     buffer.ptr    = prepared_request_28;
-    buffer.size   = 148;
+    buffer.size   = 154;
     buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
@@ -329,12 +426,12 @@ static void test_tx_extract(void **state)
 
     memset(prepared_request_28, 0, sizeof(prepared_request_28));
     memcpy(prepared_request_28,
-           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
-           12);                                               // program/function
-    memcpy(&prepared_request_28[12], "\x81\xb8\x01\x01", 4);  // input value
-    memcpy(&prepared_request_28[16], "\x81\xb9\x81\x81", 4);  // input type
+           "\x01\x01\x29\x02\x01\x01\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
+           18);                                               // struct/version/pprogram/function
+    memcpy(&prepared_request_28[18], "\x81\xb8\x01\x01", 4);  // input value
+    memcpy(&prepared_request_28[22], "\x81\xb9\x81\x81", 4);  // input type
     buffer.ptr    = prepared_request_28;
-    buffer.size   = 149;
+    buffer.size   = 155;
     buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
@@ -342,21 +439,22 @@ static void test_tx_extract(void **state)
 
     memset(prepared_request_28, 0, sizeof(prepared_request_28));
     memcpy(prepared_request_28,
-           "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
-           12);                                               // program/function
-    memcpy(&prepared_request_28[12], "\x81\xb9\x01\x01", 4);  // input type
-    memcpy(&prepared_request_28[16], "\x81\xb8\x01\x01", 4);  // input value
-    memcpy(&prepared_request_28[20], "\x81\xb9\x01\x01", 4);  // input type
+           "\x01\x01\x29\x02\x01\x01\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x01",
+           18);                                               // struct/version/pprogram/function
+    memcpy(&prepared_request_28[18], "\x81\xb9\x01\x01", 4);  // input type
+    memcpy(&prepared_request_28[22], "\x81\xb8\x01\x01", 4);  // input value
+    memcpy(&prepared_request_28[26], "\x81\xb9\x01\x01", 4);  // input type
     buffer.ptr    = prepared_request_28;
-    buffer.size   = 24;
+    buffer.size   = 30;
     buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         -1);
 
     // Program checksum
-    uint8_t prepared_request_30[47]
-        = "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x00"
+    uint8_t prepared_request_30[53]
+        = "\x01\x01\x29\x02\x01\x01"
+          "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x00"
           "\x81\xc4\x20\x01\x81\xb9\x01\x02\x81\xb9\x01\x03\x81\xb9\x01\x04\x81\xb9\x01\x05\x81\xb9"
           "\x01\x06\x81\xb9\x01\x07\x81\xb9\x01\x08\x81\xb9\x01";
     buffer.ptr    = prepared_request_30;
@@ -367,8 +465,9 @@ static void test_tx_extract(void **state)
         0);
 
     // Wrong program checksum
-    uint8_t prepared_request_31[46]
-        = "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x00"
+    uint8_t prepared_request_31[52]
+        = "\x01\x01\x29\x02\x01\x01"
+          "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x00"
           "\x81\xc4\x1f\x01\x81\xb9\x01\x02\x81\xb9\x01\x03\x81\xb9\x01\x04\x81\xb9\x01\x05\x81\xb9"
           "\x01\x06\x81\xb9\x01\x07\x81\xb9\x01\x08\x81\xb9";
     buffer.ptr    = prepared_request_31;
@@ -378,8 +477,9 @@ static void test_tx_extract(void **state)
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         -1);
 
-    uint8_t prepared_request_32[48]
-        = "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x00"
+    uint8_t prepared_request_32[54]
+        = "\x01\x01\x29\x02\x01\x01"
+          "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xb7\x01\x00"
           "\x81\xc4\x1f\x01\x81\xb9\x01\x02\x81\xb9\x01\x03\x81\xb9\x01\x04\x81\xb9\x01\x05\x81\xb9"
           "\x01\x06\x81\xb9\x01\x07\x81\xb9\x01\x08\x81\xb9\x01\x05";
     buffer.ptr    = prepared_request_32;
@@ -390,31 +490,39 @@ static void test_tx_extract(void **state)
         -1);
 
     // Nested call count
-    uint8_t prepared_request_40[12] = "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xba\x01\x01";
-    buffer.ptr                      = prepared_request_40;
-    buffer.size                     = sizeof(prepared_request_40);
-    buffer.offset                   = 0;
+    uint8_t prepared_request_40[18]
+        = "\x01\x01\x29\x02\x01\x01"
+          "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xba\x01\x01";
+    buffer.ptr    = prepared_request_40;
+    buffer.size   = sizeof(prepared_request_40);
+    buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         0);
-    uint8_t prepared_request_42[12] = "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xba\x01\x1f";
-    buffer.ptr                      = prepared_request_42;
-    buffer.size                     = sizeof(prepared_request_42);
-    buffer.offset                   = 0;
+    uint8_t prepared_request_42[18]
+        = "\x01\x01\x29\x02\x01\x01"
+          "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xba\x01\x1f";
+    buffer.ptr    = prepared_request_42;
+    buffer.size   = sizeof(prepared_request_42);
+    buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         0);
-    uint8_t prepared_request_41[11] = "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xba\x00";
-    buffer.ptr                      = prepared_request_41;
-    buffer.size                     = sizeof(prepared_request_41);
-    buffer.offset                   = 0;
+    uint8_t prepared_request_41[17]
+        = "\x01\x01\x29\x02\x01\x01"
+          "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xba\x00";
+    buffer.ptr    = prepared_request_41;
+    buffer.size   = sizeof(prepared_request_41);
+    buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         -1);
-    uint8_t prepared_request_43[12] = "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xba\x01\x20";
-    buffer.ptr                      = prepared_request_43;
-    buffer.size                     = sizeof(prepared_request_43);
-    buffer.offset                   = 0;
+    uint8_t prepared_request_43[18]
+        = "\x01\x01\x29\x02\x01\x01"
+          "\x81\xb5\x01\x64\x81\xb6\x01\x64\x81\xba\x01\x20";
+    buffer.ptr    = prepared_request_43;
+    buffer.size   = sizeof(prepared_request_43);
+    buffer.offset = 0;
     assert_int_equal(
         tx_extract_prepared_request(&buffer, &G_context.sign_transaction_datas.prepared_request),
         -1);
