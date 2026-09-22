@@ -152,21 +152,21 @@ static void sponge_permute(void)
     }
 }
 
-static int absorb_internal(uint8_t rate_start, field_t *input, uint16_t input_length)
+static int absorb_internal(uint8_t rate_start, field_t *input, size_t input_length)
 {
-    uint8_t first_chunk_size = input_length;
+    size_t first_chunk_size = input_length;
 
     if ((sponge.rate - rate_start) < first_chunk_size) {
         first_chunk_size = sponge.rate - rate_start;
     }
-    uint8_t num_elements_remaining = input_length - first_chunk_size;
-    uint8_t total_num_chunks       = 1 + (num_elements_remaining / sponge.rate);
+    size_t num_elements_remaining = input_length - first_chunk_size;
+    size_t total_num_chunks       = 1 + (num_elements_remaining / sponge.rate);
     if (num_elements_remaining % sponge.rate) {
         total_num_chunks += 1;
     }
 
     // FIRST CHUNK
-    uint8_t chunk_length = first_chunk_size;
+    size_t chunk_length = first_chunk_size;
 
     // Sanity check
     if ((CAPACITY + rate_start + chunk_length) > SPONGE_STATE_SIZE) {
@@ -176,7 +176,7 @@ static int absorb_internal(uint8_t rate_start, field_t *input, uint16_t input_le
         return -1;
     }
 
-    for (uint8_t i = 0; i < chunk_length; i++) {
+    for (size_t i = 0; i < chunk_length; i++) {
         field_add_assign(&sponge.state[CAPACITY + rate_start + i], &input[i]);
     }
 
@@ -191,10 +191,10 @@ static int absorb_internal(uint8_t rate_start, field_t *input, uint16_t input_le
     rate_start = 0;
 
     // REST CHUNK
-    uint8_t chunk_index = 0;
+    size_t chunk_index = 0;
     for (chunk_index = 0; chunk_index < total_num_chunks - 1; chunk_index++) {
-        uint8_t chunk_start = first_chunk_size + chunk_index * sponge.rate;
-        chunk_length        = sponge.rate;
+        size_t chunk_start = first_chunk_size + chunk_index * sponge.rate;
+        chunk_length       = sponge.rate;
         if ((chunk_start + chunk_length) > input_length) {
             chunk_length = input_length - chunk_start;
         }
@@ -207,7 +207,7 @@ static int absorb_internal(uint8_t rate_start, field_t *input, uint16_t input_le
             return -1;
         }
 
-        for (uint8_t i = 0; i < chunk_length; i++) {
+        for (size_t i = 0; i < chunk_length; i++) {
             field_add_assign(&sponge.state[CAPACITY + rate_start + i], &input[chunk_start + i]);
         }
 
@@ -225,21 +225,21 @@ static int absorb_internal(uint8_t rate_start, field_t *input, uint16_t input_le
     return 0;
 }
 
-static int squeeze_internal(uint8_t rate_start, field_t *output, uint16_t output_length)
+static int squeeze_internal(uint8_t rate_start, field_t *output, size_t output_length)
 {
-    uint8_t first_chunk_size = output_length;
+    size_t first_chunk_size = output_length;
 
     if ((sponge.rate - rate_start) < first_chunk_size) {
         first_chunk_size = sponge.rate - rate_start;
     }
-    uint8_t num_output_remaining = output_length - first_chunk_size;
-    uint8_t total_num_chunks     = 1 + (num_output_remaining / sponge.rate);
+    size_t num_output_remaining = output_length - first_chunk_size;
+    size_t total_num_chunks     = 1 + (num_output_remaining / sponge.rate);
     if (num_output_remaining % sponge.rate) {
         total_num_chunks += 1;
     }
 
     // FIRST CHUNK
-    uint8_t chunk_length = first_chunk_size;
+    size_t chunk_length = first_chunk_size;
 
     // Sanity check
     if ((CAPACITY + rate_start + chunk_length) > SPONGE_STATE_SIZE) {
@@ -249,7 +249,7 @@ static int squeeze_internal(uint8_t rate_start, field_t *output, uint16_t output
         return -1;
     }
 
-    for (uint8_t i = 0; i < chunk_length; i++) {
+    for (size_t i = 0; i < chunk_length; i++) {
         memcpy(&output[i], &sponge.state[CAPACITY + rate_start + i], sizeof(field_t));
     }
 
@@ -264,10 +264,10 @@ static int squeeze_internal(uint8_t rate_start, field_t *output, uint16_t output
     rate_start = 0;
 
     // REST CHUNK
-    uint8_t chunk_index = 0;
+    size_t chunk_index = 0;
     for (chunk_index = 0; chunk_index < total_num_chunks - 1; chunk_index++) {
-        uint8_t chunk_start = first_chunk_size + chunk_index * sponge.rate;
-        chunk_length        = sponge.rate;
+        size_t chunk_start = first_chunk_size + chunk_index * sponge.rate;
+        chunk_length       = sponge.rate;
         if ((chunk_start + chunk_length) > output_length) {
             chunk_length = output_length - chunk_start;
         }
@@ -280,7 +280,7 @@ static int squeeze_internal(uint8_t rate_start, field_t *output, uint16_t output
             return -1;
         }
 
-        for (uint8_t i = 0; i < chunk_length; i++) {
+        for (size_t i = 0; i < chunk_length; i++) {
             memcpy(&output[chunk_start + i],
                    &sponge.state[CAPACITY + rate_start + i],
                    sizeof(field_t));
@@ -300,7 +300,7 @@ static int squeeze_internal(uint8_t rate_start, field_t *output, uint16_t output
     return 0;
 }
 
-static int sponge_absorb(field_t *input, uint16_t input_length)
+static int sponge_absorb(field_t *input, size_t input_length)
 {
     if (sponge.mode.type == SPONGE_MODE_ABSORBING) {
         if (sponge.mode.next_absorb_index == sponge.rate) {
@@ -320,7 +320,7 @@ static int sponge_absorb(field_t *input, uint16_t input_length)
     return -1;
 }
 
-static int sponge_squeeze(field_t *output, uint16_t num_elements)
+static int sponge_squeeze(field_t *output, size_t num_elements)
 {
     if (!num_elements) {
         return -1;
