@@ -630,6 +630,11 @@ static void test_tx_parse(void **state)
     datas_public.prepared_request.inputs[0].type = type_11;
     assert_int_equal(tx_parse(&datas_public, &tx), -1);
 
+    datas_public.prepared_request.inputs[0].type = type_12;
+    assert_int_equal(tx_parse(&datas_public, &tx), 0);
+    datas_public.prepared_request.nested_call_count = 1;
+    assert_int_equal(tx_parse(&datas_public, &tx), -1);
+
     const uint8_t hash_record_c[96]
         = "\xf4\x69\x19\x61\x50\x7b\x8f\x32\x92\xaf\x47\xac\x64\xdf\x59\xf7"
           "\xc4\x39\xf6\xb2\x48\xa9\x55\x10\xfa\x95\xcc\x96\x25\xe7\xfd\x07"
@@ -766,6 +771,7 @@ static void test_tx_parse(void **state)
            .program_id           = "ldg_p_28.aleo",
            .function_name_length = 18,
            .function_name        = "transfer_private_2",
+           .nested_call_count    = 2,
            .inputs_count         = 4,
            .inputs
            = {{.value_length = 96,
@@ -804,6 +810,7 @@ static void test_tx_parse(void **state)
                              .program_id           = "ldg_p2p_28.aleo",
                              .function_name_length = 28,
                              .function_name        = "transfer_private_to_public_2",
+                             .nested_call_count    = 2,
                              .inputs_count         = 3,
                              .inputs = {{.value_length = 96,
                                          .value        = hash_record,
@@ -955,6 +962,7 @@ static void test_tx_token_parse(void **state)
            .program_id           = "ldg_usad_p_28.aleo",
            .function_name_length = 18,
            .function_name        = "transfer_private_2",
+           .nested_call_count    = 2,
            .inputs_count         = 5,
            .inputs               = {
                {.value_length = 96,
@@ -1128,6 +1136,7 @@ static void test_tx_token_arc20_parse(void **state)
            .program_id           = "ldg_arc20_p_213.aleo",
            .function_name_length = 18,
            .function_name        = "transfer_private_2",
+           .nested_call_count    = 2,
            .inputs_count         = 5,
            .inputs               = {
                {.value_length = 31,

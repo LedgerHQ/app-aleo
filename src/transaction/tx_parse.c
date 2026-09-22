@@ -597,6 +597,10 @@ int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
         return -1;
     }
 
+    if (function_parameters->nested_call_count != data->prepared_request.nested_call_count) {
+        return -1;
+    }
+
     if (data->prepared_request.network_id >= NETWORK_ID_COUNT) {
         return -1;
     }

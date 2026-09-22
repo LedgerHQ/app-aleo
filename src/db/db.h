@@ -15,6 +15,7 @@ typedef struct {
     char      name[FUNCTION_NAME_MAX_LEN + 1];
     tx_type_e tx_type;
     uint8_t   input_count;
+    uint8_t   nested_call_count;
     field_t   bhp_1024_hashes[NETWORK_ID_COUNT];
 } function_parameters_t;
 

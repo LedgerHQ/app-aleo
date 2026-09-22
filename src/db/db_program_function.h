@@ -11,5 +11,5 @@ typedef struct {
     const function_parameters_t *functions;
 } program_parameter_t;
 
-#define NB_OF_PROGRAMS (11)
+#define NB_OF_PROGRAMS (9)
 extern const program_parameter_t program_parameters[NB_OF_PROGRAMS];

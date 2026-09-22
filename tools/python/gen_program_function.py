@@ -111,9 +111,10 @@ if __name__ == "__main__":
         for item in programs[program_id]:
             function_name = item["function"]
             print("    " + function_name)
-            print(f'    {{.name        = "{function_name}",', file=c_file)
-            print("     .tx_type     = {},".format(item["tx_type"]), file=c_file)
-            print("     .input_count = {:d},".format(item["input_count"]), file=c_file)
+            print(f'    {{.name              = "{function_name}",', file=c_file)
+            print("     .tx_type           = {},".format(item["tx_type"]), file=c_file)
+            print("     .input_count       = {:d},".format(item["input_count"]), file=c_file)
+            print("     .nested_call_count = {:d},".format(item["nested_call_count"]), file=c_file)
             print("     .bhp_1024_hashes", file=c_file)
             item["hashes"] = []
             for network_id in range(2):
