@@ -154,6 +154,57 @@ static void test_account(void **state)
     account_t empty_account = {0};
     account_erase(&G_context.account);
     assert_memory_equal(&G_context.account, &empty_account, sizeof(account_t));
+
+    // account_parse_and_check_bip32_path
+    uint32_t bip32_path[MAX_BIP32_PATH];
+    uint8_t  bip32_path_len;
+    buffer_t cdata_1 = {
+        .ptr  = (uint8_t *) "\x04\x80\x00\x00\x2c\x80\x00\x02\xab\x80\x00\x00\x00\x80\x00\x00\x00",
+        .size = 17,
+        .offset = 0};
+    assert_int_equal(account_parse_and_check_bip32_path(&cdata_1, bip32_path, &bip32_path_len), 0);
+
+    buffer_t cdata_2 = {
+        .ptr  = (uint8_t *) "\x04\x80\x00\x00\x2c\x80\x00\x02\xab\x80\x00\x00\x00\x80\x00\x00\x00",
+        .size = 18,
+        .offset = 18};
+    assert_int_equal(account_parse_and_check_bip32_path(&cdata_2, bip32_path, &bip32_path_len), -1);
+
+    buffer_t cdata_3 = {
+        .ptr  = (uint8_t *) "\x04\x80\x00\x00\x2c\x80\x00\x02\xab\x80\x00\x00\x00",
+        .size = 13,
+        .offset = 0};
+    assert_int_equal(account_parse_and_check_bip32_path(&cdata_3, bip32_path, &bip32_path_len), -1);
+
+    buffer_t cdata_4 = {
+        .ptr  = (uint8_t *) "\x05\x80\x00\x00\x2c\x80\x00\x02\xab\x80\x00\x00\x00\x80\x00\x00\x00\x80\x00\x00\x00",
+        .size = 21,
+        .offset = 0};
+    assert_int_equal(account_parse_and_check_bip32_path(&cdata_4, bip32_path, &bip32_path_len), -1);
+
+    buffer_t cdata_5 = {
+        .ptr  = (uint8_t *) "\x04\x80\x00\x00\x2d\x80\x00\x02\xab\x80\x00\x00\x00\x80\x00\x00\x00",
+        .size = 17,
+        .offset = 0};
+    assert_int_equal(account_parse_and_check_bip32_path(&cdata_5, bip32_path, &bip32_path_len), -1);
+
+    buffer_t cdata_6 = {
+        .ptr  = (uint8_t *) "\x04\x80\x00\x00\x2c\x80\x00\x02\xac\x80\x00\x00\x00\x80\x00\x00\x00",
+        .size = 17,
+        .offset = 0};
+    assert_int_equal(account_parse_and_check_bip32_path(&cdata_6, bip32_path, &bip32_path_len), -1);
+
+    buffer_t cdata_7 = {
+        .ptr  = (uint8_t *) "\x04\x80\x00\x00\x2c\x80\x00\x02\xab\x80\x00\x00\x00\x80\x00\x00\x01",
+        .size = 17,
+        .offset = 0};
+    assert_int_equal(account_parse_and_check_bip32_path(&cdata_7, bip32_path, &bip32_path_len), -1);
+
+    buffer_t cdata_8 = {
+        .ptr  = (uint8_t *) "\x04\x80\x00\x00\x2c\x80\x00\x02\xab\x00\x00\x00\x01\x80\x00\x00\x00",
+        .size = 17,
+        .offset = 0};
+    assert_int_equal(account_parse_and_check_bip32_path(&cdata_8, bip32_path, &bip32_path_len), -1);
 }
 
 static void test_r_list(void **state)
@@ -250,7 +301,8 @@ static void test_r_list(void **state)
     assert_int_equal(r_list_get_tvk(&G_context.account, R_LIST_MAX_LENGTH, &tvk), -1);
 
     field_t tvk_0 = {
-        .big.u64 = {0xc27b9f8c4d99f7c4, 0xf448a69122e3080f, 0xcd33e6190da2c413, 0x1259b4ad2a3c4469}
+        .big.u64
+        = {0xc27b9f8c4d99f7c4, 0xf448a69122e3080f, 0xcd33e6190da2c413, 0x1259b4ad2a3c4469}
     };
     assert_int_equal(r_list_get_tvk(&G_context.account, 0, &tvk), 0);
 

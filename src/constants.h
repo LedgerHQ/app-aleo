@@ -109,5 +109,29 @@
  */
 #define MAX_AMOUNT_SIZE (41)
 
+/**
+ * ALEO token decimals & ticker.
+ */
 #define ALEO_DECIMALS (6)
 #define ALEO_TICKER   "ALEO"
+
+/**
+ * BIP44 purpose field for Aleo derivation paths (44').
+ */
+#define BIP32_PURPOSE_ALEO (0x8000002C)
+
+/**
+ * BIP44 coin type field for Aleo derivation paths (683').
+ */
+#define BIP32_COIN_TYPE_ALEO (0x800002AB)
+
+/**
+ * BIP44 coin type field for Aleo derivation paths (0').
+ */
+#define BIP32_CHANGE_TYPE_ALEO (0x80000000)
+
+/**
+ * Expected number of BIP32 path components for a genuine Aleo account path
+ * (purpose, coin type, account index, change).
+ */
+#define BIP32_ALEO_PATH_LEN (4)

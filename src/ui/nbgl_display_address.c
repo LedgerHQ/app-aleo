@@ -32,6 +32,8 @@
 #include "validate.h"
 #include "menu.h"
 
+static char g_review_subtitle[32];
+
 static void review_choice(bool confirm)
 {
     // Answer, display a status page and go back to main
@@ -51,7 +53,15 @@ int ui_display_address(void)
         return io_send_sw(SWO_CONDITIONS_NOT_SATISFIED);
     }
 
-    nbgl_useCaseAddressReview(
-        G_context.address, NULL, &ICON_APP_ALEO, "Verify public address", NULL, review_choice);
+    snprintf(g_review_subtitle,
+             sizeof(g_review_subtitle),
+             "Account %d",
+             G_context.bip32_path[2] & 0x7FFFFFFF);
+    nbgl_useCaseAddressReview(G_context.address,
+                              NULL,
+                              &ICON_APP_ALEO,
+                              "Verify public address",
+                              g_review_subtitle,
+                              review_choice);
     return 0;
 }

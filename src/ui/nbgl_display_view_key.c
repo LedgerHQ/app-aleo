@@ -32,6 +32,8 @@
 #include "validate.h"
 #include "menu.h"
 
+static char g_review_subtitle[32];
+
 static void review_choice(bool confirm)
 {
     // Answer, display a status page and go back to main
@@ -52,7 +54,15 @@ int ui_display_view_key(void)
         return io_send_sw(SWO_CONDITIONS_NOT_SATISFIED);
     }
 
-    nbgl_useCaseAddressReview(
-        G_context.view_key, NULL, &ICON_APP_ALEO, "Verify view key", NULL, review_choice);
+    snprintf(g_review_subtitle,
+             sizeof(g_review_subtitle),
+             "Account %d",
+             G_context.bip32_path[2] & 0x7FFFFFFF);
+    nbgl_useCaseAddressReview(G_context.view_key,
+                              NULL,
+                              &ICON_APP_ALEO,
+                              "Verify view key",
+                              g_review_subtitle,
+                              review_choice);
     return 0;
 }

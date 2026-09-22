@@ -22,10 +22,6 @@ def test_get_address_no_confirm(backend: BackendInterface) -> None:
             "address": "aleo14xxsl4w2l5ac905986cwfff5kjj6f9ml9e53rjkzasneyx34tc8scdu53v",
         },
         {
-            "path": "m/44'/683'/255'/255'",
-            "address": "aleo13z7g8tfee8yzcwn458y98cr6c04ylauxkg4fg9c625du6hpaluxs3ynj48",
-        },
-        {
             "path": "m/44'/683'/2147483647'/0'",
             "address": "aleo1m45zd4j7g40mdkfmmhcqrsxpf93ktcwkrum7png43f5syqvu9u8ssmq39g",
         },
@@ -34,8 +30,12 @@ def test_get_address_no_confirm(backend: BackendInterface) -> None:
         client = CommandSender(backend)
         response = client.get_address_without_confirmation(path=test["path"]).data
         _, address = unpack_get_address_response(response)
-
         assert address.decode("utf-8") == test["address"]
+
+    with pytest.raises(ExceptionRAPDU) as e:
+        response = client.get_address_without_confirmation(path="m/44'/683'/255'/255'").data
+    assert e.value.status == StatusWords.SWO_WRONG_DATA_LENGTH
+    assert len(e.value.data) == 0
 
 
 # In this test we check that the CMD_GET_ADDRESS works in confirmation mode

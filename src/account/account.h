@@ -4,6 +4,7 @@
 #include <stddef.h>   // size_t
 #include <stdbool.h>  // bool
 
+#include "buffer.h"
 #include "constants.h"
 #include "field.h"
 #include "scalar.h"
@@ -48,6 +49,10 @@ typedef struct {
 } r_list_t;
 
 extern const char ADDRESS_PREFIX[5];
+
+int account_parse_and_check_bip32_path(buffer_t *cdata,
+                                       uint32_t  bip32_path[MAX_BIP32_PATH],
+                                       uint8_t  *bip32_path_len);
 
 int account_get_address_string(const uint32_t *path,
                                uint8_t         path_len,

@@ -146,7 +146,7 @@ add_library(db            SHARED ../src/db/db.c ../src/db/db_program_function.c 
 add_library(formatting    SHARED ../src/format/format_u128.c ../src/swap/aleo_swap_utils.c)
 
 # Common link set for tests that use TLV parsing
-set(COMMON_LIBS buffer read write varint format cmocka gcov stubs_os_utils)
+set(COMMON_LIBS buffer bip32 read write varint format cmocka gcov stubs_os_utils)
 
 # ── test_hl_context ──────────────────────────────────────────────────────────
 add_executable(test_bigint_256 test_bigint_256.c)

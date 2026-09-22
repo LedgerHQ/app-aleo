@@ -30,6 +30,7 @@
  */
 void swap_handle_check_address(check_address_parameters_t *params)
 {
+    int status = -1;
     PRINTF("Inside swap_handle_check_address\n");
     params->result = 0;
 
@@ -57,12 +58,11 @@ void swap_handle_check_address(check_address_parameters_t *params)
     uint8_t  bip32_path_len;
     uint32_t bip32_path[MAX_BIP32_PATH];
 
-    if (!buffer_read_u8(&buf, &bip32_path_len)
-        || !buffer_read_bip32_path(&buf, bip32_path, (size_t) bip32_path_len)) {
+    status = account_parse_and_check_bip32_path(&buf, bip32_path, &bip32_path_len);
+    if (status < 0) {
         return;
     }
-
-    int status
+    status
         = account_get_address_string(bip32_path, bip32_path_len, G_swap_validated.account_address);
 
     if (status < 0) {

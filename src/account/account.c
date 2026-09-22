@@ -216,6 +216,30 @@ end:
     return status;
 }
 
+int account_parse_and_check_bip32_path(buffer_t *cdata,
+                                       uint32_t  bip32_path[MAX_BIP32_PATH],
+                                       uint8_t  *bip32_path_len)
+{
+    LEDGER_ASSERT(cdata != NULL, "NULL cdata");
+    LEDGER_ASSERT(bip32_path != NULL, "NULL bip32_path");
+    LEDGER_ASSERT(bip32_path_len != NULL, "NULL bip32_path_len");
+
+    // Ensure path is "m/44'/683'/{account}'/0'"
+    if (!buffer_read_u8(cdata, bip32_path_len)) {
+        return -1;
+    }
+    if (!buffer_read_bip32_path(cdata, bip32_path, (size_t) *bip32_path_len)) {
+        return -1;
+    }
+    if ((*bip32_path_len != BIP32_ALEO_PATH_LEN) || (bip32_path[0] != BIP32_PURPOSE_ALEO)
+        || (bip32_path[1] != BIP32_COIN_TYPE_ALEO) || (bip32_path[2] < 0x80000000)
+        || (bip32_path[3] != BIP32_CHANGE_TYPE_ALEO)) {
+        return -1;
+    }
+
+    return 0;
+}
+
 int account_get_address_string(const uint32_t *path,
                                uint8_t         path_len,
                                char            address[ADDRESS_LEN + 1])

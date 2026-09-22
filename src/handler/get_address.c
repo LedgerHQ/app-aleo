@@ -36,6 +36,7 @@
 
 int handler_get_address(buffer_t *cdata, bool display)
 {
+    int status = -1;
     LEDGER_ASSERT(cdata != NULL, "NULL cdata");
 
     if (G_context.signing_state != SIGNING_STATE_WAIT_INTENT) {
@@ -45,13 +46,13 @@ int handler_get_address(buffer_t *cdata, bool display)
     explicit_bzero(&G_context, sizeof(G_context));
     G_context.req_type = CONFIRM_ADDRESS;
 
-    if (!buffer_read_u8(cdata, &G_context.bip32_path_len)
-        || !buffer_read_bip32_path(
-            cdata, G_context.bip32_path, (size_t) G_context.bip32_path_len)) {
+    status = account_parse_and_check_bip32_path(
+        cdata, G_context.bip32_path, &G_context.bip32_path_len);
+    if (status < 0) {
         return io_send_sw(SWO_WRONG_DATA_LENGTH);
     }
 
-    int status = account_get_address_string(
+    status = account_get_address_string(
         G_context.bip32_path, G_context.bip32_path_len, G_context.address);
 
     if (status < 0) {

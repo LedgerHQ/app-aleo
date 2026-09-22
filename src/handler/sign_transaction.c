@@ -70,9 +70,9 @@ static int sign_root_tx(buffer_t *cdata)
     }
 
     // Extract bip32 path
-    if (!buffer_read_u8(cdata, &G_context.bip32_path_len)
-        || !buffer_read_bip32_path(
-            cdata, G_context.bip32_path, (size_t) G_context.bip32_path_len)) {
+    status = account_parse_and_check_bip32_path(
+        cdata, G_context.bip32_path, &G_context.bip32_path_len);
+    if (status < 0) {
         return io_send_sw(SWO_WRONG_DATA_LENGTH);
     }
     status
@@ -484,9 +484,9 @@ int handler_get_tvk(buffer_t *cdata, uint8_t mode)
     }
 
     // Extract bip32 path
-    if (!buffer_read_u8(cdata, &G_context.bip32_path_len)
-        || !buffer_read_bip32_path(
-            cdata, G_context.bip32_path, (size_t) G_context.bip32_path_len)) {
+    int status = account_parse_and_check_bip32_path(
+        cdata, G_context.bip32_path, &G_context.bip32_path_len);
+    if (status < 0) {
         return io_send_sw(SWO_WRONG_DATA_LENGTH);
     }
 
