@@ -673,7 +673,7 @@ static void test_signature(void **state)
            {.value_length = 16,
             .value = (uint8_t *) "\xe8\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
             .type_length = 3,
-            .type        = (uint8_t *) "\x01\x00\x0c"},
+            .type        = (uint8_t *) "\x01\x00\x0d"},
            {.value_length = 32,
             .value        = (uint8_t *) merkle_proof,
             .type_length  = 3,
@@ -698,10 +698,10 @@ static void test_signature(void **state)
         .big.u64 = {0x25910ef54db490ed, 0x1748ffd6736145e7, 0x288b9a16ca91d094, 0x220b2a6efe46d2c}
     };
     scalar_t challenge_13 = {
-        .big.u64 = {0x3840c2b92ede3c50, 0x461a410d87c460ab, 0xa6ff42acbdcebdd7, 0x181c543417b01df}
+        .big.u64 = {0x135b64fb2d6210ba, 0x476287de81d6c0d6, 0x6b3c9d8eea41936b, 0x2c7981d060a90dc}
     };
     scalar_t response_13 = {
-        .big.u64 = {0x8a22f27ac4c54949, 0x62a22736ebef88f9, 0x44d2e75bf45e0226, 0x101653c0f58b1dd}
+        .big.u64 = {0xd80473bb42517693, 0xb20ab3ef384555d8, 0x297255199db1db40, 0x27d9b355c73a194}
     };
 
     memcpy(program_checksum, program_checksum_c, 32);
@@ -745,7 +745,7 @@ static void test_signature(void **state)
            {.value_length = 16,
             .value = (uint8_t *) "\xe8\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
             .type_length = 3,
-            .type        = (uint8_t *) "\x01\x00\x0c"}},
+            .type        = (uint8_t *) "\x01\x00\x0d"}},
         .program_checksum  = NULL,
         .nested_call_count = 2,
     };
@@ -766,10 +766,10 @@ static void test_signature(void **state)
         .big.u64 = {0x25910ef54db490ed, 0x1748ffd6736145e7, 0x288b9a16ca91d094, 0x220b2a6efe46d2c}
     };
     scalar_t challenge_14 = {
-        .big.u64 = {0xa2e465527fc07a34, 0xc9a0515bc3e2196d, 0x6d14e0d9c8a39684, 0x3db2afaa91051c}
+        .big.u64 = {0x744553f8f2de3b18, 0xc7ff1e748fe126d, 0xcea66a56413cd73a, 0x2737c66e82f9732}
     };
     scalar_t response_14 = {
-        .big.u64 = {0xdc3cd043fcca940c, 0x44a467f09fc87f22, 0x98492a6cfc382e30, 0x39345663863263d}
+        .big.u64 = {0x86023b84e3245661, 0x63397e7b1daa3f8d, 0x8ed082a1f9ad8d27, 0x254ab2d0bdf9015}
     };
 
     memcpy(program_checksum, program_checksum_c, 32);

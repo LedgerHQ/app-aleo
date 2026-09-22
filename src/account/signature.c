@@ -104,7 +104,7 @@ static int plaintext_to_field(uint8_t       *plaintext,
                 return -1;
                 break;
         }
-        if ((plaintext_length * 8) < bit_size) {
+        if (plaintext_length != ((bit_size+7)/8)) {
             return -1;
         }
         // A 32-byte field-typed value carries 3 bits above the modulus that are never signed;
@@ -303,7 +303,7 @@ static int hash_record_input(account_t *account, prepared_request_t *request, ui
         status = -1;
         goto end;
     }
-    if (input->value_length < (3 * sizeof(field_t))) {
+    if (input->value_length != (3 * sizeof(field_t))) {
         status = -1;
         goto end;
     }
