@@ -373,6 +373,11 @@ int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool next_chunk)
 
     LEDGER_ASSERT(cdata != NULL, "NULL cdata");
 
+    // In swap mode, any response sent by this handler is terminal by default
+    // (errors included): it ends the swap and returns to Exchange. The only
+    // exception is the intermediate chunk acknowledgement below.
+    G_swap_response_ready = true;
+
     if (!cdata->size) {
         // Reject empty data
         return io_send_sw(SWO_WRONG_DATA_LENGTH);
@@ -423,15 +428,9 @@ int handler_sign_transaction(buffer_t *cdata, uint8_t mode, bool next_chunk)
     if (apdu_rx_buffer.offset < apdu_rx_buffer.size) {
         // Wait next chunk. This is only a transport acknowledgement, never a
         // terminal signing result.
-        if (G_called_from_swap) {
-            G_swap_response_ready = false;
-        }
+        G_swap_response_ready = false;
         return io_send_sw(SWO_SUCCESS);
     }
-
-    // From here the request is complete: any outcome (success below, or the
-    // SWO_INCORRECT_DATA error on dispatch failure) is terminal for swap mode.
-    G_swap_response_ready = true;
 
     apdu_rx_buffer.offset = 0;
     switch (rx_mode) {
