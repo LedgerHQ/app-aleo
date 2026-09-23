@@ -4,7 +4,8 @@
 
 This document describes the APDU messages interface to get account address & view account view key.
 
-Note that the BIP32 path should use the mandatory format : m/44'/683'/${account_index}
+Note that the BIP32 path must use the mandatory format : `m/44'/683'/${account_index}'/0'`
+(exactly 4 derivations, all hardened). Any other path is rejected with `0x6A87` (wrong data length).
 
 ### GET ACCOUNT ADDRESS
 
@@ -29,10 +30,11 @@ _The address is returned as an ascii bech32m encoded representation (aleo1.....)
 
 | _Description_                                    | _Length_ | _Type_ |
 | ------------------------------------------------ | :------: |  ----: |
-| Number of BIP 32 derivations to perform (max 10) |    1     |     u8 |
-| First derivation index (big endian)              |    4     |    u32 |
-| ...                                              |    4     |    u32 |
-| Last derivation index (big endian)               |    4     |    u32 |
+| Number of BIP 32 derivations (must be 4)         |    1     |     u8 |
+| Purpose: 44' (`0x8000002C`, big endian)          |    4     |    u32 |
+| Coin type: 683' (`0x800002AB`, big endian)       |    4     |    u32 |
+| Account index, hardened (big endian)             |    4     |    u32 |
+| Change: 0' (`0x80000000`, big endian)            |    4     |    u32 |
 
 ##### Output data (RData)
 
@@ -43,12 +45,12 @@ _The address is returned as an ascii bech32m encoded representation (aleo1.....)
 
 #### Example
 
-Getting account address for account number 0:
+Getting account address for account number 0 (`m/44'/683'/0'/0'`):
 ```shell
-> e005010015058000002c800002ab800000000000000000000000
-< 3f616c656f316d77393832647a6c6773737372367a6d75686d383575796576767063657672326a677861736b76386e36647570686e6a39677273636a77346a6d9000
+> e005010011048000002c800002ab8000000080000000
+< 3f616c656f316b373334396e616b78373268337133676d387a67366630646b736e6b70397039686139336c7278367a7532676e766a7a707972736a32386a35349000
 Address length : 63
-Address        : aleo1mw982dzlgsssr6zmuhm85uyevvpcevr2jgxaskv8n6duphnj9grscjw4jm
+Address        : aleo1k7349nakx72h3q3gm8zg6f0dksnkp9p9ha93lrx6zu2gnvjzpyrsj28j54
 ```
 
 ### GET ACCOUNT VIEW KEY
@@ -69,10 +71,11 @@ _The user consent is mandatory here_
 
 | _Description_                                    | _Length_ | _Type_ |
 | ------------------------------------------------ | :------: |  ----: |
-| Number of BIP 32 derivations to perform (max 10) |    1     |     u8 |
-| First derivation index (big endian)              |    4     |    u32 |
-| ...                                              |    4     |    u32 |
-| Last derivation index (big endian)               |    4     |    u32 |
+| Number of BIP 32 derivations (must be 4)         |    1     |     u8 |
+| Purpose: 44' (`0x8000002C`, big endian)          |    4     |    u32 |
+| Coin type: 683' (`0x800002AB`, big endian)       |    4     |    u32 |
+| Account index, hardened (big endian)             |    4     |    u32 |
+| Change: 0' (`0x80000000`, big endian)            |    4     |    u32 |
 
 ##### Output data (RData)
 
@@ -83,10 +86,10 @@ _The user consent is mandatory here_
 
 #### Example
 
-Getting account view key for account number 0:
+Getting account view key for account number 0 (`m/44'/683'/0'/0'`):
 ```shell
-> e007010015058000002c80000001800000000000000000000000
-< 3541566965774b65793171654b4a316e6f634b704536746231637073745a6533427a774770646939616a7350504363533263547952489000
+> e007010011048000002c800002ab8000000080000000
+< 3541566965774b657931666e584474444a7a315672386852465861375a78775741333745335458394d72514a656936393167534a6b419000
 Address length : 53
-Address        : AViewKey1qeKJ1nocKpE6tb1cpstZe3BzwGpdi9ajsPPCcS2cTyRH
+Address        : AViewKey1fnXDtDJz1Vr8hRFXa7ZxwWA37E3TX9MrQJei691gSJkA
 ```
