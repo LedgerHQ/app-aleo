@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-09-23
+
+### Added
+
+- Network name displayed in the transaction review subtitle when signing on testnet (transfers and staking)
+- Account index displayed in the address and view key review screens
+- Per-token `mainnet_availability` flag in the tokens database
+- Expected `nested_call_count` per program function in the programs and tokens databases
+- Ragger tests for testnet transfers and staking transactions
+- Branch coverage in the unit tests HTML report
+
+### Changed
+
+- BIP32 path is now strictly enforced to `m/44'/683'/{account}'/0'` for `GET_ADDRESS`, `GET_VIEW_KEY`,
+  `GET_TVK`, `SIGN_TRANSACTION` and swap `CHECK_ADDRESS`; any other path is rejected
+- `GET_TVK` derived mode now requires the same BIP32 path as the seed call and an index greater than 0
+- Intent and prepared request `structure_type` / `structure_version` TLV tags are now mandatory and checked
+- Intent `nested_calls_count` must match the value expected for the called program function
+- Removed test programs `mm1_ldg_arc20_p2p_213.aleo` and `mm2_ldg_arc20_p_213.aleo` from the programs database
+- APDU documentation updated accordingly (`ACCOUNT.md`, `SIGN_TRANSACTION.md`)
+
+### Fixed
+
+- V-226: Hash-to-scalar wrappers retain private-key-equivalent digests on the stack
+- V-225: Signing scalars remain in conversion-helper stack frames
+- V-159: Network ID omitted from on-device transaction review
+- V-231: Testnet-only token metadata bypass in mainnet ARC20 batch signing
+- V-120: Debug transaction logging over-reads non-NUL TLV strings
+- V-184: Fragment continuation falsely completes swap before any transaction signature
+- V-019: Transaction TLV parsers do not require or validate structure type/version tags
+- V-195: Wrong-account Aleo view-key export via unvalidated BIP32 path
+- V-233: Unvalidated nested-call count can make a broadcastable simple transfer appear rejected
+- V-042: Poseidon hash input length truncation causes collisions for inputs ≥256 field elements
+- V-124: Malformed prepared-request inputs with extra bytes are signed while trailing data is ignored
+- V-144: `GET_TVK` derived mode accepts index 0 and can reset `r_list` without seed mode
+- Poseidon unit test stack overflow (output array too small)
+
 ## [1.3.6] - 2026-16-11
 
 ### Fixed
