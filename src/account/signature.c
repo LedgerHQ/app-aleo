@@ -104,7 +104,7 @@ static int plaintext_to_field(uint8_t       *plaintext,
                 return -1;
                 break;
         }
-        if (plaintext_length != ((bit_size+7)/8)) {
+        if (plaintext_length != ((bit_size + 7) / 8)) {
             return -1;
         }
         // A 32-byte field-typed value carries 3 bits above the modulus that are never signed;

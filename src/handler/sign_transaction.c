@@ -480,17 +480,13 @@ int handler_get_tvk(buffer_t *cdata, uint8_t mode)
     }
 
     if (mode == R_LIST_MODE_TVK_SEED) {
+        // Extract bip32 path
         explicit_bzero(&G_context, sizeof(G_context));
-    }
-
-    // Extract bip32 path
-    int status = account_parse_and_check_bip32_path(
-        cdata, G_context.bip32_path, &G_context.bip32_path_len);
-    if (status < 0) {
-        return io_send_sw(SWO_WRONG_DATA_LENGTH);
-    }
-
-    if (mode == R_LIST_MODE_TVK_SEED) {
+        int status = account_parse_and_check_bip32_path(
+            cdata, G_context.bip32_path, &G_context.bip32_path_len);
+        if (status < 0) {
+            return io_send_sw(SWO_WRONG_DATA_LENGTH);
+        }
         // Generate account
         if (account_generate_keys(
                 G_context.bip32_path, G_context.bip32_path_len, &G_context.account)
@@ -501,31 +497,46 @@ int handler_get_tvk(buffer_t *cdata, uint8_t mode)
         }
         index = 0;
     }
-    else if (!buffer_read_u8(cdata, &index)) {
-        account_erase(&G_context.account);
-        r_list_erase();
-        return io_send_sw(SWO_INCORRECT_DATA);
+    else {
+        // mode == R_LIST_MODE_TVK_DERIVED
+        uint32_t bip32_path[MAX_BIP32_PATH];
+        uint8_t  bip32_path_len;
+        int      status = account_parse_and_check_bip32_path(cdata, bip32_path, &bip32_path_len);
+        if (status < 0) {
+            goto error;
+        }
+        if (bip32_path_len != G_context.bip32_path_len) {
+            goto error;
+        }
+        if (memcmp(bip32_path, G_context.bip32_path, bip32_path_len * sizeof(uint32_t)) != 0) {
+            goto error;
+        }
+        if (!buffer_read_u8(cdata, &index)) {
+            goto error;
+        }
+        else if (index == 0) {
+            goto error;
+        }
     }
 
     if (r_list_set(&G_context.account, index) < 0) {
-        account_erase(&G_context.account);
-        r_list_erase();
-        return io_send_sw(SWO_INCORRECT_DATA);
+        goto error;
     }
 
     if (r_list_get_tvk(&G_context.account, index, &tvk) < 0) {
-        account_erase(&G_context.account);
-        r_list_erase();
-        return io_send_sw(SWO_INCORRECT_DATA);
+        goto error;
     }
 
     if (helper_send_response_get_tvk(&tvk) < 0) {
-        account_erase(&G_context.account);
-        r_list_erase();
-        return io_send_sw(SWO_INCORRECT_DATA);
+        goto error;
     }
 
     return 0;
+
+error:
+    account_erase(&G_context.account);
+    r_list_erase();
+    return io_send_sw(SWO_INCORRECT_DATA);
 }
 
 void sign_transaction_init(void)
