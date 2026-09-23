@@ -89,9 +89,9 @@ static void test_poseidon(void **state)
     assert_int_equal(r.big.u64[3], 0x00543b2611f68e96);
 
     // hash_many_psd8
-    field_t rr[32];
-    // Large output counts must succeed
-    // needs 41; this previously capped at SPONGE_STATE_SIZE (9) and returned -1.
+    field_t rr[48];  // sized for the largest output count tested below (48)
+    // Output counts above SPONGE_STATE_SIZE (9) must succeed (32 and 48 are tested);
+    // this previously capped at SPONGE_STATE_SIZE and returned -1.
     assert_int_equal(hash_many_psd8(hash_input_1, 8, rr, 32), 0);
     // The first rate window (outputs 0..7) must be byte-identical to a short squeeze, so the
     // boundary-crossing logic did not disturb it.
