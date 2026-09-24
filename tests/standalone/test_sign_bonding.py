@@ -146,7 +146,7 @@ def test_sign_transaction_bond_public(backend: BackendInterface, scenario_naviga
         500,
         100,
         "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe",
-        "aleo1ktwldl75earvxjur7devnqvdccjeuqa6807078klkg0a0l6ayq8qu9xzg4",
+        "aleo1k7349nakx72h3q3gm8zg6f0dksnkp9p9ha93lrx6zu2gnvjzpyrsj28j54",
         1000,
     )
     tx_datas["path"] = "m/44'/683'/0'/0'"
@@ -205,7 +205,7 @@ def test_sign_transaction_bond_public_testnet(backend: BackendInterface, scenari
         500,
         100,
         "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe",
-        "aleo1ktwldl75earvxjur7devnqvdccjeuqa6807078klkg0a0l6ayq8qu9xzg4",
+        "aleo1k7349nakx72h3q3gm8zg6f0dksnkp9p9ha93lrx6zu2gnvjzpyrsj28j54",
         1000,
     )
     tx_datas["request"]["network_id"] = "testnet"
@@ -257,6 +257,24 @@ def test_sign_transaction_bond_public_testnet(backend: BackendInterface, scenari
         "gammas_count": 0,
     }
     assert check_response(unpacked, expected)
+
+
+def test_sign_transaction_bond_public_bad_withdrawal(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
+    client = CommandSender(backend)
+    tx_datas = forge_bond_public(
+        500,
+        100,
+        "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe",
+        "aleo1ktwldl75earvxjur7devnqvdccjeuqa6807078klkg0a0l6ayq8qu9xzg4",
+        1000,
+    )
+    tx_datas["path"] = "m/44'/683'/0'/0'"
+    with pytest.raises(ExceptionRAPDU) as e:
+        with client.sign_transaction(tx_datas=tx_datas):
+            pass
+
+    assert e.value.status == StatusWords.SWO_INCORRECT_DATA
+    assert len(e.value.data) == 0
 
 
 def test_sign_transaction_unbond_public(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
@@ -491,7 +509,7 @@ def test_sign_transaction_bond_refused(backend: BackendInterface, scenario_navig
         500,
         100,
         "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe",
-        "aleo1ktwldl75earvxjur7devnqvdccjeuqa6807078klkg0a0l6ayq8qu9xzg4",
+        "aleo1k7349nakx72h3q3gm8zg6f0dksnkp9p9ha93lrx6zu2gnvjzpyrsj28j54",
         1000,
     )
     tx_datas["path"] = "m/44'/683'/0'/0'"

@@ -1190,12 +1190,10 @@ static uint8_t ADDR_VALIDATOR[32]
 static const char ADDR_VALIDATOR_STR[]
     = "aleo1sfydt6z6cnqjx3hcgk9ajw03ecj6uqlfcm9u3p3gdhckzcc2w5xqv3v3pe";
 
-/* aleo1quvzjwjtt3kharaqk8pd8e84qctjsw22tdk8mr5lkrqa9cl5q5psq6tr7y */
+/* aleo1quvzjwjtt3kharaqk8pd8e84qctjsw22tdk8mr5lkrqa9cl5q5psq6tr7y (not the signer's address) */
 static uint8_t ADDR_WITHDRAWAL[32]
     = "\x07\x18\x29\x3a\x4b\x5c\x6d\x7e\x8f\xa0\xb1\xc2\xd3\xe4\xf5\x06"
       "\x17\x28\x39\x4a\x5b\x6c\x7d\x8e\x9f\xb0\xc1\xd2\xe3\xf4\x05\x03";
-static const char ADDR_WITHDRAWAL_STR[]
-    = "aleo1quvzjwjtt3kharaqk8pd8e84qctjsw22tdk8mr5lkrqa9cl5q5psq6tr7y";
 
 /* aleo17rk74elyu80dhkx46t8uejwxc0qtmw4hkjc6a2ag5k3fl8yejczslgp4l4 */
 static uint8_t ADDR_STAKER[32]
@@ -1203,6 +1201,18 @@ static uint8_t ADDR_STAKER[32]
       "\xc0\xbd\xba\xb7\xb4\xb1\xae\xab\xa8\xa5\xa2\x9f\x9c\x99\x96\x05";
 static const char ADDR_STAKER_STR[]
     = "aleo17rk74elyu80dhkx46t8uejwxc0qtmw4hkjc6a2ag5k3fl8yejczslgp4l4";
+
+/* aleo1k7349nakx72h3q3gm8zg6f0dksnkp9p9ha93lrx6zu2gnvjzpyrsj28j54 (Speculos m/44'/683'/0'/0') */
+static uint8_t ADDR_SIGNER[32]
+    = "\xb7\xa3\x52\xcf\xb6\x37\x95\x78\x82\x28\xd9\xc4\x8d\x25\xed\xb4"
+      "\x27\x60\x94\x25\xbf\x4b\x1f\x8c\xda\x17\x14\x89\xb2\x42\x09\x07";
+static const char ADDR_SIGNER_STR[]
+    = "aleo1k7349nakx72h3q3gm8zg6f0dksnkp9p9ha93lrx6zu2gnvjzpyrsj28j54";
+
+// Seed returned by sys_hdkey_derive on Speculos for m/44'/683'/0'/0', from which ADDR_SIGNER derives
+static uint8_t SIGNER_SEED[32]
+    = "\xcd\x28\x45\x51\xff\x6f\x3f\x39\x3d\x74\xac\x8b\x78\x2a\x04\xec"
+      "\x9c\x56\xe4\xa0\xa6\x87\xd2\x3f\xe6\x89\xf3\x64\x22\x1e\x15\xe6";
 
 // ADDR_VALIDATOR with bit 255 set. Only the low FIELD_MODULUS_BITS bits of an address input are
 // signed, so this renders as a different address than it commits to and must be refused.
@@ -1221,11 +1231,30 @@ static uint8_t TYPE_U64_PRIVATE[3]     = "\x02\x00\x0c";
 static uint8_t TYPE_U128_PUBLIC[3]     = "\x01\x00\x0d";
 static uint8_t TYPE_STRUCT_PUBLIC[3]   = "\x01\x01\x00";
 
+// Queues one sys_hdkey_derive call returning SIGNER_SEED with the given status
+static void expect_signer_derivation(bolos_err_t status)
+{
+    will_return(sys_hdkey_derive, SIGNER_SEED);
+    will_return(sys_hdkey_derive, status);
+}
+
 static void test_tx_staking_bond_parse(void **state)
 {
     (void) state;
     memset(&G_context, 0, sizeof(G_context));
     tx_t tx;
+
+    // The withdrawal address is checked against the signer's address, derived from the BIP32 path
+    uint32_t signer_path[4] = {0x8000002c, 0x800002ab, 0x80000000, 0x80000000};
+    memcpy(G_context.bip32_path, signer_path, sizeof(signer_path));
+    G_context.bip32_path_len = 4;
+    will_return_always(cx_bn_lock, CX_OK);
+    will_return_always(cx_ecpoint_alloc, CX_OK);
+    will_return_always(cx_ecpoint_init, CX_OK);
+    will_return_always(cx_ecpoint_rnd_scalarmul, CX_OK);
+    will_return_always(cx_ecpoint_export, CX_OK);
+    will_return_always(cx_ecpoint_destroy, CX_OK);
+    will_return_always(cx_bn_unlock, CX_OK);
 
     sign_transaction_datas_t datas_bonding = {
         .max_base_fee             = 100,
@@ -1246,29 +1275,39 @@ static void test_tx_staking_bond_parse(void **state)
                .type_length  = 3,
                .type         = TYPE_ADDRESS_PUBLIC},
               {.value_length = 32,
-               .value        = ADDR_WITHDRAWAL,
+               .value        = ADDR_SIGNER,
                .type_length  = 3,
                .type         = TYPE_ADDRESS_PUBLIC},
               {.value_length = 8, .value = AMOUNT_LE, .type_length = 3, .type = TYPE_U64_PUBLIC}}}
     };
 
     // Happy path: every field reaching the review screen must be decoded correctly.
+    expect_signer_derivation(SWO_OK);
     assert_int_equal(tx_parse(&datas_bonding, &tx), 0);
     assert_int_equal(tx.type, TX_STAKING_BOND);
     assert_string_equal(tx.staking.validator_address, ADDR_VALIDATOR_STR);
-    assert_string_equal(tx.staking.withdrawal_address, ADDR_WITHDRAWAL_STR);
+    assert_string_equal(tx.staking.withdrawal_address, ADDR_SIGNER_STR);
     assert_int_equal(tx.staking.amount, AMOUNT_VALUE);
     // bond_public has no staker input, so that screen field must stay empty
     assert_int_equal(tx.staking.staker_address[0], '\0');
 
-    // Validator and withdrawal must not be transposed: swapping the inputs must swap the output.
-    datas_bonding.prepared_request.inputs[0].value = ADDR_WITHDRAWAL;
-    datas_bonding.prepared_request.inputs[1].value = ADDR_VALIDATOR;
-    assert_int_equal(tx_parse(&datas_bonding, &tx), 0);
-    assert_string_equal(tx.staking.validator_address, ADDR_WITHDRAWAL_STR);
-    assert_string_equal(tx.staking.withdrawal_address, ADDR_VALIDATOR_STR);
-    datas_bonding.prepared_request.inputs[0].value = ADDR_VALIDATOR;
+    // The withdrawal address must be the signer's one
     datas_bonding.prepared_request.inputs[1].value = ADDR_WITHDRAWAL;
+    expect_signer_derivation(SWO_OK);
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    // A signer address derivation failure must be propagated
+    datas_bonding.prepared_request.inputs[1].value = ADDR_SIGNER;
+    expect_signer_derivation(0x0001);
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    // Validator and withdrawal must not be transposed: the signer as validator is refused.
+    datas_bonding.prepared_request.inputs[0].value = ADDR_SIGNER;
+    datas_bonding.prepared_request.inputs[1].value = ADDR_VALIDATOR;
+    expect_signer_derivation(SWO_OK);
+    assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
+    datas_bonding.prepared_request.inputs[0].value = ADDR_VALIDATOR;
+    datas_bonding.prepared_request.inputs[1].value = ADDR_SIGNER;
+    expect_signer_derivation(SWO_OK);
+    assert_int_equal(tx_parse(&datas_bonding, &tx), 0);
 
     // inputs_count must match the database entry for bond_public
     datas_bonding.prepared_request.inputs_count = 2;
@@ -1306,15 +1345,18 @@ static void test_tx_staking_bond_parse(void **state)
     datas_bonding.prepared_request.inputs[0].value = ADDR_VALIDATOR;
     datas_bonding.prepared_request.inputs[1].value = ADDR_NON_CANONICAL;
     assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
-    datas_bonding.prepared_request.inputs[1].value = ADDR_WITHDRAWAL;
+    datas_bonding.prepared_request.inputs[1].value = ADDR_SIGNER;
 
     // The amount is a public u64
     datas_bonding.prepared_request.inputs[2].type = TYPE_U64_PRIVATE;
+    expect_signer_derivation(SWO_OK);
     assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
     datas_bonding.prepared_request.inputs[2].type = TYPE_U128_PUBLIC;
+    expect_signer_derivation(SWO_OK);
     assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
     datas_bonding.prepared_request.inputs[2].type         = TYPE_U64_PUBLIC;
     datas_bonding.prepared_request.inputs[2].value_length = 16;
+    expect_signer_derivation(SWO_OK);
     assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
     datas_bonding.prepared_request.inputs[2].value_length = 8;
 
@@ -1322,9 +1364,11 @@ static void test_tx_staking_bond_parse(void **state)
     uint8_t amount_zero[8]                         = "\x00\x00\x00\x00\x00\x00\x00\x00";
     uint8_t amount_max[8]                          = "\xff\xff\xff\xff\xff\xff\xff\xff";
     datas_bonding.prepared_request.inputs[2].value = amount_zero;
+    expect_signer_derivation(SWO_OK);
     assert_int_equal(tx_parse(&datas_bonding, &tx), 0);
     assert_int_equal(tx.staking.amount, 0);
     datas_bonding.prepared_request.inputs[2].value = amount_max;
+    expect_signer_derivation(SWO_OK);
     assert_int_equal(tx_parse(&datas_bonding, &tx), 0);
     assert_true(tx.staking.amount == UINT64_MAX);
     datas_bonding.prepared_request.inputs[2].value = AMOUNT_LE;
@@ -1335,6 +1379,7 @@ static void test_tx_staking_bond_parse(void **state)
     assert_int_equal(tx_parse(&datas_bonding, &tx), -1);
     datas_bonding.prepared_request.function_name = "bond_public";
 
+    expect_signer_derivation(SWO_OK);
     assert_int_equal(tx_parse(&datas_bonding, &tx), 0);
 }
 

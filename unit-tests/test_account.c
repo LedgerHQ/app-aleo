@@ -67,14 +67,14 @@ static void test_account(void **state)
     will_return_always(cx_bn_unlock, CX_OK);
 
     // account_get_address_string
-    uint8_t bn_seed[32] = {0xff, 0xc3, 0xde, 0x3c, 0x85, 0x23, 0x3e, 0x2c, 0xca, 0x13, 0x90,
-                           0xdb, 0xdd, 0x6b, 0x6f, 0x04, 0x5b, 0x6a, 0x74, 0xfa, 0xde, 0x6e,
-                           0x58, 0x07, 0xd2, 0xe3, 0x15, 0x27, 0x05, 0xea, 0x65, 0x7e};
+    uint8_t bn_seed[32] = {0xcd, 0x28, 0x45, 0x51, 0xff, 0x6f, 0x3f, 0x39, 0x3d, 0x74, 0xac,
+                           0x8b, 0x78, 0x2a, 0x04, 0xec, 0x9c, 0x56, 0xe4, 0xa0, 0xa6, 0x87,
+                           0xd2, 0x3f, 0xe6, 0x89, 0xf3, 0x64, 0x22, 0x1e, 0x15, 0xe6};
 
     will_return(sys_hdkey_derive, bn_seed);
     will_return(sys_hdkey_derive, SWO_OK);
     assert_int_equal(account_get_address_string(path, 4, address), 0);
-    assert_string_equal(address, "aleo1c8hk0s7zfrmg99e4t0ekd9mgt5qgtz2yvfjamfgujndy959srufqqawxzz");
+    assert_string_equal(address, "aleo1k7349nakx72h3q3gm8zg6f0dksnkp9p9ha93lrx6zu2gnvjzpyrsj28j54");
 
     will_return(sys_hdkey_derive, bn_seed);
     will_return(sys_hdkey_derive, 0x0001);
@@ -85,7 +85,7 @@ static void test_account(void **state)
     will_return(sys_hdkey_derive, bn_seed);
     will_return(sys_hdkey_derive, SWO_OK);
     assert_int_equal(account_get_view_key_string(path, 4, address), 0);
-    assert_string_equal(address, "AViewKey1hyAypRRpyq2JDjv3UpdRZdQjHrWyfPLbKf74QjgiQcjC");
+    assert_string_equal(address, "AViewKey1fnXDtDJz1Vr8hRFXa7ZxwWA37E3TX9MrQJei691gSJkA");
 
     will_return(sys_hdkey_derive, bn_seed);
     will_return(sys_hdkey_derive, 0x0001);
@@ -96,53 +96,54 @@ static void test_account(void **state)
     will_return(sys_hdkey_derive, SWO_OK);
     assert_int_equal(account_generate_keys(path, 4, &G_context.account), 0);
     field_t seed = {
-        .big.u64 = {0x326dab4d918236e0, 0xec37e9452f68725, 0x7099819b51333787, 0x46977186edbf965}
+        .big.u64
+        = {0x0996c322a2025bcc, 0xfef1016dbdaf6040, 0xc2c27d26118a9f12, 0x03bfbdc8f5eda6a3}
     };
     check_field(&G_context.account.private_key.seed, &seed);
     scalar_t sk_sig = {
         .big.u64
-        = {0x07eabdc6534c858f, 0x44f1027b4d903652, 0xe8496250b2b42c9a, 0x044f53f538456ce2}
+        = {0x1c73b9d53b26e207, 0x6b23d27b323bda6f, 0xbe52721ab5cac4e5, 0x03a99198a3e8b863}
     };
     check_scalar(&G_context.account.private_key.sk_sig, &sk_sig);
     scalar_t r_sig = {
         .big.u64
-        = {0xe05c5bfcd63c0709, 0x928969617eb6172e, 0xa1bef1a9817696c4, 0x02cab0981b27e5e5}
+        = {0xfac590fb3eeae0bf, 0xc033c550a1d33c34, 0x152e40e33c016f6e, 0x044be9621b55abb3}
     };
     check_scalar(&G_context.account.private_key.r_sig, &r_sig);
     group_t pk_sig = {
         .x.big.u64
-        = {0xde8cc5ec217ad253, 0xea6bd6b4a4d0cf4b, 0x9556a907cd59336b, 0x0a3d18918155940e},
+        = {0x65a90e2367fd4bde, 0x4b13e57d98114bfc, 0x2fd9cc6dcc66de0f, 0x01fd1c40c990feb1},
         .y.big.u64
-        = {0xe456322861acf6ac, 0x68b72f3d5529218e, 0x3cbe762b292509f8, 0x0c03f4d9376b27cd}
+        = {0x12b301c833a15757, 0x19745bef29e672c9, 0x1e5213d746e0db94, 0x11b372291ed5af5b}
     };
     check_group(&G_context.account.compute_key.pk_sig, &pk_sig);
     group_t pr_sig = {
         .x.big.u64
-        = {0x773d1f206139cff5, 0xef1122c53bf34151, 0x58c4735db29ca6a7, 0x11d1c7a9b23a52f5},
+        = {0x58440841ace0d328, 0x20a752f3969513d4, 0x0f5c1d14a6ea85c6, 0x0212667895211a48},
         .y.big.u64
-        = {0x799be5fcf4f15c35, 0x674847c970493e9b, 0xe1cb4589e5b4c7f3, 0x01c2c9083e4798e1}
+        = {0x1193ec8be3b283f8, 0x32f0fb029658036e, 0xa5f1dc6c59fa0815, 0x0c01374a0f53370a}
     };
     check_group(&G_context.account.compute_key.pr_sig, &pr_sig);
     scalar_t sk_prf = {
         .big.u64
-        = {0xa99e4b1f9b8435cb, 0x973b73acef28d87e, 0x84efb6bac52969ca, 0x0401510674801756}
+        = {0x35749f41df37a25a, 0x13a14bd33eb8a0d3, 0xec2b547f2a8661cf, 0x028c8288e1fdd8be}
     };
     check_scalar(&G_context.account.compute_key.sk_prf, &sk_prf);
     scalar_t view_key = {
         .big.u64
-        = {0x1f2f87ad3e8d0e65, 0xc98e982a32f61002, 0xde9de425cb385528, 0x01c5a2e47ad71773}
+        = {0xd9f80cdcd2c9b122, 0x99d19c3f8a4ea179, 0x8f51e0edee36be22, 0x012c4ad45425ea2a}
     };
     check_scalar(&G_context.account.view_key, &view_key);
     group_t addr = {
         .x.big.u64
-        = {0xce0f78517f7376e6, 0xf4ea033ea47d149e, 0x287213cc619348f0, 0x06687fceca169ebd},
+        = {0x9e18053365eb34c0, 0x8c2a530cb9e43a0f, 0xdbd653f3e9580c3a, 0x025879fc05f3d59c},
         .y.big.u64
-        = {0x013ace29509f45c6, 0x37979a102f766dd3, 0xcf78a3e195b59666, 0x0893f1ae42d7df25}
+        = {0x11266f855761be08, 0x5348d3f24208293e, 0x9e1e145233e0683f, 0x073efb150d267dcd}
     };
     check_group(&G_context.account.address, &addr);
     field_t graph_key = {
         .big.u64
-        = {0x837f9d098b4fd96a, 0x8e3724af86c9b19d, 0x19dbeeebcba9e6f8, 0x0caf51a7e4157238}
+        = {0x58a0133558eb07d3, 0x5200b9c8a42639a0, 0x2a8a2361a86d4132, 0x09f021890c5ed0d6}
     };
     check_field(&G_context.account.graph_key, &graph_key);
 

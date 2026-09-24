@@ -542,6 +542,16 @@ static int parse_staking_bond(sign_transaction_datas_t *data, tx_t *tx)
     if (status == 0) {
         status
             = get_address(&data->prepared_request.inputs[1], false, tx->staking.withdrawal_address);
+        // Ensure that the withdrawal address is the signer's one
+        if (status == 0) {
+            status = account_get_address_string(
+                G_context.bip32_path, G_context.bip32_path_len, G_context.address);
+        }
+        if (status == 0) {
+            if (memcmp(tx->staking.withdrawal_address, G_context.address, ADDRESS_LEN)) {
+                status = -1;
+            }
+        }
     }
     if (status == 0) {
         status = get_u64(&data->prepared_request.inputs[2], false, &tx->staking.amount);
