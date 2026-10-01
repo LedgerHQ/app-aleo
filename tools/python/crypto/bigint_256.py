@@ -46,12 +46,7 @@ class BigInteger256:
         return not self.is_odd()
 
     def is_zero(self) -> bool:
-        return (
-            self.value[0] == 0
-            and self.value[1] == 0
-            and self.value[2] == 0
-            and self.value[3] == 0
-        )
+        return self.value[0] == 0 and self.value[1] == 0 and self.value[2] == 0 and self.value[3] == 0
 
     def div2(self):
         t = 0
@@ -69,18 +64,10 @@ class BigInteger256:
 
     def add_nocarry(self, other) -> bool:
         carry = 0
-        self.value[0], carry = BigInteger256.add_carry_u64(
-            carry, self.value[0], other.value[0]
-        )
-        self.value[1], carry = BigInteger256.add_carry_u64(
-            carry, self.value[1], other.value[1]
-        )
-        self.value[2], carry = BigInteger256.add_carry_u64(
-            carry, self.value[2], other.value[2]
-        )
-        self.value[3], carry = BigInteger256.add_carry_u64(
-            carry, self.value[3], other.value[3]
-        )
+        self.value[0], carry = BigInteger256.add_carry_u64(carry, self.value[0], other.value[0])
+        self.value[1], carry = BigInteger256.add_carry_u64(carry, self.value[1], other.value[1])
+        self.value[2], carry = BigInteger256.add_carry_u64(carry, self.value[2], other.value[2])
+        self.value[3], carry = BigInteger256.add_carry_u64(carry, self.value[3], other.value[3])
         return carry != 0
 
     def subborrow_u64(c: int, a: int, b: int):
@@ -94,18 +81,10 @@ class BigInteger256:
 
     def sub_noborrow(self, other) -> bool:
         borrow = 0
-        self.value[0], borrow = BigInteger256.subborrow_u64(
-            borrow, self.value[0], other.value[0]
-        )
-        self.value[1], borrow = BigInteger256.subborrow_u64(
-            borrow, self.value[1], other.value[1]
-        )
-        self.value[2], borrow = BigInteger256.subborrow_u64(
-            borrow, self.value[2], other.value[2]
-        )
-        self.value[3], borrow = BigInteger256.subborrow_u64(
-            borrow, self.value[3], other.value[3]
-        )
+        self.value[0], borrow = BigInteger256.subborrow_u64(borrow, self.value[0], other.value[0])
+        self.value[1], borrow = BigInteger256.subborrow_u64(borrow, self.value[1], other.value[1])
+        self.value[2], borrow = BigInteger256.subborrow_u64(borrow, self.value[2], other.value[2])
+        self.value[3], borrow = BigInteger256.subborrow_u64(borrow, self.value[3], other.value[3])
         return borrow != 0
 
     def print_int(self):

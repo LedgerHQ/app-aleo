@@ -7,9 +7,7 @@ from ragger.navigator.navigation_scenario import NavigateWithScenario
 
 
 # In this test we check that the CMD_GET_VIEW_KEY works in confirmation mode
-def test_get_view_key_confirm_accepted(
-    backend: BackendInterface, scenario_navigator: NavigateWithScenario
-) -> None:
+def test_get_view_key_confirm_accepted(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
     path = "m/44'/683'/0'/0'"
     with client.get_view_key(path=path):
@@ -18,16 +16,11 @@ def test_get_view_key_confirm_accepted(
     response = client.get_async_response().data
     _, address = unpack_get_view_key_response(response)
 
-    assert (
-        address.decode("utf-8")
-        == "AViewKey1fnXDtDJz1Vr8hRFXa7ZxwWA37E3TX9MrQJei691gSJkA"
-    )
+    assert address.decode("utf-8") == "AViewKey1fnXDtDJz1Vr8hRFXa7ZxwWA37E3TX9MrQJei691gSJkA"
 
 
 # In this test we check that the CMD_GET_VIEW_KEY in confirmation mode replies an error if the user refuses
-def test_get_view_key_confirm_refused(
-    backend: BackendInterface, scenario_navigator: NavigateWithScenario
-) -> None:
+def test_get_view_key_confirm_refused(backend: BackendInterface, scenario_navigator: NavigateWithScenario) -> None:
     client = CommandSender(backend)
     path = "m/44'/683'/0'/0'"
 

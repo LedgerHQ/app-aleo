@@ -57,7 +57,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Sanity checks
-    if args.file == None:
+    if args.file is None:
         exit(-1)
 
     json_file = open(args.file)
@@ -79,6 +79,7 @@ if __name__ == "__main__":
         "    char                         program_id[PROGRAM_ID_NAME_MAX_LEN + 1];",
         file=h_file,
     )
+    print("    bool                         mainnet_availability;", file=h_file)
     print("    token_display_info_t         display_info;", file=h_file)
     print("    field_t                      token_id;", file=h_file)
     print("    size_t                       nb_of_functions;", file=h_file)
@@ -105,9 +106,7 @@ if __name__ == "__main__":
         program_id_network = sp_program_id[1]
         str_program_id = program_id_name + "_" + program_id_network
         print(
-            "#define NB_OF_{}_FUNCTIONS ({:d})".format(
-                str_program_id.upper(), len(token["functions"])
-            ),
+            "#define NB_OF_{}_FUNCTIONS ({:d})".format(str_program_id.upper(), len(token["functions"])),
             file=c_file,
         )
         print(
@@ -117,18 +116,13 @@ if __name__ == "__main__":
         for function_name in token["functions"].keys():
             function = token["functions"][function_name]
             print("    " + function_name)
-            print(f'    {{.name        = "{function_name}",', file=c_file)
-            print("     .tx_type     = {},".format(function["tx_type"]), file=c_file)
-            print(
-                "     .input_count = {:d},".format(function["input_count"]), file=c_file
-            )
+            print(f'    {{.name              = "{function_name}",', file=c_file)
+            print("     .tx_type           = {},".format(function["tx_type"]), file=c_file)
+            print("     .input_count       = {:d},".format(function["input_count"]), file=c_file)
+            print("     .nested_call_count = {:d},".format(function["nested_call_count"]), file=c_file)
             print("     .bhp_1024_hashes", file=c_file)
             function["hashes"] = []
             for network_id in range(2):
-                if network_id == 0:
-                    print("     = {{.big.u64", file=c_file)
-                else:
-                    print("        {.big.u64", file=c_file)
 
                 input = network_id.to_bytes(2, byteorder="little")
                 input += (len(program_id_name) * 8).to_bytes(1, byteorder="little")
@@ -142,14 +136,22 @@ if __name__ == "__main__":
                 digest = bhp.hash(input, len(input) * 8)
                 function["hashes"].append(digest)
 
+                d = digest.value.value
                 if network_id == 1:
+                    print("        {.big.u64", file=c_file)
                     print(
-                        f"         = {{0x{digest.value.value[0]:016x}, 0x{digest.value.value[1]:016x}, 0x{digest.value.value[2]:016x}, 0x{digest.value.value[3]:016x}}}}}}}}},",
+                        f"         = {{0x{d[0]:016x}, 0x{d[1]:016x}, 0x{d[2]:016x}, 0x{d[3]:016x}}}}}}}}},",
+                        file=c_file,
+                    )
+                elif token["mainnet_availability"]:
+                    print("     = {{.big.u64", file=c_file)
+                    print(
+                        f"         = {{0x{d[0]:016x}, 0x{d[1]:016x}, 0x{d[2]:016x}, 0x{d[3]:016x}}}}},",
                         file=c_file,
                     )
                 else:
                     print(
-                        f"         = {{0x{digest.value.value[0]:016x}, 0x{digest.value.value[1]:016x}, 0x{digest.value.value[2]:016x}, 0x{digest.value.value[3]:016x}}}}},",
+                        "     = {{.big.u64 = {0x00, 0x00, 0x00, 0x00}},",
                         file=c_file,
                     )
 
@@ -168,17 +170,22 @@ if __name__ == "__main__":
         big = BigInteger256(int(value))
         token_id = Field()
         token_id.from_big_int(big)
-        print('    {{.program_id   = "{}",'.format(token["program_name"]), file=c_file)
+        print('    {{.program_id           = "{}",'.format(token["program_name"]), file=c_file)
+        if token["mainnet_availability"]:
+            print("     .mainnet_availability = true,", file=c_file)
+        else:
+            print("     .mainnet_availability = false,", file=c_file)
         print(
-            '     .display_info = {{.type = {}, .ticker = "{}", .decimals = {:d}}},'.format(
+            '     .display_info         = {{.type = {}, .ticker = "{}", .decimals = {:d}}},'.format(
                 token["token_type"], token["ticker"], token["decimals"]
             ),
             file=c_file,
         )
         print("     .token_id", file=c_file)
         print("     = {.big.u64", file=c_file)
+        t = token_id.value.value
         print(
-            f"        = {{0x{token_id.value.value[0]:016x}, 0x{token_id.value.value[1]:016x}, 0x{token_id.value.value[2]:016x}, 0x{token_id.value.value[3]:016x}}}}},",
+            f"        = {{0x{t[0]:016x}, 0x{t[1]:016x}, 0x{t[2]:016x}, 0x{t[3]:016x}}}}},",
             file=c_file,
         )
         print(
@@ -186,9 +193,7 @@ if __name__ == "__main__":
             file=c_file,
         )
         print(
-            "     .functions       = {}{}}},".format(
-                str_program_id, " " * (max_len - len(str_program_id))
-            ),
+            "     .functions       = {}{}}},".format(str_program_id, " " * (max_len - len(str_program_id))),
             file=c_file,
         )
 

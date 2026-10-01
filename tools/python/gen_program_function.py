@@ -68,22 +68,7 @@ if __name__ == "__main__":
     print("#include <stddef.h>  // size_t", file=h_file)
     print(file=h_file)
     print('#include "types.h"', file=h_file)
-    print('#include "field.h"', file=h_file)
-    print(file=h_file)
-
-    print("typedef enum {", file=h_file)
-    print("    NETWORK_ID_MAINNET = 0,", file=h_file)
-    print("    NETWORK_ID_TESTNET = 1,", file=h_file)
-    print("    NETWORK_ID_COUNT   = 2,", file=h_file)
-    print("} network_id_e;", file=h_file)
-    print(file=h_file)
-
-    print("typedef struct {", file=h_file)
-    print("    const char *string;", file=h_file)
-    print("    tx_type_e   tx_type;", file=h_file)
-    print("    uint8_t     input_count;", file=h_file)
-    print("    field_t     bhp_1024_hashes[NETWORK_ID_COUNT];", file=h_file)
-    print("} function_parameters_t;", file=h_file)
+    print('#include "db.h"', file=h_file)
     print(file=h_file)
 
     print("typedef struct {", file=h_file)
@@ -126,9 +111,10 @@ if __name__ == "__main__":
         for item in programs[program_id]:
             function_name = item["function"]
             print("    " + function_name)
-            print(f'    {{.string      = "{function_name}",', file=c_file)
-            print("     .tx_type     = {},".format(item["tx_type"]), file=c_file)
-            print("     .input_count = {:d},".format(item["input_count"]), file=c_file)
+            print(f'    {{.name              = "{function_name}",', file=c_file)
+            print("     .tx_type           = {},".format(item["tx_type"]), file=c_file)
+            print("     .input_count       = {:d},".format(item["input_count"]), file=c_file)
+            print("     .nested_call_count = {:d},".format(item["nested_call_count"]), file=c_file)
             print("     .bhp_1024_hashes", file=c_file)
             item["hashes"] = []
             for network_id in range(2):
@@ -149,23 +135,22 @@ if __name__ == "__main__":
                 digest = bhp.hash(input, len(input) * 8)
                 item["hashes"].append(digest)
 
+                d = digest.value.value
                 if network_id == 1:
                     print(
-                        f"         = {{0x{digest.value.value[0]:016x}, 0x{digest.value.value[1]:016x}, 0x{digest.value.value[2]:016x}, 0x{digest.value.value[3]:016x}}}}}}}}},",
+                        f"         = {{0x{d[0]:016x}, 0x{d[1]:016x}, 0x{d[2]:016x}, 0x{d[3]:016x}}}}}}}}},",
                         file=c_file,
                     )
                 else:
                     print(
-                        f"         = {{0x{digest.value.value[0]:016x}, 0x{digest.value.value[1]:016x}, 0x{digest.value.value[2]:016x}, 0x{digest.value.value[3]:016x}}}}},",
+                        f"         = {{0x{d[0]:016x}, 0x{d[1]:016x}, 0x{d[2]:016x}, 0x{d[3]:016x}}}}},",
                         file=c_file,
                     )
 
         print("};", file=c_file)
         print(file=c_file)
 
-    print(
-        "const program_parameter_t program_parameters[NB_OF_PROGRAMS] = {", file=c_file
-    )
+    print("const program_parameter_t program_parameters[NB_OF_PROGRAMS] = {", file=c_file)
     max_len = 0
     for program_id in programs.keys():
         max_len = max(max_len, len(program_id))
@@ -177,9 +162,7 @@ if __name__ == "__main__":
             file=c_file,
         )
         print(
-            "     .functions       = {}{}}},".format(
-                str_program_id, " " * (max_len - len(str_program_id))
-            ),
+            "     .functions       = {}{}}},".format(str_program_id, " " * (max_len - len(str_program_id))),
             file=c_file,
         )
     print("};", file=c_file)

@@ -65,11 +65,6 @@ void field_mul_assign(field_t *a, const field_t *b)
     fp256_mul_assign(&field_parameters, a, b);
 }
 
-void field_inverse_assign(field_t *a)
-{
-    fp256_inverse_assign(&field_parameters, a);
-}
-
 void field_pow_assign(field_t *a, uint8_t alpha)
 {
     fp256_pow_assign(&field_parameters, a, alpha);
@@ -142,6 +137,28 @@ uint8_t field_from_bits(const uint8_t *input_bits,
 int field_random(field_t *a)
 {
     return fp256_random(&field_parameters, a);
+}
+
+bool field_is_canonical(const uint8_t *value)
+{
+    uint8_t      big_endian[BN_LENGTH];
+    bigint_256_t integer;
+    bool         canonical;
+
+    LEDGER_ASSERT(value != NULL, "NULL value");
+
+    // The wire encoding is little endian, bn_to_big_int() expects big endian and bn_reverse()
+    // works in place, so the caller's buffer must not be touched.
+    memcpy(big_endian, value, sizeof(big_endian));
+    bn_reverse(big_endian);
+    bn_to_big_int(big_endian, &integer);
+
+    canonical = (big_int_compare(&integer, &field_parameters.MODULUS.big) < 0);
+
+    explicit_bzero(big_endian, sizeof(big_endian));
+    explicit_bzero(&integer, sizeof(integer));
+
+    return canonical;
 }
 
 #ifdef HAVE_PRINTF

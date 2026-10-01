@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from crypto.field import Field
 
 
@@ -42,7 +44,7 @@ class PoseidonGrainLFSR:
 
         self.head = 0
 
-        for i in range(160):
+        for _ in range(160):
             self.next_bit()
 
     def next_bit(self):
@@ -82,7 +84,7 @@ class PoseidonGrainLFSR:
 
 
 class PoseidonDefault:
-    params = {
+    params: ClassVar[dict] = {
         "2": {"alpha": 17, "full_rounds": 8, "partial_rounds": 31},
         "3": {"alpha": 17, "full_rounds": 8, "partial_rounds": 31},
         "4": {"alpha": 17, "full_rounds": 8, "partial_rounds": 31},
@@ -102,11 +104,11 @@ class PoseidonDefault:
 
     def get_field_elements_rejection_sampling(self, num_elements):
         output = []
-        for i in range(num_elements):
+        for _ in range(num_elements):
             while True:
                 bits = []
                 self.lfsr.it_init(Field.MODULUS_BITS)
-                for j in range(Field.MODULUS_BITS):
+                for _ in range(Field.MODULUS_BITS):
                     bits.append(self.lfsr.it_next())
                 val = self.lfsr.bits_to_int(bits)
                 if val < Field.MODULUS.to_int():
@@ -119,10 +121,10 @@ class PoseidonDefault:
     def get_field_elements_mod_p(self, num_elems):
         output = []
         num_bits = Field.MODULUS_BITS
-        for i in range(num_elems):
+        for _ in range(num_elems):
             bits = []
             self.lfsr.it_init(num_bits)
-            for j in range(Field.MODULUS_BITS):
+            for _ in range(Field.MODULUS_BITS):
                 bits.append(self.lfsr.it_next())
             val = self.lfsr.bits_to_int(bits)
             val = val.to_bytes(32, byteorder="big")
@@ -166,7 +168,7 @@ class PoseidonDefault:
             self.partial_rounds,
         )
         ark = []
-        for i in range(self.full_rounds + self.partial_rounds):
+        for _ in range(self.full_rounds + self.partial_rounds):
             output = self.get_field_elements_rejection_sampling(self.rate + 1)
             ark.append(output)
 

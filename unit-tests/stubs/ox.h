@@ -33,6 +33,6 @@ cx_err_t cx_ecpoint_export(const cx_ecpoint_t *P PLENGTH(sizeof(cx_ecpoint_t)),
                            uint8_t *y            PLENGTH(y_len),
                            size_t                y_len);
 cx_err_t cx_ecpoint_destroy(cx_ecpoint_t *P PLENGTH(sizeof(cx_ecpoint_t)));
-cx_err_t cx_ecpoint_scalarmul(cx_ecpoint_t *P  PLENGTH(sizeof(cx_ecpoint_t)),
-                              const uint8_t *k PLENGTH(k_len),
-                              size_t           k_len);
+cx_err_t cx_ecpoint_rnd_scalarmul(cx_ecpoint_t *P  PLENGTH(sizeof(cx_ecpoint_t)),
+                                  const uint8_t *k PLENGTH(k_len),
+                                  size_t           k_len);

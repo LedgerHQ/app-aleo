@@ -28,20 +28,6 @@
 #include "bigint_256.h"
 #include "fp256.h"
 
-static void fp256_div2_assign(fp256_t *a)
-{
-    uint64_t t = 0;
-
-    LEDGER_ASSERT(a != NULL, "NULL a");
-
-    for (int i = 3; i >= 0; i--) {
-        uint64_t t2 = a->big.u64[i] << 63;
-        a->big.u64[i] >>= 1;
-        a->big.u64[i] |= t;
-        t = t2;
-    }
-}
-
 static bool fp256_is_valid(const fp256_parameters_t *p, const fp256_t *a)
 {
     LEDGER_ASSERT(a != NULL, "NULL a");
@@ -180,6 +166,7 @@ void fp256_pow_assign(const fp256_parameters_t *p, fp256_t *a, uint8_t alpha)
     for (uint8_t i = 0; i < (alpha - 1); i++) {
         fp256_mul_assign(p, a, &r);
     }
+    explicit_bzero(&r, sizeof(r));
 }
 
 void fp256_sum_of_products(const fp256_parameters_t *p,
@@ -221,65 +208,6 @@ void fp256_sum_of_products(const fp256_parameters_t *p,
     r->big.u64[2] = u2;
     r->big.u64[3] = u3;
     fp256_reduce(p, r);
-}
-
-void fp256_inverse_assign(const fp256_parameters_t *p, fp256_t *a)
-{
-    bigint_256_t one;
-    fp256_t      v;
-    fp256_t      u;
-    fp256_t      b;
-    fp256_t      c;
-
-    LEDGER_ASSERT(a != NULL, "NULL a");
-    LEDGER_ASSERT(p != NULL, "NULL p");
-
-    big_int_from_u64(&one, 1);
-    memcpy(&u, a, sizeof(fp256_t));
-    memcpy(&v, &p->MODULUS, sizeof(fp256_t));
-    memcpy(&b, &p->R2, sizeof(fp256_t));
-    memset(&c, 0, sizeof(fp256_t));
-
-    while ((big_int_compare(&u.big, &one) != 0) && (big_int_compare(&v.big, &one) != 0)) {
-        while (big_int_is_even(&u.big)) {
-            fp256_div2_assign(&u);
-
-            if (big_int_is_even(&b.big)) {
-                fp256_div2_assign(&b);
-            }
-            else {
-                big_int_add_nocarry(&b.big, &p->MODULUS.big);
-                fp256_div2_assign(&b);
-            }
-        }
-
-        while (big_int_is_even(&v.big)) {
-            fp256_div2_assign(&v);
-
-            if (big_int_is_even(&c.big)) {
-                fp256_div2_assign(&c);
-            }
-            else {
-                big_int_add_nocarry(&c.big, &p->MODULUS.big);
-                fp256_div2_assign(&c);
-            }
-        }
-
-        if (big_int_compare(&v.big, &u.big) < 0) {
-            big_int_sub_noborrow(&u.big, &v.big);
-            fp256_sub_assign(p, &b, &c);
-        }
-        else {
-            big_int_sub_noborrow(&v.big, &u.big);
-            fp256_sub_assign(p, &c, &b);
-        }
-    }
-    if (big_int_compare(&u.big, &one) == 0) {
-        memcpy(a, &b, sizeof(fp256_t));
-    }
-    else {
-        memcpy(a, &c, sizeof(fp256_t));
-    }
 }
 
 void fp256_from_big_int(const fp256_parameters_t *p, fp256_t *a, const bigint_256_t *bigint)

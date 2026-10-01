@@ -4,7 +4,7 @@ import argparse
 import json
 import sys
 
-from ledgerblue.comm import getDongle
+from ledgerblue.comm import getDongle, getDongleTCP
 
 sys.path.append("../../")
 from tests.application_client.transaction import Transaction
@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     tx = Transaction()
 
-    if args.dry_run == False:
+    if not args.dry_run:
         if args.tcp:
             dongle = getDongleTCP("127.0.0.1", 1237)
         else:

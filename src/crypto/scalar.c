@@ -62,6 +62,7 @@ void scalar_from_field_lossy(scalar_t *a, const field_t *f)
     field_to_big_int(f, &bigint);
     big_int_bit_reduce(&bigint, scalar_parameters.MODULUS_BITS - 1);
     scalar_from_big_int(a, &bigint);
+    explicit_bzero(&bigint, sizeof(bigint));
 }
 
 void scalar_to_field(const scalar_t *a, field_t *f)
@@ -69,6 +70,7 @@ void scalar_to_field(const scalar_t *a, field_t *f)
     bigint_256_t bigint;
     scalar_to_big_int(a, &bigint);
     field_from_big_int(f, &bigint);
+    explicit_bzero(&bigint, sizeof(bigint));
 }
 
 void scalar_add_assign(scalar_t *a, const scalar_t *b)

@@ -31,12 +31,14 @@
 #include "tx_types.h"
 #include "tx.h"
 
-#define U64_TYPE_LENGTH      (3)
-#define U64_VALUE_LENGTH     (8)
-#define U128_TYPE_LENGTH     (3)
-#define U128_VALUE_LENGTH    (2 * U64_VALUE_LENGTH)
-#define ADDRESS_TYPE_LENGTH  (3)
-#define ADDRESS_VALUE_LENGTH sizeof(field_t)
+#define U64_TYPE_LENGTH         (3)
+#define U64_VALUE_LENGTH        (8)
+#define U128_TYPE_LENGTH        (3)
+#define U128_VALUE_LENGTH       (2 * U64_VALUE_LENGTH)
+#define ADDRESS_TYPE_LENGTH     (3)
+#define ADDRESS_VALUE_LENGTH    sizeof(field_t)
+#define IDENTIFIER_TYPE_LENGTH  (3)
+#define IDENTIFIER_VALUE_LENGTH PLAINTEXT_TYPE_LITERAL_IDENTIFER_VALUE_LENGTH
 
 static const token_display_info_t aleo_display_info
     = {.type = TOKEN_TYPE_ALEO, .ticker = "ALEO", .decimals = 6};
@@ -44,6 +46,9 @@ static const token_display_info_t aleo_display_info
 static int get_u64(input_t *input, bool is_private, uint64_t *value);
 static int get_u128(input_t *input, bool is_private, u128_t *value);
 static int get_address(input_t *input, bool is_private, char address[ADDRESS_LEN + 1]);
+static int get_identifier(input_t *input,
+                          bool     is_private,
+                          char     identifier[IDENTIFIER_VALUE_LENGTH + 1]);
 
 static int parse_aleo_transfer_public(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_aleo_transfer_public_to_private(sign_transaction_datas_t *data, tx_t *tx);
@@ -61,8 +66,16 @@ static int parse_token_transfer_private_to_public(sign_transaction_datas_t *data
 static int parse_token_batch_transfer_private(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_token_batch_transfer_private_to_public(sign_transaction_datas_t *data, tx_t *tx);
 
+static int parse_token_arc20_batch_transfer_private(sign_transaction_datas_t *data, tx_t *tx);
+static int parse_token_arc20_batch_transfer_private_to_public(sign_transaction_datas_t *data,
+                                                              tx_t                     *tx);
+
 static int parse_fee_public(sign_transaction_datas_t *data, tx_t *tx);
 static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx);
+
+static int parse_staking_bond(sign_transaction_datas_t *data, tx_t *tx);
+static int parse_staking_unbond(sign_transaction_datas_t *data, tx_t *tx);
+static int parse_staking_claim(sign_transaction_datas_t *data, tx_t *tx);
 
 static int get_u64(input_t *input, bool is_private, uint64_t *value)
 {
@@ -136,6 +149,12 @@ static int get_address(input_t *input, bool is_private, char address[ADDRESS_LEN
         return -1;
     }
 
+    // Only the low FIELD_MODULUS_BITS bits are signed, so rendering a non-canonical encoding
+    // would show an address the signature does not commit to.
+    if (!field_is_canonical(input->value)) {
+        return -1;
+    }
+
     uint8_t data[ADDRESS_LEN + 1];
     size_t  datalen = 0;
 
@@ -148,6 +167,31 @@ static int get_address(input_t *input, bool is_private, char address[ADDRESS_LEN
     status = bech32_encode(address, ADDRESS_PREFIX, data, datalen, BECH32_ENCODING_BECH32M);
 
     return status;
+}
+
+static int get_identifier(input_t *input,
+                          bool     is_private,
+                          char     identifier[IDENTIFIER_VALUE_LENGTH + 1])
+{
+    if ((input->type_length != IDENTIFIER_TYPE_LENGTH)
+        || (input->value_length != IDENTIFIER_VALUE_LENGTH)) {
+        return -1;
+    }
+    else if (is_private && (input->type[0] != INPUT_ID_PRIVATE)) {
+        return -1;
+    }
+    else if (!is_private && (input->type[0] != INPUT_ID_PUBLIC)) {
+        return -1;
+    }
+    else if ((input->type[1] != INPUT_VALUE_TYPE_PLAINTEXT_LITERAL)
+             || (input->type[2] != PLAINTEXT_TYPE_LITERAL_IDENTIFIER)) {
+        return -1;
+    }
+
+    memset(identifier, 0, IDENTIFIER_VALUE_LENGTH + 1);
+    memcpy(identifier, input->value, input->value_length);
+
+    return strlen(identifier);
 }
 
 static int parse_aleo_transfer_public(sign_transaction_datas_t *data, tx_t *tx)
@@ -229,13 +273,15 @@ static int parse_token_transfer_public(sign_transaction_datas_t *data, tx_t *tx)
 {
     int status = db_get_token_display_info(data->prepared_request.program_id,
                                            data->prepared_request.program_id_length,
+                                           data->prepared_request.network_id,
                                            NULL,
                                            &tx->transfer.token_info);
     if (status < 0) {
         return status;
     }
 
-    if (tx->transfer.token_info->type == TOKEN_TYPE_ARC22) {
+    if ((tx->transfer.token_info->type == TOKEN_TYPE_ARC22)
+        || (tx->transfer.token_info->type == TOKEN_TYPE_ARC20)) {
         status = get_address(&data->prepared_request.inputs[0], false, tx->transfer.address_to);
         if (status == 0) {
             status = get_u128(&data->prepared_request.inputs[1], false, &tx->transfer.amount);
@@ -252,13 +298,15 @@ static int parse_token_transfer_public_to_private(sign_transaction_datas_t *data
 {
     int status = db_get_token_display_info(data->prepared_request.program_id,
                                            data->prepared_request.program_id_length,
+                                           data->prepared_request.network_id,
                                            NULL,
                                            &tx->transfer.token_info);
     if (status < 0) {
         return status;
     }
 
-    if (tx->transfer.token_info->type == TOKEN_TYPE_ARC22) {
+    if ((tx->transfer.token_info->type == TOKEN_TYPE_ARC22)
+        || (tx->transfer.token_info->type == TOKEN_TYPE_ARC20)) {
         status = get_address(&data->prepared_request.inputs[0], true, tx->transfer.address_to);
         if (status == 0) {
             status = get_u128(&data->prepared_request.inputs[1], false, &tx->transfer.amount);
@@ -275,6 +323,7 @@ static int parse_token_transfer_private(sign_transaction_datas_t *data, tx_t *tx
 {
     int status = db_get_token_display_info(data->prepared_request.program_id,
                                            data->prepared_request.program_id_length,
+                                           data->prepared_request.network_id,
                                            NULL,
                                            &tx->transfer.token_info);
     if (status < 0) {
@@ -284,6 +333,12 @@ static int parse_token_transfer_private(sign_transaction_datas_t *data, tx_t *tx
         status = get_address(&data->prepared_request.inputs[0], true, tx->transfer.address_to);
         if (status == 0) {
             status = get_u128(&data->prepared_request.inputs[1], true, &tx->transfer.amount);
+        }
+    }
+    else if (tx->transfer.token_info->type == TOKEN_TYPE_ARC20) {
+        status = get_address(&data->prepared_request.inputs[1], true, tx->transfer.address_to);
+        if (status == 0) {
+            status = get_u128(&data->prepared_request.inputs[2], true, &tx->transfer.amount);
         }
     }
     else {
@@ -297,6 +352,7 @@ static int parse_token_transfer_private_to_public(sign_transaction_datas_t *data
 {
     int status = db_get_token_display_info(data->prepared_request.program_id,
                                            data->prepared_request.program_id_length,
+                                           data->prepared_request.network_id,
                                            NULL,
                                            &tx->transfer.token_info);
     if (status < 0) {
@@ -307,6 +363,12 @@ static int parse_token_transfer_private_to_public(sign_transaction_datas_t *data
         status = get_address(&data->prepared_request.inputs[0], false, tx->transfer.address_to);
         if (status == 0) {
             status = get_u128(&data->prepared_request.inputs[1], false, &tx->transfer.amount);
+        }
+    }
+    else if (tx->transfer.token_info->type == TOKEN_TYPE_ARC20) {
+        status = get_address(&data->prepared_request.inputs[1], false, tx->transfer.address_to);
+        if (status == 0) {
+            status = get_u128(&data->prepared_request.inputs[2], false, &tx->transfer.amount);
         }
     }
     else {
@@ -321,6 +383,7 @@ static int parse_token_batch_transfer_private(sign_transaction_datas_t *data, tx
     uint8_t inputs_count = data->prepared_request.inputs_count;
     int     status       = db_get_token_display_info(data->prepared_request.program_id,
                                            data->prepared_request.program_id_length,
+                                           data->prepared_request.network_id,
                                            NULL,
                                            &tx->transfer.token_info);
     if (status < 0) {
@@ -346,6 +409,7 @@ static int parse_token_batch_transfer_private_to_public(sign_transaction_datas_t
     uint8_t inputs_count = data->prepared_request.inputs_count;
     int     status       = db_get_token_display_info(data->prepared_request.program_id,
                                            data->prepared_request.program_id_length,
+                                           data->prepared_request.network_id,
                                            NULL,
                                            &tx->transfer.token_info);
     if (status < 0) {
@@ -357,6 +421,91 @@ static int parse_token_batch_transfer_private_to_public(sign_transaction_datas_t
         if (status == 0) {
             status = get_u128(
                 &data->prepared_request.inputs[inputs_count - 2], false, &tx->transfer.amount);
+        }
+    }
+    else {
+        return -1;
+    }
+
+    return status;
+}
+
+static int parse_token_arc20_batch_transfer_private(sign_transaction_datas_t *data, tx_t *tx)
+{
+    uint8_t inputs_count = data->prepared_request.inputs_count;
+    char    program_id[PROGRAM_ID_NAME_MAX_LEN + 1];
+
+    LEDGER_ASSERT(PROGRAM_ID_NAME_MAX_LEN > (IDENTIFIER_VALUE_LENGTH + 6), "Buffer too small");
+
+    // Get the dynamic ARC20 program from the identifier
+    memset(program_id, 0, sizeof(program_id));
+    int status = get_identifier(&data->prepared_request.inputs[0], true, program_id);
+    if (status < 0) {
+        return status;
+    }
+    if (status > (PROGRAM_ID_NAME_MAX_LEN - 5)) {
+        return -1;
+    }
+    memcpy(&program_id[status], ".aleo", 5);
+
+    status = db_get_token_display_info(program_id,
+                                       strlen(program_id),
+                                       data->prepared_request.network_id,
+                                       NULL,
+                                       &tx->transfer.token_info);
+    if (status < 0) {
+        return status;
+    }
+
+    if (tx->transfer.token_info->type == TOKEN_TYPE_ARC20) {
+        status = get_address(
+            &data->prepared_request.inputs[inputs_count - 2], true, tx->transfer.address_to);
+        if (status == 0) {
+            status = get_u128(
+                &data->prepared_request.inputs[inputs_count - 1], true, &tx->transfer.amount);
+        }
+    }
+    else {
+        return -1;
+    }
+
+    return status;
+}
+
+static int parse_token_arc20_batch_transfer_private_to_public(sign_transaction_datas_t *data,
+                                                              tx_t                     *tx)
+{
+    uint8_t inputs_count = data->prepared_request.inputs_count;
+    char    program_id[PROGRAM_ID_NAME_MAX_LEN + 1];
+
+    LEDGER_ASSERT(PROGRAM_ID_NAME_MAX_LEN > (IDENTIFIER_VALUE_LENGTH + 6), "Buffer too small");
+
+    // Get the dynamic ARC20 program from the identifier
+    memset(program_id, 0, sizeof(program_id));
+    int status = get_identifier(&data->prepared_request.inputs[0], true, program_id);
+    if (status < 0) {
+        return status;
+    }
+    if (status > (PROGRAM_ID_NAME_MAX_LEN - 5)) {
+        return -1;
+    }
+    memcpy(&program_id[status], ".aleo", 5);
+
+    status = db_get_token_display_info(program_id,
+                                       strlen(program_id),
+                                       data->prepared_request.network_id,
+                                       NULL,
+                                       &tx->transfer.token_info);
+    if (status < 0) {
+        return status;
+    }
+
+    if (tx->transfer.token_info->type == TOKEN_TYPE_ARC20) {
+        status = get_address(
+            &data->prepared_request.inputs[inputs_count - 2], false, tx->transfer.address_to);
+        if (status == 0) {
+            status = get_u128(
+                &data->prepared_request.inputs[inputs_count - 1], false, &tx->transfer.amount);
         }
     }
     else {
@@ -382,6 +531,48 @@ static int parse_fee_private(sign_transaction_datas_t *data, tx_t *tx)
     if (status == 0) {
         status = get_u64(&data->prepared_request.inputs[2], false, &tx->fee.priority_fee);
     }
+
+    return status;
+}
+
+static int parse_staking_bond(sign_transaction_datas_t *data, tx_t *tx)
+{
+    int status
+        = get_address(&data->prepared_request.inputs[0], false, tx->staking.validator_address);
+    if (status == 0) {
+        status
+            = get_address(&data->prepared_request.inputs[1], false, tx->staking.withdrawal_address);
+        // Ensure that the withdrawal address is the signer's one
+        if (status == 0) {
+            status = account_get_address_string(
+                G_context.bip32_path, G_context.bip32_path_len, G_context.address);
+        }
+        if (status == 0) {
+            if (memcmp(tx->staking.withdrawal_address, G_context.address, ADDRESS_LEN)) {
+                status = -1;
+            }
+        }
+    }
+    if (status == 0) {
+        status = get_u64(&data->prepared_request.inputs[2], false, &tx->staking.amount);
+    }
+
+    return status;
+}
+
+static int parse_staking_unbond(sign_transaction_datas_t *data, tx_t *tx)
+{
+    int status = get_address(&data->prepared_request.inputs[0], false, tx->staking.staker_address);
+    if (status == 0) {
+        status = get_u64(&data->prepared_request.inputs[1], false, &tx->staking.amount);
+    }
+
+    return status;
+}
+
+static int parse_staking_claim(sign_transaction_datas_t *data, tx_t *tx)
+{
+    int status = get_address(&data->prepared_request.inputs[0], false, tx->staking.staker_address);
 
     return status;
 }
@@ -413,6 +604,20 @@ int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
     }
 
     if (function_parameters->input_count != data->prepared_request.inputs_count) {
+        return -1;
+    }
+
+    if (function_parameters->nested_call_count != data->prepared_request.nested_call_count) {
+        return -1;
+    }
+
+    if (data->prepared_request.network_id >= NETWORK_ID_COUNT) {
+        return -1;
+    }
+
+    if (!memcmp(&FIELD_ZERO,
+                PIC(&function_parameters->bhp_1024_hashes[data->prepared_request.network_id]),
+                sizeof(field_t))) {
         return -1;
     }
 
@@ -463,6 +668,12 @@ int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
         case TX_TOKEN_TRANSFER_BATCH_PRIVATE_TO_PUBLIC:
             return parse_token_batch_transfer_private_to_public(data, tx);
 
+        case TX_TOKEN_ARC20_TRANSFER_BATCH_PRIVATE:
+            return parse_token_arc20_batch_transfer_private(data, tx);
+
+        case TX_TOKEN_ARC20_TRANSFER_BATCH_PRIVATE_TO_PUBLIC:
+            return parse_token_arc20_batch_transfer_private_to_public(data, tx);
+
         case TX_FEE_PUBLIC:
             G_context.r_list.count = 0;
             return parse_fee_public(data, tx);
@@ -470,6 +681,15 @@ int tx_parse(sign_transaction_datas_t *data, tx_t *tx)
         case TX_FEE_PRIVATE:
             G_context.r_list.count = 0;
             return parse_fee_private(data, tx);
+
+        case TX_STAKING_BOND:
+            return parse_staking_bond(data, tx);
+
+        case TX_STAKING_UNBOND:
+            return parse_staking_unbond(data, tx);
+
+        case TX_STAKING_CLAIM:
+            return parse_staking_claim(data, tx);
 
         default:
             break;

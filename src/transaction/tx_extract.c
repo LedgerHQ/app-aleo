@@ -28,17 +28,34 @@
 #include "tx.h"
 
 #ifdef HAVE_PRINTF
+static void print_data_string(const char *label, char *value, uint8_t length)
+{
+    char buffer[FUNCTION_NAME_MAX_LEN + 1];
+    memset(buffer, 0, sizeof(buffer));
+    if (length <= FUNCTION_NAME_MAX_LEN) {
+        memcpy(buffer, value, length);
+    }
+    else {
+        memcpy(buffer, value, FUNCTION_NAME_MAX_LEN);
+    }
+    PRINTF("%s : %s\n", label, buffer);
+}
+
 static void print_signature_data(sign_transaction_datas_t *data)
 {
     PRINTF("max_base_fee      : %d\n", data->max_base_fee);
     PRINTF("max_priority_fee  : %d\n", data->max_priority_fee);
-    PRINTF("fee_function_name : %s\n", data->fee_function_name);
-    PRINTF("fee_program_id    : %s\n", data->fee_program_id);
+    print_data_string("fee_function_name", data->fee_function_name, data->fee_function_name_length);
+    print_data_string("fee_program_id   ", data->fee_program_id, data->fee_program_id_length);
     PRINTF("\n");
     PRINTF("is_root        : %d\n", data->prepared_request.is_root);
     PRINTF("network_id     : %d\n", data->prepared_request.network_id);
-    PRINTF("program_id     : %s\n", data->prepared_request.program_id);
-    PRINTF("function_name  : %s\n", data->prepared_request.function_name);
+    print_data_string("program_id    ",
+                      data->prepared_request.program_id,
+                      data->prepared_request.program_id_length);
+    print_data_string("function_name ",
+                      data->prepared_request.function_name,
+                      data->prepared_request.function_name_length);
     PRINTF("inputs_count   : %d\n", data->prepared_request.inputs_count);
     for (int i = 0; i < data->prepared_request.inputs_count; i++) {
         PRINTF("%d - type[%d]  : ", i, data->prepared_request.inputs[i].type_length);
@@ -68,6 +85,16 @@ static void print_signature_data(sign_transaction_datas_t *data)
 // **** Prepared Request TLV parser ****
 
 // Callbacks
+static bool check_prepared_request_type(const tlv_data_t *data, prepared_request_t *cookie)
+{
+    return get_uint8_t_from_tlv_data(data, &cookie->structure_type);
+}
+
+static bool get_prepared_request_version(const tlv_data_t *data, prepared_request_t *cookie)
+{
+    return get_uint8_t_from_tlv_data(data, &cookie->version);
+}
+
 static bool get_network_id(const tlv_data_t *data, prepared_request_t *cookie)
 {
     return get_uint16_t_from_tlv_data(data, &cookie->network_id);
@@ -139,7 +166,15 @@ static bool get_input_type(const tlv_data_t *data, prepared_request_t *cookie)
 
 static bool get_nested_call_count(const tlv_data_t *data, prepared_request_t *cookie)
 {
-    return get_uint8_t_from_tlv_data(data, &cookie->nested_call_count);
+    if (!get_uint8_t_from_tlv_data(data, &cookie->nested_call_count)) {
+        return false;
+    }
+    if (cookie->nested_call_count >= R_LIST_MAX_LENGTH) {
+        cookie->nested_call_count = 0;
+        return false;
+    }
+
+    return true;
 }
 
 static bool get_program_checksum(const tlv_data_t *data, prepared_request_t *cookie)
@@ -152,22 +187,33 @@ static bool get_program_checksum(const tlv_data_t *data, prepared_request_t *coo
     return true;
 }
 
-#define PREPARED_REQUEST_TLV_TAGS(X)                                                           \
-    X(0x01, TAG_PREPARED_REQUEST_STRUCTURE_TYPE, NULL, ENFORCE_UNIQUE_TAG)                     \
-    X(0x02, TAG_PREPARED_REQUEST_VERSION, NULL, ENFORCE_UNIQUE_TAG)                            \
-    X(0xc3, TAG_PREPARED_REQUEST_NETWORK_ID, get_network_id, ENFORCE_UNIQUE_TAG)               \
-    X(0xb5, TAG_PREPARED_REQUEST_PROGRAM_ID, get_program_id, ENFORCE_UNIQUE_TAG)               \
-    X(0xc4, TAG_PREPARED_REQUEST_PROGRAM_CHECKSUM, get_program_checksum, ENFORCE_UNIQUE_TAG)   \
-    X(0xb6, TAG_PREPARED_REQUEST_FUNCTION_NAME, get_function_name, ENFORCE_UNIQUE_TAG)         \
-    X(0xba, TAG_PREPARED_REQUEST_NESTED_CALL_COUNT, get_nested_call_count, ENFORCE_UNIQUE_TAG) \
-    X(0xb7, TAG_PREPARED_REQUEST_INPUT_COUNT, get_input_count, ENFORCE_UNIQUE_TAG)             \
-    X(0xb9, TAG_PREPARED_REQUEST_INPUT_TYPE, get_input_type, ALLOW_MULTIPLE_TAG)               \
+#define PREPARED_REQUEST_TLV_TAGS(X)                                                              \
+    X(0x01, TAG_PREPARED_REQUEST_STRUCTURE_TYPE, check_prepared_request_type, ENFORCE_UNIQUE_TAG) \
+    X(0x02, TAG_PREPARED_REQUEST_VERSION, get_prepared_request_version, ENFORCE_UNIQUE_TAG)       \
+    X(0xc3, TAG_PREPARED_REQUEST_NETWORK_ID, get_network_id, ENFORCE_UNIQUE_TAG)                  \
+    X(0xb5, TAG_PREPARED_REQUEST_PROGRAM_ID, get_program_id, ENFORCE_UNIQUE_TAG)                  \
+    X(0xc4, TAG_PREPARED_REQUEST_PROGRAM_CHECKSUM, get_program_checksum, ENFORCE_UNIQUE_TAG)      \
+    X(0xb6, TAG_PREPARED_REQUEST_FUNCTION_NAME, get_function_name, ENFORCE_UNIQUE_TAG)            \
+    X(0xba, TAG_PREPARED_REQUEST_NESTED_CALL_COUNT, get_nested_call_count, ENFORCE_UNIQUE_TAG)    \
+    X(0xb7, TAG_PREPARED_REQUEST_INPUT_COUNT, get_input_count, ENFORCE_UNIQUE_TAG)                \
+    X(0xb9, TAG_PREPARED_REQUEST_INPUT_TYPE, get_input_type, ALLOW_MULTIPLE_TAG)                  \
     X(0xb8, TAG_PREPARED_REQUEST_INPUT_VALUE, get_input_value, ALLOW_MULTIPLE_TAG)
 
 DEFINE_TLV_PARSER(PREPARED_REQUEST_TLV_TAGS, NULL, prepared_request_tlv_parser)
 
 // **** Intent TLV parser ****
+
 // Callbacks
+static bool get_intent_type(const tlv_data_t *data, sign_transaction_datas_t *cookie)
+{
+    return get_uint8_t_from_tlv_data(data, &cookie->structure_type);
+}
+
+static bool get_intent_version(const tlv_data_t *data, sign_transaction_datas_t *cookie)
+{
+    return get_uint8_t_from_tlv_data(data, &cookie->version);
+}
+
 static bool get_max_base_fee(const tlv_data_t *data, sign_transaction_datas_t *cookie)
 {
     return get_uint32_t_from_tlv_data(data, &cookie->max_base_fee);
@@ -210,8 +256,8 @@ static bool get_request(const tlv_data_t *data, sign_transaction_datas_t *cookie
 }
 
 #define INTENT_TLV_TAGS(X)                                                           \
-    X(0x01, TAG_INTENT_STRUCTURE_TYPE, NULL, ENFORCE_UNIQUE_TAG)                     \
-    X(0x02, TAG_INTENT_VERSION, NULL, ENFORCE_UNIQUE_TAG)                            \
+    X(0x01, TAG_INTENT_STRUCTURE_TYPE, get_intent_type, ENFORCE_UNIQUE_TAG)          \
+    X(0x02, TAG_INTENT_VERSION, get_intent_version, ENFORCE_UNIQUE_TAG)              \
     X(0xb0, TAG_INTENT_MAX_BASE_FEE, get_max_base_fee, ENFORCE_UNIQUE_TAG)           \
     X(0xb1, TAG_INTENT_MAX_PRIORITY_FEE, get_max_priority_fee, ENFORCE_UNIQUE_TAG)   \
     X(0xb2, TAG_INTENT_FEE_FUNCTION_NAME, get_fee_function_name, ENFORCE_UNIQUE_TAG) \
@@ -234,11 +280,23 @@ int tx_extract_prepared_request(const buffer_t *cdata, prepared_request_t *prepa
     }
     print_signature_data(&G_context.sign_transaction_datas);
 
-    if (prepared_request->inputs_value_offset != prepared_request->inputs_type_offset) {
+    // Ensure structure & version
+    if ((prepared_request->structure_type != 0x29) || (prepared_request->version != 0x01)) {
         explicit_bzero(prepared_request, sizeof(prepared_request_t));
         return -1;
     }
-    if (prepared_request->inputs_value_offset != prepared_request->inputs_count) {
+
+    // Ensure input consistency
+    if ((prepared_request->inputs_value_offset != prepared_request->inputs_type_offset)
+        || (prepared_request->inputs_value_offset != prepared_request->inputs_count)) {
+        explicit_bzero(prepared_request, sizeof(prepared_request_t));
+        return -1;
+    }
+
+    // Ensure program/function consistency
+    if ((prepared_request->program_id == NULL) || (prepared_request->program_id_length == 0)
+        || (prepared_request->function_name == NULL)
+        || (prepared_request->function_name_length == 0)) {
         explicit_bzero(prepared_request, sizeof(prepared_request_t));
         return -1;
     }
@@ -254,6 +312,14 @@ int tx_extract_intent(buffer_t *cdata)
 
     explicit_bzero(&G_context.sign_transaction_datas, sizeof(G_context.sign_transaction_datas));
     if (!intent_tlv_parser(cdata, &G_context.sign_transaction_datas, &received_tags)) {
+        explicit_bzero(&G_context.sign_transaction_datas, sizeof(G_context.sign_transaction_datas));
+        return -1;
+    }
+
+    // Ensure structure & version
+    if ((G_context.sign_transaction_datas.structure_type != 0x28)
+        || (G_context.sign_transaction_datas.version != 0x01)) {
+        explicit_bzero(&G_context.sign_transaction_datas, sizeof(G_context.sign_transaction_datas));
         return -1;
     }
 

@@ -23,6 +23,10 @@ for dir in harness/*; do
         mv "${dir}/${zip_name}" "${OUT}"
     fi
 done
+
+# Copy libFuzzer dictionaries so clusterfuzzlite auto-loads <fuzzer>.dict next to the binary
+cp harness/fuzz_sign_transaction.dict "${OUT}/" 2>/dev/null || true
+
 cmake --build build
 mv ./build/fuzz_* "${OUT}"
 popd

@@ -37,15 +37,6 @@ typedef enum {
 } signing_state_e;
 
 /**
- * Enumeration with parsing state.
- */
-typedef enum {
-    STATE_NONE,     /// No state
-    STATE_PARSED,   /// Transaction data parsed
-    STATE_APPROVED  /// Transaction data approved
-} state_e;
-
-/**
  * Enumeration with user request type.
  */
 typedef enum {
@@ -75,6 +66,8 @@ typedef struct {
 
 typedef struct {
     // input
+    uint8_t  structure_type;
+    uint8_t  version;
     bool     is_root;
     uint16_t network_id;
     uint8_t  program_id_length;
@@ -104,6 +97,8 @@ typedef struct {
 } prepared_request_t;
 
 typedef struct {
+    uint8_t  structure_type;
+    uint8_t  version;
     uint32_t max_base_fee;
     uint32_t max_priority_fee;
     uint8_t  fee_function_name_length;
@@ -135,12 +130,20 @@ typedef enum {
     TX_TOKEN_TRANSFER_PRIVATE_TO_PUBLIC,
     TX_TOKEN_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
     TX_TOKEN_TRANSFER_PUBLIC_TO_PRIVATE,
-    TX_TRANSFER_END = TX_TOKEN_TRANSFER_PUBLIC_TO_PRIVATE,
+    TX_TOKEN_ARC20_TRANSFER_BATCH_PRIVATE,
+    TX_TOKEN_ARC20_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
+    TX_TRANSFER_END = TX_TOKEN_ARC20_TRANSFER_BATCH_PRIVATE_TO_PUBLIC,
 
     TX_FEE_START,
     TX_FEE_PUBLIC = TX_FEE_START,
     TX_FEE_PRIVATE,
     TX_FEE_END = TX_FEE_PRIVATE,
+
+    TX_STAKING_START,
+    TX_STAKING_BOND = TX_STAKING_START,
+    TX_STAKING_UNBOND,
+    TX_STAKING_CLAIM,
+    TX_STAKING_END = TX_STAKING_CLAIM,
 } tx_type_e;
 
 typedef struct {
@@ -161,16 +164,23 @@ typedef struct {
 } tx_fee_t;
 
 typedef struct {
+    uint64_t amount;
+    char     validator_address[ADDRESS_LEN + 1];
+    char     withdrawal_address[ADDRESS_LEN + 1];
+    char     staker_address[ADDRESS_LEN + 1];
+} tx_staking_t;
+
+typedef struct {
     tx_type_e     type;
     tx_transfer_t transfer;
     tx_fee_t      fee;
+    tx_staking_t  staking;
 } tx_t;
 
 /**
  * Structure for global context.
  */
 typedef struct {
-    state_e state;  /// state of the context
     union {
         char address[ADDRESS_LEN + 1];
         char view_key[VIEW_KEY_LEN + 1];
@@ -181,7 +191,7 @@ typedef struct {
 
     account_t account;
 
-    uint32_t                 fees_waiting_time_ms;
+    uint32_t                 next_step_waiting_time_ms;
     signing_state_e          signing_state;
     uint8_t                  nested_call_count;
     uint8_t                  nested_call_offset;

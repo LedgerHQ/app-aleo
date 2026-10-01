@@ -47,10 +47,10 @@ cx_err_t cx_ecpoint_destroy(cx_ecpoint_t *P PLENGTH(sizeof(cx_ecpoint_t)))
     return mock_type(cx_err_t);
 }
 
-cx_err_t cx_ecpoint_scalarmul(cx_ecpoint_t *P  PLENGTH(sizeof(cx_ecpoint_t)),
-                              const uint8_t *k PLENGTH(k_len),
-                              size_t           k_len)
+cx_err_t cx_ecpoint_rnd_scalarmul(cx_ecpoint_t *P  PLENGTH(sizeof(cx_ecpoint_t)),
+                                  const uint8_t *k PLENGTH(k_len),
+                                  size_t           k_len)
 {
-    sys_cx_ecpoint_scalarmul(P, k, k_len);
+    sys_cx_ecpoint_rnd_scalarmul(P, k, k_len);
     return mock_type(cx_err_t);
 }

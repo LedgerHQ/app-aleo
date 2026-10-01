@@ -127,31 +127,6 @@ static void test_fp256(void **state)
     assert_int_equal(r.big.u64[2], 0x8f471282613e2bed);
     assert_int_equal(r.big.u64[3], 0x0fbecc7f1306a05e);
 
-    // fp256_inverse_assign
-    a.big.u64[0] = 0x9383b2702a292d0f;
-    a.big.u64[1] = 0xc654e4d15a654c32;
-    a.big.u64[2] = 0x19bf1456544eee45;
-    a.big.u64[3] = 0x7478f42e2d654a56;
-    fp256_inverse_assign(&parameters, &a);
-    assert_int_equal(a.big.u64[0], 0xeae1f63d827445bc);
-    assert_int_equal(a.big.u64[1], 0xa5e8e9d9549a7d94);
-    assert_int_equal(a.big.u64[2], 0x4480695451283c45);
-    assert_int_equal(a.big.u64[3], 0x10371b8bc5b60c76);
-
-    parameters.MODULUS.big.u64[0] = 1;
-    parameters.MODULUS.big.u64[1] = 0;
-    parameters.MODULUS.big.u64[2] = 0;
-    parameters.MODULUS.big.u64[3] = 0;
-    fp256_inverse_assign(&parameters, &a);
-    parameters.MODULUS.big.u64[0] = 725501752471715841U;
-    parameters.MODULUS.big.u64[1] = 6461107452199829505U;
-    parameters.MODULUS.big.u64[2] = 6968279316240510977U;
-    parameters.MODULUS.big.u64[3] = 1345280370688173398U;
-    assert_int_equal(a.big.u64[0], 0);
-    assert_int_equal(a.big.u64[1], 0);
-    assert_int_equal(a.big.u64[2], 0);
-    assert_int_equal(a.big.u64[3], 0);
-
     // fp256_from_big_int
     bg.u64[0] = 0x7611a496275f6966;
     bg.u64[1] = 0x40cdd495c5bd3ba9;

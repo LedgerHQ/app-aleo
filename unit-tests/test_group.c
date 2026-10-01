@@ -177,6 +177,7 @@ static void test_group(void **state)
     s.big.u64[3] = 0x0399f3f0056b5577;
 
     will_return(cx_bn_lock, -1);
+    will_return(cx_bn_unlock, CX_OK);
     assert_int_equal(group_scalar_multiply(&aaa, &s, &r), -1);
 
     will_return(cx_bn_lock, CX_OK);
@@ -193,14 +194,14 @@ static void test_group(void **state)
     will_return(cx_bn_lock, CX_OK);
     will_return(cx_ecpoint_alloc, CX_OK);
     will_return(cx_ecpoint_init, CX_OK);
-    will_return(cx_ecpoint_scalarmul, -1);
+    will_return(cx_ecpoint_rnd_scalarmul, -1);
     will_return(cx_bn_unlock, CX_OK);
     assert_int_equal(group_scalar_multiply(&aaa, &s, &r), -1);
 
     will_return(cx_bn_lock, CX_OK);
     will_return(cx_ecpoint_alloc, CX_OK);
     will_return(cx_ecpoint_init, CX_OK);
-    will_return(cx_ecpoint_scalarmul, CX_OK);
+    will_return(cx_ecpoint_rnd_scalarmul, CX_OK);
     will_return(cx_ecpoint_export, -1);
     will_return(cx_bn_unlock, CX_OK);
     assert_int_equal(group_scalar_multiply(&aaa, &s, &r), -1);
@@ -208,7 +209,7 @@ static void test_group(void **state)
     will_return(cx_bn_lock, CX_OK);
     will_return(cx_ecpoint_alloc, CX_OK);
     will_return(cx_ecpoint_init, CX_OK);
-    will_return(cx_ecpoint_scalarmul, CX_OK);
+    will_return(cx_ecpoint_rnd_scalarmul, CX_OK);
     will_return(cx_ecpoint_export, CX_OK);
     will_return(cx_ecpoint_destroy, -1);
     will_return(cx_bn_unlock, CX_OK);
@@ -217,7 +218,7 @@ static void test_group(void **state)
     will_return(cx_bn_lock, CX_OK);
     will_return(cx_ecpoint_alloc, CX_OK);
     will_return(cx_ecpoint_init, CX_OK);
-    will_return(cx_ecpoint_scalarmul, CX_OK);
+    will_return(cx_ecpoint_rnd_scalarmul, CX_OK);
     will_return(cx_ecpoint_export, CX_OK);
     will_return(cx_ecpoint_destroy, CX_OK);
     will_return(cx_bn_unlock, -1);
@@ -226,7 +227,7 @@ static void test_group(void **state)
     will_return(cx_bn_lock, CX_OK);
     will_return(cx_ecpoint_alloc, CX_OK);
     will_return(cx_ecpoint_init, CX_OK);
-    will_return(cx_ecpoint_scalarmul, CX_OK);
+    will_return(cx_ecpoint_rnd_scalarmul, CX_OK);
     will_return(cx_ecpoint_export, CX_OK);
     will_return(cx_ecpoint_destroy, CX_OK);
     will_return(cx_bn_unlock, CX_OK);
@@ -244,7 +245,7 @@ static void test_group(void **state)
     will_return(cx_bn_lock, CX_OK);
     will_return(cx_ecpoint_alloc, CX_OK);
     will_return(cx_ecpoint_init, CX_OK);
-    will_return(cx_ecpoint_scalarmul, CX_OK);
+    will_return(cx_ecpoint_rnd_scalarmul, CX_OK);
     will_return(cx_ecpoint_export, CX_OK);
     will_return(cx_ecpoint_destroy, CX_OK);
     will_return(cx_bn_unlock, CX_OK);

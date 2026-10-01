@@ -140,3 +140,34 @@ docker run --rm --privileged -e FUZZING_LANGUAGE=c -v "$(realpath .)/fuzzing/out
 ```bash
 docker run --rm --privileged -e FUZZING_ENGINE=libfuzzer -e RUN_FUZZER_MODE=interactive -v "$(realpath .)/fuzzing/corpus:/tmp/fuzz_corpus" -v "$(realpath .)/fuzzing/out:/out" -ti gcr.io/oss-fuzz-base/base-runner run_fuzzer fuzzer
 ```
+
+## Seed corpus and dictionary for `fuzz_sign_transaction`
+
+### Seed corpus
+
+Seed inputs live in `fuzzing/harness/fuzz_sign_transaction/` (one binary file per seed).
+`build.sh` automatically zips that directory into `fuzz_sign_transaction_seed_corpus.zip` and
+copies it to `$OUT`, where clusterfuzzlite picks it up on the first run.
+
+To regenerate or extend the seeds locally:
+
+```bash
+cd fuzzing
+python3 gen_seeds.py
+```
+
+### libFuzzer dictionary
+
+`fuzzing/harness/fuzz_sign_transaction.dict` contains meaningful tokens for the TLV wire format:
+function-name strings (`transfer_public`, `bond_public`, …), TLV type bytes (`\xb6` for
+FUNCTION_NAME, `\xb4` for REQUEST, etc.) and common input-type tag sequences (address/u64,
+public/private visibility).
+
+`build.sh` copies the dictionary to `$OUT/fuzz_sign_transaction.dict`; clusterfuzzlite and
+oss-fuzz automatically load a file named `<fuzzer_binary>.dict` placed next to the binary.
+
+To use the dictionary during a local run:
+
+```bash
+build/fuzz_sign_transaction -dict=harness/fuzz_sign_transaction.dict [corpus_dir]
+```

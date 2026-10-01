@@ -9,6 +9,7 @@
 
 #include "cx_errors.h"
 #include "format_u128.h"
+#include "aleo_swap_utils.h"
 
 static void test_formatting(void **state)
 {
@@ -55,9 +56,121 @@ static void test_formatting(void **state)
     assert_false(format_fpu128(temp, 9, amount, 12));
 }
 
+// Regression tests for V-202: format_u128() used to perform its capacity check
+// after writing each digit, rejecting values whose decimal representation
+// exactly saturates the output buffer (i.e. digits == out_len - 1) even
+// though the terminating NUL still fits. This must succeed for every value
+// up to and including UINT128_MAX in a buffer sized for the 39 decimal
+// digits of a u128 plus NUL, and must still reject values (or buffers) that
+// genuinely don't fit.
+static void test_format_u128_boundary(void **state)
+{
+    (void) state;
+
+    char temp[40] = {0};
+    char small[39] = {0};
+
+    // 10^38 - 1 : 38 digits, fits with room to spare in a 40-byte buffer.
+    u128_t ten_pow_38_minus_1 = {.high = 0x4B3B4CA85A86C47A, .low = 0x098A223FFFFFFFFF};
+    memset(temp, 0, sizeof(temp));
+    assert_true(format_u128(temp, sizeof(temp), ten_pow_38_minus_1));
+    assert_string_equal(temp, "99999999999999999999999999999999999999");
+
+    // 10^38 : 39 digits, exactly saturates a 40-byte buffer (39 digits + NUL).
+    u128_t ten_pow_38 = {.high = 0x4B3B4CA85A86C47A, .low = 0x098A224000000000};
+    memset(temp, 0, sizeof(temp));
+    assert_true(format_u128(temp, sizeof(temp), ten_pow_38));
+    assert_string_equal(temp, "100000000000000000000000000000000000000");
+
+    // UINT128_MAX : 39 digits, exactly saturates a 40-byte buffer.
+    u128_t max = {.high = 0xFFFFFFFFFFFFFFFF, .low = 0xFFFFFFFFFFFFFFFF};
+    memset(temp, 0, sizeof(temp));
+    assert_true(format_u128(temp, sizeof(temp), max));
+    assert_string_equal(temp, "340282366920938463463374607431768211455");
+
+    // 10^38 - 1 has exactly 38 digits, which still fits (with the NUL) in a
+    // 39-byte buffer.
+    memset(small, 0, sizeof(small));
+    assert_true(format_u128(small, sizeof(small), ten_pow_38_minus_1));
+    assert_string_equal(small, "99999999999999999999999999999999999999");
+
+    // UINT128_MAX needs 39 digits, which cannot fit alongside the NUL in a
+    // 39-byte buffer (only 38 digit slots are available): must be rejected.
+    memset(small, 0, sizeof(small));
+    assert_false(format_u128(small, sizeof(small), max));
+
+    // format_fpu128() relies on the same 40-byte intermediate buffer and
+    // must therefore also succeed for the maximal amount.
+    memset(temp, 0, sizeof(temp));
+    assert_true(format_fpu128(temp, sizeof(temp), max, 0));
+    assert_string_equal(temp, "340282366920938463463374607431768211455");
+}
+
+static void test_swap_str_to_u128(void **state)
+{
+    (void) state;
+
+    u128_t result;
+
+    // Invalid inputs
+    assert_false(swap_str_to_u128(NULL, 1, &result));
+    assert_false(swap_str_to_u128("\x01", 1, NULL));
+    assert_false(swap_str_to_u128("\x01", 0, &result));
+    // Overflow: 17 bytes exceed 128 bits
+    assert_false(swap_str_to_u128("\x01\x02\x03\x04\x05\x06\x07\x08"
+                                  "\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11",
+                                  17,
+                                  &result));
+
+    // Single zero byte
+    assert_true(swap_str_to_u128("\x00", 1, &result));
+    assert_int_equal(result.high, 0);
+    assert_int_equal(result.low, 0);
+
+    // Single byte
+    assert_true(swap_str_to_u128("\x2A", 1, &result));
+    assert_int_equal(result.high, 0);
+    assert_true(result.low == 0x2A);
+
+    // 4 bytes (big-endian)
+    assert_true(swap_str_to_u128("\x12\x34\x56\x78", 4, &result));
+    assert_int_equal(result.high, 0);
+    assert_true(result.low == 0x12345678);
+
+    // 8 bytes (fills low exactly)
+    assert_true(swap_str_to_u128("\x01\x23\x45\x67\x01\x23\x45\x67", 8, &result));
+    assert_int_equal(result.high, 0);
+    assert_true(result.low == 0x0123456701234567);
+
+    // 9 bytes (spills into high)
+    assert_true(swap_str_to_u128("\x01\x02\x03\x04\x05\x06\x07\x08\x09", 9, &result));
+    assert_true(result.high == 0x01);
+    assert_true(result.low == 0x0203040506070809);
+
+    // 16 bytes (max capacity, all in safe range)
+    assert_true(swap_str_to_u128("\x01\x02\x03\x04\x05\x06\x07\x08"
+                                 "\x09\x0A\x0B\x0C\x0D\x0E\x0F\x10",
+                                 16,
+                                 &result));
+    assert_true(result.high == 0x0102030405060708);
+    assert_true(result.low == 0x090A0B0C0D0E0F10);
+
+    // 16 bytes with zeros in high
+    assert_true(swap_str_to_u128("\x00\x00\x00\x00\x00\x00\x00\x01"
+                                 "\x00\x00\x00\x00\x00\x00\x00\x01",
+                                 16,
+                                 &result));
+    assert_true(result.high == 0x0000000000000001);
+    assert_true(result.low == 0x0000000000000001);
+}
+
 int main()
 {
-    const struct CMUnitTest tests[] = {cmocka_unit_test(test_formatting)};
+    const struct CMUnitTest tests[] = {
+        cmocka_unit_test(test_formatting),
+        cmocka_unit_test(test_format_u128_boundary),
+        cmocka_unit_test(test_swap_str_to_u128),
+    };
 
     return cmocka_run_group_tests(tests, NULL, NULL);
 }

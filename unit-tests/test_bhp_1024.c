@@ -200,8 +200,47 @@ static bhp_test_t bhp_tests[] = {
            {.big.u64
             = {0x3ad6cd9ea53fbfce, 0xdf3d3dbe8a6c7f3b, 0xb077de61a52f2ee8, 0x0a2983140a27e484}}},
      },
+    {
+     .status  = 0,
+     .request = {.network_id           = 0,
+                    .program_id           = "credits.aleo",
+                    .program_id_length    = 12,
+                    .function_name        = "bond_public",
+                    .function_name_length = 11},
+     .hash
+        = {{.big.u64
+            = {0xfad1870949c8aa5f, 0xb94139693a1a9ede, 0x13826b9d3dda98ed, 0x11692029f1d694e3}},
+           {.big.u64
+            = {0x11e14f163d3f2b7c, 0xc591f619d35fb0ab, 0x3456c789125b6f67, 0x0eec83be57f64f40}}},
+     },
+    {
+     .status  = 0,
+     .request = {.network_id           = 0,
+                    .program_id           = "credits.aleo",
+                    .program_id_length    = 12,
+                    .function_name        = "unbond_public",
+                    .function_name_length = 13},
+     .hash
+        = {{.big.u64
+            = {0x7023ecbf86089ad7, 0x1d8626b632ad9001, 0x9f1706e883708361, 0x029c23c1fc2b9465}},
+           {.big.u64
+            = {0x75ca6051e895980f, 0x86110aa6b233d58e, 0x53106280baec89af, 0x0628c9c0bfeaeb79}}},
+     },
+    {
+     .status  = 0,
+     .request = {.network_id           = 0,
+                    .program_id           = "credits.aleo",
+                    .program_id_length    = 12,
+                    .function_name        = "claim_unbond_public",
+                    .function_name_length = 19},
+     .hash
+        = {{.big.u64
+            = {0x44e8eea54a97db6b, 0x137b370eeb14174b, 0xb14498709cf52fb5, 0x10df36004e953eb8}},
+           {.big.u64
+            = {0xe506d14510bc7c88, 0xb5566ac3133fe094, 0x8c7852dcca7e24e1, 0x0bce73be56cbba46}}},
+     },
 
- // failure
+    // failure
     {
      .status  = -1,
      .request = {.network_id           = 0,
@@ -211,7 +250,7 @@ static bhp_test_t bhp_tests[] = {
                     .function_name_length = 5},
      },
 
- // End
+    // End
     {.status = -1111}
 };
 

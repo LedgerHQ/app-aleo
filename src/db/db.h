@@ -15,6 +15,7 @@ typedef struct {
     char      name[FUNCTION_NAME_MAX_LEN + 1];
     tx_type_e tx_type;
     uint8_t   input_count;
+    uint8_t   nested_call_count;
     field_t   bhp_1024_hashes[NETWORK_ID_COUNT];
 } function_parameters_t;
 
@@ -26,5 +27,6 @@ int db_get_function_parameters(char                   *program_id,
 
 int db_get_token_display_info(char                  *program_id,
                               uint8_t                program_id_length,
+                              uint16_t               network_id,
                               field_t               *token_id,
                               token_display_info_t **token_display_info);

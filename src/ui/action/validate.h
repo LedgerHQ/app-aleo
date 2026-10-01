@@ -27,4 +27,4 @@ void validate_view_key(bool choice);
  *   User choice (either approved or rejectd).
  *
  */
-void validate_transaction(bool choice);
+int validate_transaction(bool choice);

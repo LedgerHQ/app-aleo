@@ -32,11 +32,14 @@
 #include "validate.h"
 #include "menu.h"
 
+static char g_review_subtitle[32];
+
 static void review_choice(bool confirm)
 {
     // Answer, display a status page and go back to main
     validate_view_key(confirm);
     account_erase(&G_context.account);
+    explicit_bzero(G_context.view_key, sizeof(G_context.view_key));
     if (confirm) {
         nbgl_useCaseReviewStatus(STATUS_TYPE_ADDRESS_VERIFIED, ui_menu_main);
     }
@@ -47,12 +50,19 @@ static void review_choice(bool confirm)
 
 int ui_display_view_key(void)
 {
-    if (G_context.req_type != CONFIRM_VIEW_KEY || G_context.state != STATE_NONE) {
-        G_context.state = STATE_NONE;
+    if (G_context.req_type != CONFIRM_VIEW_KEY) {
         return io_send_sw(SWO_CONDITIONS_NOT_SATISFIED);
     }
 
-    nbgl_useCaseAddressReview(
-        G_context.view_key, NULL, &ICON_APP_ALEO, "Verify view key", NULL, review_choice);
+    snprintf(g_review_subtitle,
+             sizeof(g_review_subtitle),
+             "Account %d",
+             G_context.bip32_path[2] & 0x7FFFFFFF);
+    nbgl_useCaseAddressReview(G_context.view_key,
+                              NULL,
+                              &ICON_APP_ALEO,
+                              "Verify view key",
+                              g_review_subtitle,
+                              review_choice);
     return 0;
 }
