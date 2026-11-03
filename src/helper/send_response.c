@@ -310,7 +310,6 @@ int helper_send_response_sign_transaction(void)
             PRINTF("os_lib_end\n");
             account_erase(&G_context.account);
             r_list_erase();
-            explicit_bzero(response_buffer, sizeof(response_buffer));
             os_lib_end();
             status = 0;
             goto end;
